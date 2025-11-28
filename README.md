@@ -1,16 +1,66 @@
-# React + Vite
+# 🌌 UTOPIA — Futuristic Night Club Template
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Utopia è un **template frontend** moderno, dark e neon–futuristico pensato per un night club esclusivo, con estetica cyberpunk e animazioni dinamiche.  
+Il progetto è sviluppato in **React + Vite**, utilizza **TailwindCSS**, **Framer Motion** e integra un **form di ammissione a socio** completo di firma digitale e notifiche tramite SweetAlert2.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 🚀 Tech Stack
 
-## React Compiler
+- ⚡ **Vite** – sviluppo rapido e build ultraleggera  
+- ⚛️ **React 18**  
+- 🎨 **Tailwind CSS** – design moderno, dark, responsive  
+- 🎞️ **Framer Motion** – animazioni fluide e futuristiche  
+- 🔔 **SweetAlert2** – feedback utente elegante  
+- 🔗 **React Router** – gestione pagine & navigazione  
+- 🔥 **Lucide React Icons** – icone sottili, moderne, neon-ready  
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the ESLint configuration
+## ✨ Funzionalità Incluse
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### 🌀 **Landing Page Futuristica**
+- Hero con elementi neon & glow
+- Logo animato con movimento floating
+- Design dark, minimal, elegante
+
+### 🎧 **Sezioni principali**
+- **About** – presentazione del club
+- **Contact** – form + box social stile neon
+- **Navbar & Footer** full responsive
+
+### 📝 **Form di ammissione a socio**
+- Campi compilabili
+- Upload foto documento (fronte/retro)
+- Firma digitale tramite canvas
+- Validazioni base
+- Popup di conferma via SweetAlert2
+
+### 📱 **Responsive first**
+Perfettamente adattato a mobile, tablet e desktop.
+
+---
+## 🌈 Anteprima Stile
+
+Il design si basa su una palette:
+
+- **Cyan Neon** `#0ea5e9`
+- **Fuchsia / Magenta** `#ec4899`
+- **Deep Blue** `#0c0f1a`
+- **Black Glass Effects**
+
+Effetti **glow** e **gradient animati** completano l’atmosfera futuristica, creando una UI moderna e d’impatto perfetta per un night club esclusivo.
+
+---
+
+## 🧑‍💻 Developer
+
+Realizzato con ❤️ da **MaDGiiRL**  
+🔗 [LinkedIn](https://www.linkedin.com/in/sofia-vidotto-junior-developer/)
+
+---
+
+## 📄 Licenza
+
+Questo template NON è libero per uso **didattico**, **portfolio** o **prototipazione**.  
+
