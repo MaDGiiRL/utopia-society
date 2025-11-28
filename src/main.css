@@ -1,0 +1,35 @@
+@import "tailwindcss";
+
+:root {
+  /* Gradient dark neon: base scura + tocchi fucsia/ciano */
+  --gradient: linear-gradient(
+    -45deg,
+    #020617 0%,   /* quasi nero bluastro */
+    #111827 25%,  /* dark slate */
+    #3b0764 50%,  /* purple very dark */
+    #9d174d 75%,  /* fucsia scuro */
+    #0369a1 100%  /* ciano scuro */
+  );
+}
+
+body {
+  background-color: #020617;       /* fallback super dark */
+  background-image: var(--gradient);
+  background-size: 300%;
+  animation: bg-animation 15s infinite;
+  color: white;
+}
+
+@keyframes bg-animation {
+  0% {
+    background-position: left;
+  }
+
+  50% {
+    background-position: right;
+  }
+
+  100% {
+    background-position: left;
+  }
+}
