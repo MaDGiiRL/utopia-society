@@ -202,35 +202,52 @@ function AboutSection() {
 
         <motion.div
           {...fadeUp(0.15)}
-          className="mt-10 grid gap-6 md:grid-cols-3"
+          className="mt-10 grid gap-6 md:grid-cols-3 perspective-[1200px]"
         >
-          <div className="rounded-2xl border border-white/10 bg-slate-900/60 p-5 backdrop-blur">
-            <h3 className="text-sm font-semibold text-cyan-300">
-              Atmosfera futuristica
-            </h3>
-            <p className="mt-2 text-xs text-slate-300">
-              Luci al neon, laser e una scenografia digitale che trasforma la
-              pista in un dancefloor virtuale.
-            </p>
-          </div>
-          <div className="rounded-2xl border border-white/10 bg-slate-900/60 p-5 backdrop-blur">
-            <h3 className="text-sm font-semibold text-fuchsia-300">
-              Musica selezionata
-            </h3>
-            <p className="mt-2 text-xs text-slate-300">
-              DJ resident e guest internazionali con sonorità house, techno,
-              elettronica e contaminazioni moderne.
-            </p>
-          </div>
-          <div className="rounded-2xl border border-white/10 bg-slate-900/60 p-5 backdrop-blur">
-            <h3 className="text-sm font-semibold text-blue-300">
-              Accesso riservato
-            </h3>
-            <p className="mt-2 text-xs text-slate-300">
-              Ingresso solo per soci e accompagnatori registrati. Compila la
-              domanda di ammissione online in pochi minuti.
-            </p>
-          </div>
+          {[
+            {
+              title: "Atmosfera futuristica",
+              color: "text-cyan-300",
+              text: "Luci al neon, laser e una scenografia digitale che trasforma la pista in un dancefloor virtuale.",
+            },
+            {
+              title: "Musica selezionata",
+              color: "text-fuchsia-300",
+              text: "DJ resident e guest internazionali con sonorità house, techno, elettronica e contaminazioni moderne.",
+            },
+            {
+              title: "Accesso riservato",
+              color: "text-blue-300",
+              text: "Ingresso solo per soci e accompagnatori registrati. Compila la domanda di ammissione online in pochi minuti.",
+            },
+          ].map((item, idx) => (
+            <motion.div
+              key={item.title}
+              initial={{ opacity: 0, y: 20, scale: 0.96 }}
+              whileInView={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ duration: 0.5, delay: 0.2 + idx * 0.08 }}
+              whileHover={{
+                y: -8,
+                scale: 1.03,
+                rotateX: -6,
+                rotateY: 4,
+              }}
+              className="relative overflow-hidden rounded-2xl border border-white/10 bg-slate-900/60 p-5 backdrop-blur group transform-gpu"
+            >
+              {/* bordo glow animato */}
+              <div className="pointer-events-none absolute inset-px rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.22),transparent_55%),radial-gradient(circle_at_bottom,_rgba(236,72,153,0.22),transparent_55%)]" />
+
+              {/* highlight diagonale */}
+              <div className="pointer-events-none absolute -inset-x-10 -top-10 h-20 bg-gradient-to-r from-transparent via-white/15 to-transparent opacity-0 group-hover:opacity-100 group-hover:translate-x-24 transition duration-700" />
+
+              <div className="relative">
+                <h3 className={`text-sm font-semibold ${item.color}`}>
+                  {item.title}
+                </h3>
+                <p className="mt-2 text-xs text-slate-300">{item.text}</p>
+              </div>
+            </motion.div>
+          ))}
         </motion.div>
       </div>
     </section>
