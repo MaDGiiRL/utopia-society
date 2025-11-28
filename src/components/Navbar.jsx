@@ -1,14 +1,24 @@
+import { useState } from "react";
 import { NavLink, Link } from "react-router";
 import { motion } from "framer-motion";
-import { Instagram, Facebook } from "lucide-react";
+import { Instagram, Facebook, Menu, X } from "lucide-react";
+import NavbarBackground3D from "./NavbarBackground3D";
 
 const navLinkClasses =
   "relative px-3 py-1 text-sm font-medium tracking-wide uppercase transition hover:text-cyan-300";
 
+// --- NAVBAR ---
 function Navbar() {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const closeMenu = () => setIsOpen(false);
+
   return (
-    <header className="fixed inset-x-0 top-0 z-50 bg-black/70 backdrop-blur border-b border-white/10">
-      <nav className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
+    <header className="fixed inset-x-0 top-0 z-50 border-b border-white/10">
+      {/* SFONDO 3D */}
+      <NavbarBackground3D />
+
+      <nav className="relative mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
         {/* LOGO - CLICCABILE */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
@@ -23,14 +33,13 @@ function Navbar() {
           </Link>
         </motion.div>
 
-        {/* Links + Social */}
+        {/* Desktop nav + social */}
         <motion.div
-          className="flex items-center gap-4 text-xs"
+          className="hidden items-center gap-4 text-xs md:flex"
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
         >
-          {/* Nav Links */}
           <NavLink
             to="/"
             className={({ isActive }) =>
@@ -53,7 +62,6 @@ function Navbar() {
             Diventa socio
           </NavLink>
 
-          {/* Social Icons */}
           <div className="ml-3 flex items-center gap-3 pl-3 border-l border-white/10">
             <a
               href="https://www.instagram.com/utopia.society.pd"
@@ -74,7 +82,75 @@ function Navbar() {
             </a>
           </div>
         </motion.div>
+
+        {/* Mobile: hamburger */}
+        <motion.button
+          type="button"
+          className="relative z-10 flex items-center justify-center rounded-full border border-white/15 bg-black/40 p-2 text-slate-100 shadow-md backdrop-blur md:hidden"
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+          onClick={() => setIsOpen((prev) => !prev)}
+        >
+          {isOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+        </motion.button>
       </nav>
+
+      {/* Mobile menu */}
+      {isOpen && (
+        <motion.div
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.2 }}
+          className="md:hidden"
+        >
+          <div className="border-t border-white/10 bg-black/90 backdrop-blur px-4 pb-4 pt-2">
+            <div className="flex flex-col gap-2 text-xs uppercase tracking-wide text-slate-100">
+              <NavLink
+                to="/"
+                onClick={closeMenu}
+                className={({ isActive }) =>
+                  `py-2 ${isActive ? "text-cyan-300" : "text-slate-200"}`
+                }
+              >
+                Home
+              </NavLink>
+
+              <NavLink
+                to="/ammissione-socio"
+                onClick={closeMenu}
+                className={({ isActive }) =>
+                  `py-2 ${isActive ? "text-cyan-300" : "text-slate-200"}`
+                }
+              >
+                Diventa socio
+              </NavLink>
+
+              <div className="mt-2 flex items-center gap-4 border-t border-white/10 pt-3">
+                <a
+                  href="https://www.instagram.com/utopia.society.pd"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center gap-1 text-slate-300 hover:text-fuchsia-300 transition"
+                >
+                  <Instagram className="h-4 w-4" />
+                  <span className="text-[0.7rem]">@utopia.society.pd</span>
+                </a>
+                <a
+                  href="https://www.facebook.com/utopiasociety.pd"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center gap-1 text-slate-300 hover:text-cyan-300 transition"
+                >
+                  <Facebook className="h-4 w-4" />
+                  <span className="text-[0.7rem]">/utopiasociety.pd</span>
+                </a>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      )}
     </header>
   );
 }
