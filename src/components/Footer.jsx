@@ -4,7 +4,7 @@ import { Instagram, Facebook } from "lucide-react";
 
 const Footer = () => {
   return (
-    <footer className="relative overflow-hidden border-t border-white/10 bg-black/90 py-10 mt-16">
+    <footer className="relative overflow-hidden border-t border-white/10 bg-black/90 py-10">
       <div className="relative mx-auto max-w-6xl px-4">
         {/* Top Section */}
         <div className="flex flex-col items-center justify-between gap-8 md:flex-row">

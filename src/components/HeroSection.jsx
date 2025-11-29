@@ -22,7 +22,6 @@ function HeroSection() {
       ref={sectionRef}
       className="relative overflow-hidden min-h-[90vh] flex items-center"
     >
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.25),_transparent_60%),radial-gradient(circle_at_bottom,_rgba(236,72,153,0.25),_transparent_60%)]" />
 
       <div className="relative mx-auto flex max-w-6xl flex-col items-center gap-10 px-4 pb-24 pt-24 md:flex-row md:pt-24">
         <motion.div
@@ -48,7 +47,7 @@ function HeroSection() {
           <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-start">
             <a
               href="/ammissione-socio"
-              className="inline-flex items-center justify-center rounded-full text-white bg-gradient-to-r from-cyan-400 to-fuchsia-500 px-6 py-2 text-xs font-semibold uppercase tracking-wide text-black shadow-[0_0_25px_rgba(56,189,248,0.75)] hover:brightness-110 transition"
+              className="inline-flex items-center justify-center rounded-full text-white bg-gradient-to-r from-cyan-400 to-fuchsia-500 px-6 py-2 text-xl font-semibold uppercase tracking-wide text-black shadow-[0_0_25px_rgba(56,189,248,0.75)] hover:brightness-110 transition"
             >
               Diventa socio
             </a>

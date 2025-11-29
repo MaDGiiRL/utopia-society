@@ -24,7 +24,7 @@ function ContactSection() {
       {/* Glow dinamico di sfondo */}
       <motion.div
         style={{ y: bgY, opacity: glowOpacity }}
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.35),_transparent_60%),radial-gradient(circle_at_bottom,_rgba(236,72,153,0.3),_transparent_60%)]"
+        className="pointer-events-none absolute inset-0"
       />
 
       <div className="relative mx-auto max-w-5xl px-4">
