@@ -4,7 +4,7 @@ import { fadeUp } from "../utils/motionPresets";
 import { Instagram, Facebook } from "lucide-react";
 import * as THREE from "three";
 
-// 🎧 MINI SCENA 3D ELEGANTE PER IL BOX SOCIAL
+
 function SocialBox3D() {
   const canvasRef = useRef(null);
   const containerRef = useRef(null);

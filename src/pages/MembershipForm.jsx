@@ -168,7 +168,7 @@ function MembershipForm() {
               viewport={{ once: true, amount: 0.5 }}
               className="text-3xl md:text-4xl lg:text-5xl font-semibold tracking-[0.18em] uppercase"
             >
-              Domanda di ammissione a{" "}
+              Diventa {" "}
               <span className="bg-gradient-to-r from-cyan-300 to-fuchsia-400 bg-clip-text text-transparent">
                 Socio Utopia
               </span>
