@@ -130,7 +130,7 @@ function MembershipForm() {
     <div className="relative">
       {/* SFONDO 3D SCROLL-DRIVEN */}
       <ScrollScene3D />
-      <section className="relative overflow-hidden pt-28 pb-24 md:pt-32">
+      <section className="relative overflow-hidden py-50">
         {/* SFONDO 3D FUTURISTICO */}
         <MembershipBackground3D />
 

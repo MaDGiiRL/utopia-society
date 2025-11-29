@@ -261,7 +261,7 @@ function AboutSection() {
                 rotateX: -6,
                 rotateY: 4,
               }}
-              className="relative overflow-hidden rounded-2xl border border-white/10 bg-slate-900/60 p-5 backdrop-blur group transform-gpu"
+              className="relative overflow-hidden rounded-2xl border border-white/10 bg-slate-900/50 p-5 backdrop-blur group transform-gpu"
             >
               {/* bordo glow animato */}
               <div className="pointer-events-none absolute inset-px rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.22),transparent_55%),radial-gradient(circle_at_bottom,_rgba(236,72,153,0.22),transparent_55%)]" />
