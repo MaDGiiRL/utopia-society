@@ -1,14 +1,10 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router";
 import { Instagram, Facebook } from "lucide-react";
-import FooterBackground3D from "./FooterBackground3D";
 
 const Footer = () => {
   return (
     <footer className="relative overflow-hidden border-t border-white/10 bg-black/90 py-10 mt-16">
-      {/* SFONDO 3D */}
-      <FooterBackground3D />
-
       <div className="relative mx-auto max-w-6xl px-4">
         {/* Top Section */}
         <div className="flex flex-col items-center justify-between gap-8 md:flex-row">

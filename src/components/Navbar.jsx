@@ -2,23 +2,18 @@ import { useState } from "react";
 import { NavLink, Link } from "react-router";
 import { motion } from "framer-motion";
 import { Instagram, Facebook, Menu, X } from "lucide-react";
-import NavbarBackground3D from "./NavbarBackground3D";
 
 const navLinkClasses =
   "relative px-3 py-1 text-sm font-medium tracking-wide uppercase transition hover:text-cyan-300";
 
-// --- NAVBAR ---
 function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
 
   const closeMenu = () => setIsOpen(false);
 
   return (
-    <header className="fixed inset-x-0 top-0 z-50 border-b border-white/10">
-      {/* SFONDO 3D */}
-      <NavbarBackground3D />
-
-      <nav className="relative mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
+    <header className="fixed inset-x-0 top-0 z-50 bg-black/70 backdrop-blur border-b border-white/10">
+      <nav className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
         {/* LOGO - CLICCABILE */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
@@ -33,13 +28,14 @@ function Navbar() {
           </Link>
         </motion.div>
 
-        {/* Desktop nav + social */}
+        {/* DESKTOP: Links + Social */}
         <motion.div
           className="hidden items-center gap-4 text-xs md:flex"
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
         >
+          {/* Nav Links */}
           <NavLink
             to="/"
             className={({ isActive }) =>
@@ -62,6 +58,7 @@ function Navbar() {
             Diventa socio
           </NavLink>
 
+          {/* Social Icons */}
           <div className="ml-3 flex items-center gap-3 pl-3 border-l border-white/10">
             <a
               href="https://www.instagram.com/utopia.society.pd"
@@ -83,10 +80,10 @@ function Navbar() {
           </div>
         </motion.div>
 
-        {/* Mobile: hamburger */}
+        {/* MOBILE: Hamburger */}
         <motion.button
           type="button"
-          className="relative z-10 flex items-center justify-center rounded-full border border-white/15 bg-black/40 p-2 text-slate-100 shadow-md backdrop-blur md:hidden"
+          className="relative z-10 flex items-center justify-center rounded-full border border-white/15 bg-black/60 p-2 text-slate-100 shadow-md backdrop-blur md:hidden"
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
@@ -96,7 +93,7 @@ function Navbar() {
         </motion.button>
       </nav>
 
-      {/* Mobile menu */}
+      {/* MOBILE MENU DROPDOWN */}
       {isOpen && (
         <motion.div
           initial={{ opacity: 0, y: -8 }}

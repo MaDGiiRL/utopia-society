@@ -7,6 +7,25 @@ function AboutSection() {
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
 
+  // progressione scroll globale (0 -> 1)
+  const scrollProgressRef = useRef(0);
+
+  // 🎚 hook scroll -> aggiorna scrollProgressRef
+  useEffect(() => {
+    const handleScroll = () => {
+      const doc = document.documentElement;
+      const total = doc.scrollHeight - doc.clientHeight;
+      const current = doc.scrollTop;
+      scrollProgressRef.current =
+        total > 0 ? current / total : 0;
+    };
+
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // 🎥 scena Three.js + collegamento allo scroll
   useEffect(() => {
     const canvas = canvasRef.current;
     const container = containerRef.current;
@@ -108,29 +127,39 @@ function AboutSection() {
 
     const animate = () => {
       const t = clock.getElapsedTime();
+      const scroll = scrollProgressRef.current; // 0 → 1
 
-      // Torus
-      torus.rotation.x = t * 0.22;
-      torus.rotation.y = t * 0.28;
+      // easing leggero sullo scroll
+      const s = Math.pow(scroll, 0.9);
 
-      // Particelle lente
-      particles.rotation.y = t * 0.03;
-      particles.rotation.x = Math.sin(t * 0.08) * 0.05;
-
-      // Camera breathing
-      camera.position.z = 12 + Math.sin(t * 0.4) * 0.6;
+      // CAMERA – parallax vertical + zoom
+      camera.position.y = 2 + s * 4;             // si alza scrollando
+      camera.position.z = 12 - s * 4;            // si avvicina al dancefloor
+      camera.position.x = Math.sin(s * Math.PI) * 1.2; // piccolo drift laterale
       camera.lookAt(0, 0.5, 0);
 
-      // Lasers pulsanti
+      // TORUS – più folle con lo scroll
+      torus.rotation.x = t * 0.25 + s * Math.PI * 1.2;
+      torus.rotation.y = t * 0.35 + s * Math.PI * 1.6;
+      const torusScale = 1 + s * 0.6;
+      torus.scale.set(torusScale, torusScale, torusScale);
+      torus.position.y = 1.2 + Math.sin(t * 0.8 + s * 4.0) * 0.6;
+
+      // PARTICELLE – swirl che si apre
+      particles.rotation.y = t * 0.03 + s * 1.2;
+      particles.rotation.x = Math.sin(t * 0.08) * 0.05 + s * 0.25;
+
+      // Lasers pulsanti + scroll
       lasers.forEach(({ mesh, offset }, idx) => {
         const pulse = (Math.sin(t * 3 + offset) + 1.5) * 0.6 + 0.4;
-        mesh.scale.y = pulse;
-        mesh.position.y = -2.5 + pulse * 2;
-        mesh.rotation.y = Math.sin(t * 0.7 + idx) * 0.2;
+        mesh.scale.y = pulse * (1 + s * 0.8); // più alti verso il fondo pagina
+        mesh.position.y = -2.5 + pulse * 2 + s * 1.2;
+        mesh.rotation.y = Math.sin(t * 0.7 + idx + s * 3.0) * 0.4;
       });
 
-      // Leggero movimento della grid
-      grid.rotation.x = Math.PI / 2 + Math.sin(t * 0.15) * 0.05;
+      // Grid – si inclina con lo scroll
+      grid.rotation.x = Math.PI / 2 + Math.sin(t * 0.15) * 0.05 + s * 0.25;
+      grid.position.y = -2.5 + s * 1.5;
 
       renderer.render(scene, camera);
       frameId = requestAnimationFrame(animate);
