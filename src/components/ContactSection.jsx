@@ -19,7 +19,7 @@ function ContactSection() {
     <section
       id="contact"
       ref={sectionRef}
-      className="relative overflow-hidden py-20"
+      className="relative overflow-hidden py-20 min-h-[90vh] "
     >
       {/* Glow dinamico di sfondo */}
       <motion.div

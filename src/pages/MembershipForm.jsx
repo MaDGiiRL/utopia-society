@@ -127,11 +127,11 @@ function MembershipForm() {
   };
 
   return (
-    <div className="relative">
+    <div className="relative min-h-[100vh]">
             <div className="pointer-events-none absolute inset-0 m-0 bg-[radial-gradient(circle_at_top,_rgba(236,72,153,0.18),transparent_60%),radial-gradient(circle_at_bottom,_rgba(56,189,248,0.18),transparent_60%)]" />
       {/* SFONDO 3D SCROLL-DRIVEN */}
       <ScrollScene3D />
-      <section className="relative overflow-hidden py-50">
+      <section className="relative overflow-hidden py-50 ">
         {/* SFONDO 3D FUTURISTICO */}
         <MembershipBackground3D />
 

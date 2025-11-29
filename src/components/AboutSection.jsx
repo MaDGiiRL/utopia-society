@@ -4,7 +4,7 @@ import { fadeUp } from "../utils/motionPresets";
 
 function AboutSection() {
   return (
-    <section id="about" className="relative overflow-hidden py-20 m-5">
+    <section id="about" className="relative overflow-hidden py-20 m-5 min-h-[90vh] ">
 
       {/* Contenuto */}
       <div className="relative mx-auto max-w-5xl px-4">
