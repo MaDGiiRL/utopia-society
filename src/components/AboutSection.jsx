@@ -1,26 +1,38 @@
-// src/components/AboutSection.jsx
 import { motion } from "framer-motion";
 import { fadeUp } from "../utils/motionPresets";
 
 function AboutSection() {
   return (
-    <section id="about" className="relative overflow-hidden py-20 m-5 min-h-[90vh] ">
-
+    <section
+      id="about"
+      className="relative overflow-hidden py-20 m-5 min-h-[90vh] "
+    >
       {/* Contenuto */}
       <div className="relative mx-auto max-w-5xl px-4">
         <motion.h2
-          {...fadeUp()}
-          className="text-center text-2xl font-semibold tracking-wide"
+          initial={{ opacity: 0, y: 80, scale: 0.85, letterSpacing: "-0.05em" }}
+          whileInView={{
+            opacity: 1,
+            y: 0,
+            scale: 1,
+            letterSpacing: "0.25em",
+          }}
+          transition={{
+            duration: 1.4,
+            ease: [0.25, 0.1, 0.25, 1],
+          }}
+          viewport={{ once: true, amount: 0.4 }}
+          className="text-center font-semibold uppercase text-5xl md:text-6xl lg:text-7xl tracking-[0.2em] leading-tight"
         >
           About{" "}
-          <span className="bg-gradient-to-r from-cyan-300 to-fuchsia-400 bg-clip-text text-transparent">
+          <span className="bg-gradient-to-r from-cyan-300 to-fuchsia-400 bg-clip-text text-transparent drop-shadow-[0_0_12px_rgba(236,72,153,0.45)]">
             Utopia
           </span>
         </motion.h2>
 
         <motion.p
           {...fadeUp(0.1)}
-          className="mt-4 text-center text-sm text-slate-300 md:text-base"
+          className="mt-10 text-center text-sm text-slate-300 md:text-base"
         >
           Utopia è un club privato situato nel cuore della città. Un ambiente
           esclusivo, curato in ogni dettaglio, dove suoni elettronici,
@@ -30,7 +42,7 @@ function AboutSection() {
 
         <motion.div
           {...fadeUp(0.15)}
-          className="mt-10 grid gap-6 md:grid-cols-3 perspective-[1200px]"
+          className="mt-20 grid gap-6 md:grid-cols-3 perspective-[1200px]"
         >
           {[
             {

@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Swal from "sweetalert2";
-import MembershipBackground3D from "../components/MembershipBackground3D";
+import Background3D from "../components/Background3D";
 import ScrollScene3D from "../components/ScrollScene3D";
 
 const fadeUp = (delay = 0) => ({
@@ -127,13 +127,14 @@ function MembershipForm() {
   };
 
   return (
-    <div className="relative min-h-[100vh]">
-            <div className="pointer-events-none absolute inset-0 m-0 bg-[radial-gradient(circle_at_top,_rgba(236,72,153,0.18),transparent_60%),radial-gradient(circle_at_bottom,_rgba(56,189,248,0.18),transparent_60%)]" />
+    <div className="relative min-h-[90vh]">
+      <div className="pointer-events-none absolute inset-0 m-0 bg-[radial-gradient(circle_at_top,_rgba(236,72,153,0.18),transparent_60%),radial-gradient(circle_at_bottom,_rgba(56,189,248,0.18),transparent_60%)]" />
       {/* SFONDO 3D SCROLL-DRIVEN */}
       <ScrollScene3D />
-      <section className="relative overflow-hidden py-50 ">
+
+      <section className="relative overflow-hidden py-50">
         {/* SFONDO 3D FUTURISTICO */}
-        <MembershipBackground3D />
+        <Background3D />
 
         {/* CONTENUTO ALLINEATO ALLA LANDING */}
         <div className="relative mx-auto flex max-w-6xl flex-col gap-10 px-4 md:grid md:grid-cols-[1.1fr_minmax(0,1.1fr)] md:items-start">
@@ -146,12 +147,32 @@ function MembershipForm() {
               Membership • Accesso riservato
             </p>
 
-            <h1 className="text-3xl font-semibold tracking-wide md:text-4xl">
+            {/* TITOLONE ANIMATO ALLO SCROLL */}
+            <motion.h1
+              initial={{
+                opacity: 0,
+                y: 60,
+                scale: 0.9,
+                letterSpacing: "0.05em",
+              }}
+              whileInView={{
+                opacity: 1,
+                y: 0,
+                scale: 1,
+                letterSpacing: "0.22em",
+              }}
+              transition={{
+                duration: 1,
+                ease: [0.25, 0.1, 0.25, 1],
+              }}
+              viewport={{ once: true, amount: 0.5 }}
+              className="text-3xl md:text-4xl lg:text-5xl font-semibold tracking-[0.18em] uppercase"
+            >
               Domanda di ammissione a{" "}
               <span className="bg-gradient-to-r from-cyan-300 to-fuchsia-400 bg-clip-text text-transparent">
                 Socio Utopia
               </span>
-            </h1>
+            </motion.h1>
 
             <p className="text-xs text-slate-300 md:text-sm max-w-md md:max-w-none mx-auto md:mx-0">
               Compila il form per richiedere la tua tessera socio. La domanda va

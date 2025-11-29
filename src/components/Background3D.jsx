@@ -1,4 +1,4 @@
-// src/components/MembershipBackground3D.jsx
+
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
 

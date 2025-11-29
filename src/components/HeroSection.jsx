@@ -1,4 +1,3 @@
-// src/components/HeroSection.jsx
 import { useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { fadeUp } from "../utils/motionPresets";
@@ -22,7 +21,6 @@ function HeroSection() {
       ref={sectionRef}
       className="relative overflow-hidden min-h-[90vh] flex items-center"
     >
-
       <div className="relative mx-auto flex max-w-6xl flex-col items-center gap-10 px-4 pb-24 pt-24 md:flex-row md:pt-24">
         <motion.div
           {...fadeUp()}
@@ -32,18 +30,36 @@ function HeroSection() {
           <p className="text-xs uppercase tracking-[0.4em] text-cyan-300">
             Night Club • Members Only
           </p>
-          <h1 className="text-4xl font-semibold leading-tight md:text-5xl lg:text-6xl">
+
+          {/* TITOLONE ANIMATO ALLO SCROLL */}
+          <motion.h1
+            initial={{ opacity: 0, y: 60, scale: 0.9, letterSpacing: "0em" }}
+            whileInView={{
+              opacity: 1,
+              y: 0,
+              scale: 1,
+              letterSpacing: "0.18em",
+            }}
+            transition={{
+              duration: 1.2,
+              ease: [0.25, 0.1, 0.25, 1],
+            }}
+            viewport={{ once: true, amount: 0.5 }}
+            className="text-4xl md:text-5xl lg:text-7xl font-semibold leading-tight tracking-[0.15em] uppercase"
+          >
             Benvenuto in{" "}
-            <span className="bg-gradient-to-r from-fuchsia-400 via-cyan-300 to-blue-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-fuchsia-400 via-cyan-300 to-blue-400 bg-clip-text text-transparent drop-shadow-[0_0_18px_rgba(56,189,248,0.7)]">
               Utopia
             </span>
             .
-          </h1>
+          </motion.h1>
+
           <p className="max-w-xl text-sm text-slate-300 md:text-base">
             Un club privato dove luci, musica e design futuristico si
             incontrano. Accesso riservato ai soci, esperienze fuori dal
             quotidiano.
           </p>
+
           <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-start">
             <a
               href="/ammissione-socio"

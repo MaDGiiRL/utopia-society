@@ -19,7 +19,7 @@ function ContactSection() {
     <section
       id="contact"
       ref={sectionRef}
-      className="relative overflow-hidden py-20 min-h-[90vh] "
+      className="relative overflow-hidden py-20 min-h-[90vh]"
     >
       {/* Glow dinamico di sfondo */}
       <motion.div
@@ -37,10 +37,34 @@ function ContactSection() {
             <p className="text-[0.7rem] uppercase tracking-[0.35em] text-cyan-300 mb-2">
               Contact • Utopia
             </p>
-            <h2 className="text-xl md:text-2xl font-semibold">Contattaci</h2>
+
+            {/* TITOLONE ANIMATO ALLO SCROLL */}
+            <motion.h2
+              initial={{
+                opacity: 0,
+                y: 50,
+                scale: 0.9,
+                letterSpacing: "0em",
+              }}
+              whileInView={{
+                opacity: 1,
+                y: 0,
+                scale: 1,
+                letterSpacing: "0.18em",
+              }}
+              transition={{
+                duration: 1,
+                ease: [0.25, 0.1, 0.25, 1],
+              }}
+              viewport={{ once: true, amount: 0.5 }}
+              className="text-3xl md:text-4xl lg:text-5xl font-semibold tracking-[0.14em] uppercase"
+            >
+              Contattaci
+            </motion.h2>
+
             <p className="mt-3 text-sm text-slate-300">
-              Per info su tavoli, eventi privati o partnership compila il form. Ti
-              risponderemo il prima possibile.
+              Per info su tavoli, eventi privati o partnership compila il form.
+              Ti risponderemo il prima possibile.
             </p>
 
             <div className="mt-6 space-y-2 text-sm text-slate-300">
@@ -123,9 +147,7 @@ function ContactSection() {
             }}
             transition={{ type: "spring", stiffness: 180, damping: 20 }}
           >
-            <div className="relative">
-              {/* bordino glow animato */}
-              <div className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 blur-xl transition-opacity duration-500 group-hover:opacity-100" />
+            <div>
               <label className="text-xs uppercase tracking-wide text-slate-300">
                 Nome
               </label>
