@@ -5,6 +5,11 @@ import jwt from "jsonwebtoken";
 import multer from "multer";
 import { supabaseAdmin } from "../supabaseClient.js";
 import { adminAuthMiddleware } from "../middleware/auth.js";
+import {
+    sendEmailToMember,
+    sendSmsToMember,
+    normalizeItalianPhone,
+} from "../services/notifications.js";
 
 const router = Router();
 const JWT_SECRET = process.env.JWT_SECRET || "dev_secret_change_me";
@@ -130,58 +135,54 @@ router.post("/logout", (req, res) => {
  * Upload documento IDENTITÀ (fronte/retro) nel bucket privato "documents"
  * Usato dal MembershipForm pubblico (NIENTE adminAuth qui)
  */
-router.post(
-    "/upload-document",
-    upload.single("file"),
-    async (req, res) => {
-        try {
-            if (!req.file) {
-                return res.status(400).json({ message: "Nessun file inviato" });
-            }
-
-            const file = req.file;
-            const path = req.body.path; // es: "2025-11-30/uuid_front_nomefile.png"
-
-            if (!path) {
-                return res.status(400).json({ message: "Path mancante" });
-            }
-
-            // upload nel bucket privato
-            const { error: uploadErr } = await supabaseAdmin.storage
-                .from("documents") // assicurati che il bucket si chiami esattamente "documents"
-                .upload(path, file.buffer, {
-                    contentType: file.mimetype,
-                    upsert: false,
-                });
-
-            if (uploadErr) {
-                console.error("Errore upload storage:", uploadErr);
-                return res.status(500).json({ message: "Errore upload file" });
-            }
-
-            // crea URL firmata (valida 7 giorni) per il download
-            const { data: signed, error: signErr } = await supabaseAdmin.storage
-                .from("documents")
-                .createSignedUrl(path, 60 * 60 * 24 * 7);
-
-            if (signErr) {
-                console.error("Errore signedUrl:", signErr);
-                return res
-                    .status(500)
-                    .json({ message: "Errore generazione URL documento" });
-            }
-
-            return res.json({
-                ok: true,
-                path,
-                signedUrl: signed.signedUrl,
-            });
-        } catch (err) {
-            console.error(err);
-            return res.status(500).json({ message: "Errore upload documento" });
+router.post("/upload-document", upload.single("file"), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ message: "Nessun file inviato" });
         }
+
+        const file = req.file;
+        const path = req.body.path; // es: "2025-11-30/uuid_front_nomefile.png"
+
+        if (!path) {
+            return res.status(400).json({ message: "Path mancante" });
+        }
+
+        // upload nel bucket privato
+        const { error: uploadErr } = await supabaseAdmin.storage
+            .from("documents") // assicurati che il bucket si chiami esattamente "documents"
+            .upload(path, file.buffer, {
+                contentType: file.mimetype,
+                upsert: false,
+            });
+
+        if (uploadErr) {
+            console.error("Errore upload storage:", uploadErr);
+            return res.status(500).json({ message: "Errore upload file" });
+        }
+
+        // crea URL firmata (valida 7 giorni) per il download
+        const { data: signed, error: signErr } = await supabaseAdmin.storage
+            .from("documents")
+            .createSignedUrl(path, 60 * 60 * 24 * 7);
+
+        if (signErr) {
+            console.error("Errore signedUrl:", signErr);
+            return res
+                .status(500)
+                .json({ message: "Errore generazione URL documento" });
+        }
+
+        return res.json({
+            ok: true,
+            path,
+            signedUrl: signed.signedUrl,
+        });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: "Errore upload documento" });
     }
-);
+});
 
 /**
  * GET /api/admin/members.xml
@@ -217,8 +218,10 @@ router.get("/members.xml", adminAuthMiddleware, async (req, res) => {
             xml += `    <accept_marketing>${m.accept_marketing}</accept_marketing>\n`;
             xml += `    <note>${m.note ?? ""}</note>\n`;
             xml += `    <source>${m.source ?? ""}</source>\n`;
-            xml += `    <document_front_url>${m.document_front_url ?? ""}</document_front_url>\n`;
-            xml += `    <document_back_url>${m.document_back_url ?? ""}</document_back_url>\n`;
+            xml += `    <document_front_url>${m.document_front_url ?? ""
+                }</document_front_url>\n`;
+            xml += `    <document_back_url>${m.document_back_url ?? ""
+                }</document_back_url>\n`;
             xml += `  </member>\n`;
         }
 
@@ -233,8 +236,51 @@ router.get("/members.xml", adminAuthMiddleware, async (req, res) => {
 });
 
 /**
+ * Helper template email & SMS
+ */
+
+function renderEmailTemplate({ member, title, event_date, message_email }) {
+    const nome = member.full_name || "Socio";
+    let body = message_email || "";
+
+    // placeholder {{ nome }}
+    body = body.replace(/{{\s*nome\s*}}/gi, nome);
+
+    if (event_date) {
+        const dataFormattata = new Date(event_date).toLocaleDateString("it-IT");
+        body = body.replace(/{{\s*data_evento\s*}}/gi, dataFormattata);
+    }
+
+    return `
+    <div style="font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 14px; color: #0f172a;">
+      <h1 style="font-size:18px; color:#020617; margin-bottom: 8px;">${title}</h1>
+      <p>Ciao ${nome},</p>
+      <p>${body.replace(/\n/g, "<br/>")}</p>
+      <p style="margin-top:16px; font-size:12px; color:#64748b;">
+        Utopia · Ingresso riservato ai soci.<br/>
+        Se non vuoi più ricevere comunicazioni, contattaci per aggiornare le preferenze.
+      </p>
+    </div>
+  `;
+}
+
+function renderSmsTemplate({ member, title, event_date, message_sms }) {
+    const nome = member.full_name || "Socio";
+    let body = message_sms || "";
+
+    body = body.replace(/{{\s*nome\s*}}/gi, nome);
+
+    if (event_date) {
+        const dataFormattata = new Date(event_date).toLocaleDateString("it-IT");
+        body = body.replace(/{{\s*data_evento\s*}}/gi, dataFormattata);
+    }
+
+    return body;
+}
+
+/**
  * POST /api/admin/send-campaign
- * (come avevi già, lasciato invariato)
+ * Invio reale + log
  */
 router.post("/send-campaign", adminAuthMiddleware, async (req, res) => {
     try {
@@ -255,7 +301,7 @@ router.post("/send-campaign", adminAuthMiddleware, async (req, res) => {
                 event_date: event_date || null,
                 message_email: message_email || null,
                 message_sms: message_sms || null,
-                status: "draft",
+                status: "sending",
             })
             .select("*")
             .single();
@@ -276,27 +322,56 @@ router.post("/send-campaign", adminAuthMiddleware, async (req, res) => {
             return res.status(500).json({ message: "Errore lettura soci" });
         }
 
-        // 3) Finto invio + salvataggio log
         const logs = [];
 
+        // 3) Invio reale + salvataggio log
         for (const m of members || []) {
-            if (channels?.email && m.email) {
+            // EMAIL
+            if (channels?.email && m.email && message_email) {
+                const html = renderEmailTemplate({
+                    member: m,
+                    title,
+                    event_date,
+                    message_email,
+                });
+
+                const result = await sendEmailToMember({
+                    to: m.email,
+                    subject: title,
+                    html,
+                });
+
                 logs.push({
                     campaign_id: campaign.id,
                     member_id: m.id,
                     channel: "email",
-                    status: "sent",
-                    error: null,
+                    status: result.ok ? "sent" : "error",
+                    error: result.ok ? null : result.reason,
                 });
             }
-            if (channels?.sms && m.phone) {
-                logs.push({
-                    campaign_id: campaign.id,
-                    member_id: m.id,
-                    channel: "sms",
-                    status: "sent",
-                    error: null,
-                });
+
+            // SMS
+            if (channels?.sms && m.phone && message_sms) {
+                const normalized = normalizeItalianPhone(m.phone);
+                if (normalized) {
+                    const result = await sendSmsToMember({
+                        to: normalized,
+                        body: renderSmsTemplate({
+                            member: m,
+                            title,
+                            event_date,
+                            message_sms,
+                        }),
+                    });
+
+                    logs.push({
+                        campaign_id: campaign.id,
+                        member_id: m.id,
+                        channel: "sms",
+                        status: result.ok ? "sent" : "error",
+                        error: result.ok ? null : result.reason,
+                    });
+                }
             }
         }
 
