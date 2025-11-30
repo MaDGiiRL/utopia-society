@@ -48,7 +48,7 @@ function HeroSection() {
             className="text-4xl md:text-5xl lg:text-7xl font-semibold leading-tight tracking-[0.15em] uppercase"
           >
             Benvenuto in{" "}
-            <span className="bg-gradient-to-r from-fuchsia-400 via-cyan-300 to-blue-400 bg-clip-text text-transparent drop-shadow-[0_0_18px_rgba(56,189,248,0.7)]">
+            <span className="bg-linear-to-r from-fuchsia-400 via-cyan-300 to-blue-400 bg-clip-text text-transparent drop-shadow-[0_0_18px_rgba(56,189,248,0.7)]">
               Utopia
             </span>
             .
@@ -63,7 +63,7 @@ function HeroSection() {
           <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-start">
             <a
               href="/ammissione-socio"
-              className="inline-flex items-center justify-center rounded-full text-white bg-gradient-to-r from-cyan-400 to-fuchsia-500 px-6 py-2 text-xl font-semibold uppercase tracking-wide text-black shadow-[0_0_25px_rgba(56,189,248,0.75)] hover:brightness-110 transition"
+              className="inline-flex items-center justify-center rounded-full text-black bg-linear-to-r from-cyan-400 to-fuchsia-500 px-6 py-2 text-xl font-semibold uppercase tracking-wide shadow-[0_0_25px_rgba(56,189,248,0.75)] hover:brightness-110 transition"
             >
               Diventa socio
             </a>
@@ -79,7 +79,7 @@ function HeroSection() {
           }}
           className="flex-1 flex justify-center"
         >
-          <div className="relative h-72 w-72 rounded-[2.5rem] border border-cyan-300/40 bg-gradient-to-br from-slate-900 via-slate-950 to-black p-4 shadow-[0_0_40px_rgba(56,189,248,0.55)] overflow-hidden">
+          <div className="relative h-72 w-72 rounded-[2.5rem] border border-cyan-300/40 bg-linear-to-br from-slate-900 via-slate-950 to-black p-4 shadow-[0_0_40px_rgba(56,189,248,0.55)] overflow-hidden">
             {/* LOGO ANIMATO (resta) */}
             <motion.img
               src="/img/logo-small.png"

@@ -45,10 +45,10 @@ function TiltCard({ title, color, text, idx }) {
       className="relative overflow-hidden rounded-2xl border border-white/10 bg-slate-900/60 p-8 backdrop-blur group transform-gpu will-change-transform"
     >
       {/* bordo glow animato */}
-      <div className="pointer-events-none absolute inset-px rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.22),transparent_55%),radial-gradient(circle_at_bottom,_rgba(236,72,153,0.22),transparent_55%)]" />
+      <div className="pointer-events-none absolute inset-px rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-[radial-gradient(circle_at_top,rgba(56,189,248,0.22),transparent_55%),radial-gradient(circle_at_bottom,rgba(236,72,153,0.22),transparent_55%)]" />
 
       {/* highlight diagonale */}
-      <div className="pointer-events-none absolute -inset-x-10 -top-10 h-20 bg-gradient-to-r from-transparent via-white/15 to-transparent opacity-0 group-hover:opacity-100 group-hover:translate-x-24 transition duration-700" />
+      <div className="pointer-events-none absolute -inset-x-10 -top-10 h-20 bg-linear-to-r from-transparent via-white/15 to-transparent opacity-0 group-hover:opacity-100 group-hover:translate-x-24 transition duration-700" />
 
       <div className="relative">
         <h3 className={`text-sm font-semibold ${color}`}>{title}</h3>
@@ -86,7 +86,7 @@ function AboutSection() {
           className="text-center font-semibold uppercase text-5xl md:text-6xl lg:text-7xl tracking-[0.2em] leading-tight"
         >
           About{" "}
-          <span className="bg-gradient-to-r from-cyan-300 to-fuchsia-400 bg-clip-text text-transparent drop-shadow-[0_0_12px_rgba(236,72,153,0.45)]">
+          <span className="bg-linear-to-r from-cyan-300 to-fuchsia-400 bg-clip-text text-transparent drop-shadow-[0_0_12px_rgba(236,72,153,0.45)]">
             Utopia
           </span>
         </motion.h2>
@@ -103,7 +103,7 @@ function AboutSection() {
 
         <motion.div
           {...fadeUp(0.15)}
-          className="mt-20 grid gap-6 md:grid-cols-3 perspective-[1200px]"
+          className="mt-20 grid gap-6 md:grid-cols-3 perspective-distant-[1200px]"
         >
           {[
             {

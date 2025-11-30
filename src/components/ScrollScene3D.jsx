@@ -580,7 +580,7 @@ export default function ScrollScene3D() {
     <div ref={containerRef} className="pointer-events-none fixed inset-0 -z-10">
       <canvas ref={canvasRef} className="h-full w-full" />
       {/* leggera tinta per migliorare il contrasto del testo */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/85 via-black/75 to-black/90" />
+      <div className="absolute inset-0 bg-linear-to-b from-black/85 via-black/75 to-black/90" />
     </div>
   );
 }

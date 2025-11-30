@@ -77,7 +77,7 @@ export default function AdminDashboard() {
             <div className="pointer-events-none absolute -right-4 bottom-0 h-12 w-12 rounded-full bg-fuchsia-500/25 blur-2xl" />
 
             <div className="relative flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-400/80 via-fuchsia-500/70 to-emerald-400/80 text-slate-950 shadow-[0_0_25px_rgba(56,189,248,0.7)]">
+              <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-linear-to-br from-cyan-400/80 via-fuchsia-500/70 to-emerald-400/80 text-slate-950 shadow-[0_0_25px_rgba(56,189,248,0.7)]">
                 <Shield className="h-4 w-4" />
               </div>
               <div>
@@ -99,7 +99,7 @@ export default function AdminDashboard() {
                 <button
                   type="button"
                   onClick={() => setTab("members")}
-                  className={`flex w-full min-w-[160px] items-center gap-2 rounded-xl px-3 py-2 text-left transition md:min-w-0 ${
+                  className={`flex w-full min-w-40 items-center gap-2 rounded-xl px-3 py-2 text-left transition md:min-w-0 ${
                     tab === "members"
                       ? "border border-cyan-400/70 bg-cyan-500/15 text-cyan-100 shadow-[0_0_20px_rgba(56,189,248,0.35)]"
                       : "border border-transparent text-slate-300 hover:bg-slate-900/70"
@@ -121,7 +121,7 @@ export default function AdminDashboard() {
                 <button
                   type="button"
                   onClick={() => setTab("contacts")}
-                  className={`flex w-full min-w-[160px] items-center gap-2 rounded-xl px-3 py-2 text-left transition md:min-w-0 ${
+                  className={`flex w-full min-w-40 items-center gap-2 rounded-xl px-3 py-2 text-left transition md:min-w-0 ${
                     tab === "contacts"
                       ? "border border-cyan-400/70 bg-cyan-500/15 text-cyan-100 shadow-[0_0_20px_rgba(56,189,248,0.35)]"
                       : "border border-transparent text-slate-300 hover:bg-slate-900/70"
@@ -143,7 +143,7 @@ export default function AdminDashboard() {
                 <button
                   type="button"
                   onClick={() => setTab("campaign")}
-                  className={`flex w-full min-w-[160px] items-center gap-2 rounded-xl px-3 py-2 text-left transition md:min-w-0 ${
+                  className={`flex w-full min-w-40 items-center gap-2 rounded-xl px-3 py-2 text-left transition md:min-w-0 ${
                     tab === "campaign"
                       ? "border border-cyan-400/70 bg-cyan-500/15 text-cyan-100 shadow-[0_0_20px_rgba(56,189,248,0.35)]"
                       : "border border-transparent text-slate-300 hover:bg-slate-900/70"

@@ -306,7 +306,7 @@ function MembershipForm() {
   return (
     <div className="relative min-h-[90vh]">
       {/* Glow generale */}
-      <div className="pointer-events-none absolute inset-0 m-0 bg-[radial-gradient(circle_at_top,_rgba(236,72,153,0.18),transparent_60%),radial-gradient(circle_at_bottom,_rgba(56,189,248,0.18),transparent_60%)]" />
+      <div className="pointer-events-none absolute inset-0 m-0 bg-[radial-gradient(circle_at_top,rgba(236,72,153,0.18),transparent_60%),radial-gradient(circle_at_bottom,rgba(56,189,248,0.18),transparent_60%)]" />
 
       {/* SFONDO 3D SCROLL-DRIVEN */}
       <ScrollScene3D />
@@ -343,7 +343,7 @@ function MembershipForm() {
               className="text-3xl md:text-4xl lg:text-5xl font-semibold tracking-[0.18em] uppercase"
             >
               Diventa{" "}
-              <span className="bg-gradient-to-r from-cyan-300 to-fuchsia-400 bg-clip-text text-transparent">
+              <span className="bg-linear-to-r from-cyan-300 to-fuchsia-400 bg-clip-text text-transparent">
                 Socio Utopia
               </span>
             </motion.h1>
@@ -698,7 +698,7 @@ function MembershipForm() {
                 id="btnSubmit"
                 type="submit"
                 disabled={loading}
-                className={`w-full sm:w-auto rounded-full bg-gradient-to-r from-cyan-400 to-fuchsia-500 px-4 py-3 text-xs md:text-sm font-semibold uppercase tracking-[0.18em] text-black shadow-[0_0_40px_rgba(56,189,248,0.9)] hover:brightness-110 transition ${
+                className={`w-full sm:w-auto rounded-full bg-linear-to-r from-cyan-400 to-fuchsia-500 px-4 py-3 text-xs md:text-sm font-semibold uppercase tracking-[0.18em] text-black shadow-[0_0_40px_rgba(56,189,248,0.9)] hover:brightness-110 transition ${
                   loading ? "opacity-60 cursor-not-allowed" : ""
                 }`}
               >
@@ -759,7 +759,7 @@ function MembershipForm() {
                   <button
                     type="button"
                     onClick={handleConfirmSignature}
-                    className="rounded-full bg-gradient-to-r from-emerald-400 to-cyan-500 px-4 py-1.5 text-[0.7rem] font-semibold uppercase tracking-wide text-black"
+                    className="rounded-full bg-linear-to-r from-emerald-400 to-cyan-500 px-4 py-1.5 text-[0.7rem] font-semibold uppercase tracking-wide text-black"
                   >
                     Conferma firma
                   </button>

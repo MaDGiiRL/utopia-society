@@ -165,14 +165,14 @@ export default function ClubAudioPlayer() {
         <div
           className="
             relative flex items-center gap-3 rounded-2xl border border-cyan-400/40
-            bg-black/70 bg-gradient-to-r from-cyan-500/20 via-fuchsia-500/20 to-sky-500/20
+            bg-black/70 bg-linear-to-r from-cyan-500/20 via-fuchsia-500/20 to-sky-500/20
             px-3 py-2 shadow-[0_0_26px_rgba(56,189,248,0.55)] backdrop-blur-xl
             w-[260px] sm:w-[360px] md:w-[460px]
           "
           onClick={(e) => e.stopPropagation()}
         >
           {/* Icona / "cover" rotonda a sinistra (solo da aperto, su schermi >= sm) */}
-          <div className="hidden h-9 w-9 items-center justify-center rounded-full bg-gradient-to-tr from-fuchsia-500 via-cyan-400 to-blue-500 shadow-[0_0_16px_rgba(56,189,248,0.85)] sm:flex">
+          <div className="hidden h-9 w-9 items-center justify-center rounded-full bg-linear-to-tr from-fuchsia-500 via-cyan-400 to-blue-500 shadow-[0_0_16px_rgba(56,189,248,0.85)] sm:flex">
             {isPlaying ? (
               <Disc className="h-5 w-5 text-slate-950 animate-spin-slow" />
             ) : (
@@ -196,7 +196,7 @@ export default function ClubAudioPlayer() {
             {isPlaying ? (
               <Pause className="h-4 w-4 text-cyan-200" />
             ) : (
-              <Play className="h-4 w-4 translate-x-[1px] text-cyan-200" />
+              <Play className="h-4 w-4 translate-x-px text-cyan-200" />
             )}
           </button>
 
@@ -275,7 +275,7 @@ export default function ClubAudioPlayer() {
             <div className="flex items-center justify-between text-[10px] text-cyan-100/70 sm:hidden">
               <span>{formatTime(currentTime)}</span>
               <span>{formatTime(duration)}</span>
-              <span className="ml-2 rounded-full bg-black/40 px-2 py-[2px] text-[9px] uppercase tracking-[0.18em] text-cyan-100/65">
+              <span className="ml-2 rounded-full bg-black/40 px-2 py-2 text-[9px] uppercase tracking-[0.18em] text-cyan-100/65">
                 {currentTrackIndex + 1}/{TRACKS.length}
               </span>
             </div>

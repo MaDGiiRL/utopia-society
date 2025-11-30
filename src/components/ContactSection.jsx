@@ -176,7 +176,7 @@ function SocialBox3D() {
       className="pointer-events-none absolute inset-0 -z-10 rounded-2xl overflow-hidden"
     >
       <canvas ref={canvasRef} className="h-full w-full" />
-      <div className="absolute inset-0 bg-gradient-to-br from-black/40 via-transparent to-black/60" />
+      <div className="absolute inset-0 bg-linear-to-br from-black/40 via-transparent to-black/60" />
     </div>
   );
 }
@@ -304,7 +304,7 @@ function ContactSection() {
                     href="https://www.instagram.com/utopia.society.pd"
                     target="_blank"
                     rel="noreferrer"
-                    className="relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-tr from-fuchsia-500 via-rose-500 to-amber-300 text-slate-50"
+                    className="relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl bg-linear-to-tr from-fuchsia-500 via-rose-500 to-amber-300 text-slate-50"
                     whileHover={{
                       scale: 1.08,
                       rotate: 3,
@@ -318,7 +318,7 @@ function ContactSection() {
                     href="https://www.facebook.com/utopiasociety.pd"
                     target="_blank"
                     rel="noreferrer"
-                    className="relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-tr from-sky-500 via-blue-500 to-indigo-500 text-slate-50"
+                    className="relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl bg-linear-to-tr from-sky-500 via-blue-500 to-indigo-500 text-slate-50"
                     whileHover={{
                       scale: 1.08,
                       rotate: -3,
@@ -417,7 +417,7 @@ function ContactSection() {
             <motion.button
               type="submit"
               disabled={sending}
-              className={`w-full rounded-full bg-gradient-to-r from-cyan-400 to-fuchsia-500 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-black shadow-[0_0_20px_rgba(56,189,248,0.7)] hover:brightness-110 transition ${
+              className={`w-full rounded-full bg-linear-to-r from-cyan-400 to-fuchsia-500 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-black shadow-[0_0_20px_rgba(56,189,248,0.7)] hover:brightness-110 transition ${
                 sending ? "opacity-60 cursor-not-allowed" : ""
               }`}
               whileTap={{ scale: sending ? 1 : 0.96 }}
