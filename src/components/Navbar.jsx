@@ -13,7 +13,7 @@ function Navbar() {
 
   return (
     <header className="fixed inset-x-0 top-0 z-50 bg-black/70 backdrop-blur border-b border-white/10">
-      <nav className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
+      <nav className="relative mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
         {/* LOGO - CLICCABILE */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
@@ -30,7 +30,7 @@ function Navbar() {
 
         {/* DESKTOP: Links + Social */}
         <motion.div
-          className="hidden items-center gap-4 text-xs md:flex"
+          className="relative hidden items-center gap-4 text-xs md:flex"
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
@@ -96,11 +96,11 @@ function Navbar() {
       {/* MOBILE MENU DROPDOWN */}
       {isOpen && (
         <motion.div
+          className="relative md:hidden"
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -8 }}
           transition={{ duration: 0.2 }}
-          className="md:hidden"
         >
           <div className="border-t border-white/10 bg-black/90 backdrop-blur px-4 pb-4 pt-2">
             <div className="flex flex-col gap-2 text-xs uppercase tracking-wide text-slate-100">

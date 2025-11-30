@@ -1,13 +1,25 @@
-
 import { useEffect, useRef } from "react";
 import { useScroll, useSpring } from "framer-motion";
 import * as THREE from "three";
+
+// --- AUDIO CONDIVISO A LIVELLO DI MODULO ---
+let sharedAudioContext = null;
+let sharedAnalyser = null;
+let sharedFreqData = null;
+let sharedSource = null;
 
 export default function ScrollScene3D() {
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
 
-  // progress da 0 a 1 su tutta la pagina
+  // per un po' di "beat detection" sui bassi
+  const prevBassRef = useRef(0);
+  const lastBeatTimeRef = useRef(0);
+
+  // smoothing per movimenti più morbidi
+  const smoothedBassRef = useRef(0);
+  const smoothedMidRef = useRef(0);
+
   const { scrollYProgress } = useScroll();
   const smoothProgress = useSpring(scrollYProgress, {
     stiffness: 70,
@@ -112,10 +124,7 @@ export default function ScrollScene3D() {
       transparent: true,
       opacity: 0.9,
     });
-    const heroParticles = new THREE.Points(
-      heroParticlesGeom,
-      heroParticlesMat
-    );
+    const heroParticles = new THREE.Points(heroParticlesGeom, heroParticlesMat);
     heroGroup.add(heroParticles);
 
     // --- ABOUT: dancefloor + lasers ---
@@ -156,10 +165,8 @@ export default function ScrollScene3D() {
       varying vec3 vPos;
 
       float hash(vec3 p) {
-        p = vec3(dot(p, vec3(127.1, 311.7, 74.7)),
-                 dot(p, vec3(269.5, 183.3, 246.1)),
-                 dot(p, vec3(113.5, 271.9, 124.6)));
-        return -1.0 + 2.0 * fract(sin(p) * 43758.5453123);
+        float h = dot(p, vec3(127.1, 311.7, 74.7));
+        return -1.0 + 2.0 * fract(sin(h) * 43758.5453123);
       }
 
       float noise(vec3 p) {
@@ -263,10 +270,7 @@ export default function ScrollScene3D() {
       transparent: true,
       opacity: 0.8,
     });
-    const memParticles = new THREE.Points(
-      memParticlesGeom,
-      memParticlesMat
-    );
+    const memParticles = new THREE.Points(memParticlesGeom, memParticlesMat);
     membershipGroup.add(memParticles);
 
     // --- CONTACT: equalizer 3D ---
@@ -292,8 +296,7 @@ export default function ScrollScene3D() {
 
     for (let x = -gridSizeX / 2; x < gridSizeX / 2; x++) {
       for (let z = -gridSizeZ / 2; z < gridSizeZ / 2; z++) {
-        const color =
-          barColors[Math.floor(Math.random() * barColors.length)];
+        const color = barColors[Math.floor(Math.random() * barColors.length)];
         const mat = new THREE.MeshStandardMaterial({
           color,
           emissive: color,
@@ -308,9 +311,53 @@ export default function ScrollScene3D() {
 
         bars.push({
           mesh: bar,
-          phase: Math.random() * Math.PI * 2,
           band: Math.abs(x) + Math.abs(z),
+          height: 0.4,
         });
+      }
+    }
+
+    // ===== AUDIO: Web Audio API (bassi, medi, equalizer) =====
+    let audioContext = null;
+    let analyser = null;
+    let freqData = null;
+    let hasAudio = false;
+    let audioEl = null;
+    let playListener = null;
+
+    if (typeof window !== "undefined") {
+      audioEl = document.getElementById("club-audio");
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+
+      if (audioEl && AudioCtx) {
+        if (sharedAudioContext && sharedAnalyser && sharedFreqData) {
+          // riusa il context e l'analyser già creati
+          audioContext = sharedAudioContext;
+          analyser = sharedAnalyser;
+          freqData = sharedFreqData;
+          hasAudio = true;
+        } else {
+          audioContext = new AudioCtx();
+          analyser = audioContext.createAnalyser();
+          analyser.fftSize = 2048;
+          const source = audioContext.createMediaElementSource(audioEl);
+          source.connect(analyser);
+          analyser.connect(audioContext.destination);
+          freqData = new Uint8Array(analyser.frequencyBinCount);
+          hasAudio = true;
+
+          sharedAudioContext = audioContext;
+          sharedAnalyser = analyser;
+          sharedFreqData = freqData;
+          sharedSource = source;
+        }
+
+        playListener = () => {
+          if (audioContext.state === "suspended") {
+            audioContext.resume();
+          }
+        };
+        audioEl.addEventListener("play", playListener);
       }
     }
 
@@ -327,48 +374,148 @@ export default function ScrollScene3D() {
       const t = clock.getElapsedTime();
       const p = progress; // scroll 0-1
 
-      // camera che scende lungo i gruppi
+      // === AUDIO: bassi + medi ===
+      let bassLevel = 0;
+      let midLevel = 0;
+      let hasFreq = false;
+
+      if (hasAudio && analyser && freqData) {
+        analyser.getByteFrequencyData(freqData);
+        hasFreq = true;
+        const len = freqData.length;
+
+        const bassEnd = Math.floor(len * 0.15);
+        const midStart = bassEnd;
+        const midEnd = Math.floor(len * 0.45);
+
+        let bassSum = 0;
+        let bassCount = 0;
+        let midSum = 0;
+        let midCount = 0;
+
+        for (let i = 0; i < bassEnd; i++) {
+          bassSum += freqData[i];
+          bassCount++;
+        }
+        for (let i = midStart; i < midEnd; i++) {
+          midSum += freqData[i];
+          midCount++;
+        }
+
+        bassLevel = bassCount ? bassSum / bassCount / 255 : 0;
+        midLevel = midCount ? midSum / midCount / 255 : 0;
+      } else {
+        // fallback se non c'è audio / permessi
+        bassLevel = Math.sin(t * 2.0) * 0.5 + 0.5;
+        midLevel = Math.cos(t * 1.2) * 0.5 + 0.5;
+      }
+
+      // smoothing per movimenti morbidi
+      const smoothedBass = smoothedBassRef.current * 0.8 + bassLevel * 0.2;
+      const smoothedMid = smoothedMidRef.current * 0.8 + midLevel * 0.2;
+      smoothedBassRef.current = smoothedBass;
+      smoothedMidRef.current = smoothedMid;
+
+      // beat detection semplice sui bassi (usa valore non smussato)
+      const prevBass = prevBassRef.current;
+      const bassDelta = bassLevel - prevBass;
+      if (bassDelta > 0.18 && bassLevel > 0.35) {
+        lastBeatTimeRef.current = t;
+      }
+      prevBassRef.current = bassLevel;
+
+      const timeSinceBeat = t - lastBeatTimeRef.current;
+      const beatPulse = Math.max(0, 1 - timeSinceBeat * 4); // decresce veloce
+
+      // camera che scende lungo i gruppi, leggermente influenzata dall'audio
       const camY = THREE.MathUtils.lerp(2.5, -4.5, p);
-      const camZ = 12 + Math.sin(t * 0.4) * 0.6;
+      const camZ =
+        12 + Math.sin(t * 0.4) * 0.6 - beatPulse * 0.7 - smoothedBass * 0.5;
       camera.position.set(
-        Math.sin(t * 0.2) * 0.6,
-        camY + Math.sin(t * 0.3) * 0.3,
+        Math.sin(t * 0.2) * (0.5 + smoothedMid * 0.4),
+        camY + Math.sin(t * 0.3) * 0.3 * (0.6 + smoothedMid * 0.4),
         camZ
       );
       camera.lookAt(0, camY, 0);
 
       // hero
-      heroTorus.rotation.x = Math.sin(t * 0.6) * 0.4;
-      heroTorus.rotation.y = t * 0.4;
-      innerRing.rotation.y = -t * 0.6;
-      innerRing.rotation.z = Math.sin(t * 0.5) * 0.3;
-      heroParticles.rotation.y = t * 0.12;
+      heroTorus.rotation.x = Math.sin(t * 0.6) * (0.25 + smoothedMid * 0.25);
+      heroTorus.rotation.y = t * (0.25 + 0.4 * smoothedBass);
+      innerRing.rotation.y = -t * (0.45 + 0.5 * smoothedBass);
+      innerRing.rotation.z = Math.sin(t * 0.5) * (0.18 + smoothedMid * 0.2);
+
+      const heroPulse = 1.0 + 0.15 * smoothedBass + 0.2 * beatPulse;
+      heroGroup.scale.set(heroPulse, heroPulse, heroPulse);
+
+      heroParticles.rotation.y = t * 0.1;
+      heroParticlesMat.opacity = 0.4 + 0.4 * smoothedMid + 0.2 * beatPulse;
 
       // about
       grid.rotation.x = Math.PI / 2 + Math.sin(t * 0.35) * 0.08;
+      grid.material.opacity = 0.3 + 0.3 * smoothedMid + 0.2 * beatPulse;
+
       lasers.forEach(({ mesh, offset }, idx) => {
-        const pulse = (Math.sin(t * 3 + offset) + 1.5) * 0.6 + 0.4;
+        const base = hasFreq
+          ? smoothedMid
+          : Math.sin(t * 3 + offset) * 0.5 + 0.5;
+        const pulse = 0.4 + 1.0 * base + 0.6 * beatPulse;
         mesh.scale.y = pulse;
         mesh.position.y = -2.5 + pulse * 1.5;
-        mesh.rotation.y = Math.sin(t * 0.7 + idx) * 0.2;
+        mesh.rotation.y = Math.sin(t * 0.7 + idx) * 0.4;
+        mesh.rotation.z = Math.sin(t * 0.9 + offset) * 0.3;
+        mesh.material.emissiveIntensity = 1.1 + base * 1.2 + beatPulse * 0.7;
       });
 
-      // membership blob
-      uniforms.uTime.value = t;
-      blob.rotation.y = t * 0.35;
-      blob.rotation.x = Math.sin(t * 0.25) * 0.2;
-      memParticles.rotation.y = t * 0.08;
+      // membership blob (fulcro)
+      uniforms.uTime.value = t + smoothedMid * 2.0;
 
-      // contact equalizer
-      const bpm = 118;
-      const beat = (t * bpm * Math.PI) / 60;
-      bars.forEach(({ mesh, phase, band }) => {
-        const intensity = Math.sin(beat * 0.5 + phase + band * 0.12);
-        const height = 0.4 + Math.max(intensity, 0) * 3.2;
-        mesh.scale.y = height;
-        mesh.position.y = -3.9 + height / 2;
-        mesh.rotation.y = Math.sin(t * 0.4 + phase) * 0.25;
-      });
+      const blobScale = 1.0 + smoothedBass * 0.35 + beatPulse * 0.45;
+      blob.scale.set(blobScale, blobScale, blobScale);
+
+      blob.rotation.y = t * (0.25 + smoothedBass * 0.6) + beatPulse * 0.5;
+      blob.rotation.x = Math.sin(t * 0.35) * (0.15 + smoothedMid * 0.25);
+
+      memParticles.rotation.y = t * 0.07;
+      memParticles.rotation.x = Math.sin(t * 0.2) * 0.1;
+      memParticlesMat.size = 0.04 + 0.03 * smoothedMid + 0.02 * beatPulse;
+
+      // contact equalizer -> usa realmente lo spettro
+      if (hasFreq && freqData) {
+        const len = freqData.length;
+        bars.forEach((bar, idx) => {
+          const { mesh, band } = bar;
+          const bin = Math.floor((idx / bars.length) * (len * 0.6)); // prime bande
+          const v = freqData[bin] / 255;
+          const targetHeight = 0.25 + v * 3.2 + beatPulse * (1.4 - band * 0.03);
+
+          bar.height = bar.height * 0.7 + targetHeight * 0.3;
+          mesh.scale.y = bar.height;
+          mesh.position.y = -3.9 + bar.height / 2;
+          mesh.rotation.y = (v - 0.5) * 0.6;
+
+          mesh.material.emissiveIntensity = 0.9 + v * 1.6 + beatPulse * 0.8;
+        });
+      } else {
+        // fallback se non c'è audio
+        const bpm = 118;
+        const beat = (t * bpm * Math.PI) / 60;
+        bars.forEach((bar, idx) => {
+          const { mesh, band } = bar;
+          const v = Math.sin(beat * 0.5 + idx * 0.2) * 0.5 + 0.5;
+          const targetHeight = 0.3 + v * 2.8 + beatPulse * (1.2 - band * 0.03);
+
+          bar.height = bar.height * 0.7 + targetHeight * 0.3;
+          mesh.scale.y = bar.height;
+          mesh.position.y = -3.9 + bar.height / 2;
+          mesh.rotation.y = Math.sin(t * 0.4 + idx) * 0.25;
+          mesh.material.emissiveIntensity = 1.0 + v * 1.4;
+        });
+      }
+
+      // luci globali che seguono bassi / beat
+      const global = 0.7 + 1.1 * smoothedBass + 0.9 * beatPulse;
+      pinkLight.intensity = 1.2 + global;
+      cyanLight.intensity = 1.2 + global * (0.7 + smoothedMid * 0.3);
 
       renderer.render(scene, camera);
       frameId = requestAnimationFrame(animate);
@@ -421,14 +568,16 @@ export default function ScrollScene3D() {
         mesh.geometry.dispose();
         mesh.material.dispose();
       });
+
+      if (audioEl && playListener) {
+        audioEl.removeEventListener("play", playListener);
+      }
+      // NON chiudo sharedAudioContext: è condiviso per tutta l'app
     };
   }, [smoothProgress]);
 
   return (
-    <div
-      ref={containerRef}
-      className="pointer-events-none fixed inset-0 -z-10"
-    >
+    <div ref={containerRef} className="pointer-events-none fixed inset-0 -z-10">
       <canvas ref={canvasRef} className="h-full w-full" />
       {/* leggera tinta per migliorare il contrasto del testo */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/85 via-black/75 to-black/90" />

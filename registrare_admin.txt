@@ -1,0 +1,9 @@
+apri due terminali bash 
+su uno npm run dev 
+sull'altro node server/index.js 
+
+vai su /admin/login
+
+curl -X POST http://localhost:4000/api/admin/register \
+  -H "Content-Type: application/json" \
+  -d '{"email":"paiolofelino@gmail.com","password":"SuperPassword123"}'

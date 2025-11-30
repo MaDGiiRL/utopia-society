@@ -1,8 +1,8 @@
-import React, { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Swal from "sweetalert2";
-import Background3D from "../components/Background3D";
 import ScrollScene3D from "../components/ScrollScene3D";
+import { supabase } from "../lib/supabaseClient";
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 24 },
@@ -14,10 +14,15 @@ function MembershipForm() {
   const formRef = useRef(null);
   const canvasRef = useRef(null);
   const drawing = useRef(false);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [hasSigned, setHasSigned] = useState(false);
 
-  // Setup canvas firma
+  const [loading, setLoading] = useState(false);
+  const [ok, setOk] = useState(false);
+  const [error, setError] = useState("");
+
+  // ====== SETUP CANVAS FIRMA (se usi il modal) ======
   useEffect(() => {
     if (!isModalOpen) return;
     const canvas = canvasRef.current;
@@ -92,51 +97,88 @@ function MembershipForm() {
     setHasSigned(false);
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setIsModalOpen(true);
-  };
-
-  const handleConfirmSignature = () => {
+  const handleConfirmSignature = async () => {
     if (!hasSigned) {
-      Swal.fire({
+      await Swal.fire({
         icon: "warning",
         title: "Firma mancante",
         text: "Per favore firma la domanda prima di confermare.",
         confirmButtonText: "Ok",
+        background: "#020617",
+        color: "#e5e7eb",
       });
       return;
     }
-
     setIsModalOpen(false);
+  };
 
-    Swal.fire({
-      icon: "success",
-      title: "Registrazione effettuata",
-      text: "La tua domanda di ammissione è stata inviata.",
-      confirmButtonText: "Chiudi",
-      confirmButtonColor: "#22c55e",
-      background: "#020617",
-      color: "#e5e7eb",
-    });
+  // ====== SUBMIT: INSERIMENTO IN SUPABASE (members) ======
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+    setOk(false);
 
-    formRef.current?.reset();
-    clearSignature();
+    const formData = new FormData(e.target);
+
+    const fullName = `${formData.get("associatedName") || ""} ${
+      formData.get("associatedSurname") || ""
+    }`.trim();
+
+    const payload = {
+      full_name: fullName,
+      email: formData.get("emailType"),
+      phone: formData.get("telephone"),
+      city: formData.get("city") || null,
+      date_of_birth: formData.get("birthDate") || null,
+      note: formData.get("note") || null,
+      accept_privacy: formData.get("accept_privacy") === "on",
+      accept_marketing: formData.get("accept_marketing") === "on",
+      source: "membership_form",
+    };
+
+    try {
+      const { error: insertError } = await supabase
+        .from("members")
+        .insert(payload);
+
+      if (insertError) {
+        console.error(insertError);
+        setError("Si è verificato un errore, riprova più tardi.");
+        return;
+      }
+
+      setOk(true);
+      e.target.reset();
+      clearSignature();
+      setHasSigned(false);
+
+      await Swal.fire({
+        icon: "success",
+        title: "Domanda inviata",
+        text: "La tua richiesta di ammissione è stata registrata correttamente.",
+        confirmButtonText: "Chiudi",
+        confirmButtonColor: "#22c55e",
+        background: "#020617",
+        color: "#e5e7eb",
+      });
+    } catch (err) {
+      console.error(err);
+      setError("Errore imprevisto, riprova più tardi.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="relative min-h-[90vh]">
-      {/* Glow generale come la landing */}
+      {/* Glow generale */}
       <div className="pointer-events-none absolute inset-0 m-0 bg-[radial-gradient(circle_at_top,_rgba(236,72,153,0.18),transparent_60%),radial-gradient(circle_at_bottom,_rgba(56,189,248,0.18),transparent_60%)]" />
 
       {/* SFONDO 3D SCROLL-DRIVEN */}
       <ScrollScene3D />
 
       <section className="relative overflow-hidden py-24">
-        {/* SFONDO 3D locale / leggero */}
-        <Background3D />
-
-        {/* CONTENUTO ALLINEATO ALLA LANDING */}
         <div className="relative mx-auto flex max-w-6xl flex-col gap-12 px-4 lg:grid lg:grid-cols-[1.05fr_minmax(0,1.1fr)] lg:items-start">
           {/* COLONNA TESTO */}
           <motion.div
@@ -147,7 +189,6 @@ function MembershipForm() {
               Membership • Accesso riservato
             </p>
 
-            {/* TITOLONE */}
             <motion.h1
               initial={{
                 opacity: 0,
@@ -180,7 +221,6 @@ function MembershipForm() {
               dell&apos;ingresso in struttura.
             </p>
 
-            {/* PILL / INFO VELOCI */}
             <div className="flex flex-wrap items-center justify-center gap-3 lg:justify-start text-[0.7rem]">
               <span className="rounded-full border border-cyan-400/40 bg-cyan-400/10 px-3 py-1 uppercase tracking-[0.2em] text-cyan-200">
                 Step 1 / 1
@@ -190,7 +230,6 @@ function MembershipForm() {
               </span>
             </div>
 
-            {/* LISTA "Cosa ti serve" */}
             <div className="hidden md:flex flex-col gap-2 text-[0.75rem] text-slate-300 pt-4 border-t border-white/10 max-w-md lg:max-w-none">
               <p className="uppercase tracking-[0.22em] text-slate-400">
                 Cosa ti serve
@@ -203,7 +242,7 @@ function MembershipForm() {
             </div>
           </motion.div>
 
-          {/* COLONNA FORM – CARD GLASS */}
+          {/* COLONNA FORM */}
           <motion.form
             {...fadeUp(0.15)}
             ref={formRef}
@@ -335,6 +374,18 @@ function MembershipForm() {
                     required
                   />
                 </div>
+                <div>
+                  <label className="text-[0.7rem] uppercase tracking-wide text-slate-300">
+                    Città di residenza
+                  </label>
+                  <input
+                    id="city"
+                    name="city"
+                    className="mt-1 w-full rounded-xl border border-white/10 bg-slate-950/70 px-3 py-2 text-sm outline-none focus:border-cyan-400"
+                    placeholder="Città"
+                    required
+                  />
+                </div>
               </div>
             </div>
 
@@ -380,15 +431,30 @@ function MembershipForm() {
               </div>
             </div>
 
+            {/* NOTE OPZIONALI */}
+            <div className="space-y-2 border-t border-white/5 pt-4">
+              <p className="text-[0.7rem] uppercase tracking-[0.22em] text-slate-400">
+                Note aggiuntive (opzionale)
+              </p>
+              <textarea
+                id="note"
+                name="note"
+                rows={3}
+                className="mt-1 w-full rounded-xl border border-white/10 bg-slate-950/70 px-3 py-2 text-sm outline-none focus:border-cyan-400"
+                placeholder="Eventuali richieste o informazioni aggiuntive…"
+              />
+            </div>
+
             {/* SEZIONE: CONSENSI */}
             <div className="space-y-3 border-t border-white/5 pt-4">
               <p className="text-[0.7rem] uppercase tracking-[0.22em] text-slate-400">
-                Consensi obbligatori
+                Consensi
               </p>
               <div className="space-y-2 text-xs text-slate-300">
                 <label className="flex items-start gap-2">
                   <input
-                    id="autorize1"
+                    id="accept_privacy"
+                    name="accept_privacy"
                     type="checkbox"
                     required
                     className="mt-0.5 h-4 w-4 rounded border-slate-500 bg-slate-900 text-cyan-400 focus:ring-cyan-400"
@@ -409,7 +475,7 @@ function MembershipForm() {
 
                 <label className="flex items-start gap-2">
                   <input
-                    id="autorize2"
+                    id="accept_statute"
                     type="checkbox"
                     required
                     className="mt-0.5 h-4 w-4 rounded border-slate-500 bg-slate-900 text-cyan-400 focus:ring-cyan-400"
@@ -427,17 +493,56 @@ function MembershipForm() {
                     .
                   </span>
                 </label>
+
+                <label className="flex items-start gap-2">
+                  <input
+                    id="accept_marketing"
+                    name="accept_marketing"
+                    type="checkbox"
+                    className="mt-0.5 h-4 w-4 rounded border-slate-500 bg-slate-900 text-cyan-400 focus:ring-cyan-400"
+                  />
+                  <span>
+                    Autorizzo l&apos;utilizzo dei miei contatti per
+                    comunicazioni riguardanti eventi e attività del club
+                    (newsletter/SMS).
+                  </span>
+                </label>
               </div>
             </div>
 
-            {/* CTA */}
-            <div className="pt-2">
+            {/* CTA + eventuali messaggi errore/successo */}
+            {error && (
+              <div className="rounded-lg border border-rose-500/40 bg-rose-500/10 px-3 py-2 text-[11px] text-rose-200">
+                {error}
+              </div>
+            )}
+            {ok && (
+              <div className="rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-[11px] text-emerald-200">
+                Domanda inviata correttamente.
+              </div>
+            )}
+
+            <div className="pt-2 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <button
                 id="btnSubmit"
                 type="submit"
-                className="w-full rounded-full bg-gradient-to-r from-cyan-400 to-fuchsia-500 px-4 py-3 text-xs md:text-sm font-semibold uppercase tracking-[0.18em] text-black shadow-[0_0_28px_rgba(56,189,248,0.9)] hover:brightness-110 transition"
+                disabled={loading}
+                className={`w-full sm:w-auto rounded-full bg-gradient-to-r from-cyan-400 to-fuchsia-500 px-4 py-3 text-xs md:text-sm font-semibold uppercase tracking-[0.18em] text-black shadow-[0_0_28px_rgba(56,189,248,0.9)] hover:brightness-110 transition ${
+                  loading ? "opacity-60 cursor-not-allowed" : ""
+                }`}
               >
-                Invia domanda di ammissione
+                {loading ? "Invio in corso..." : "Invia domanda di ammissione"}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  clearSignature();
+                  setIsModalOpen(true);
+                }}
+                className="text-[0.7rem] uppercase tracking-[0.18em] text-slate-300 hover:text-cyan-200"
+              >
+                Apri riquadro firma (opzionale)
               </button>
             </div>
           </motion.form>
@@ -474,12 +579,14 @@ function MembershipForm() {
 
                 <div className="mt-3 flex items-center justify-between">
                   <button
+                    type="button"
                     onClick={clearSignature}
                     className="text-[0.7rem] uppercase tracking-wide text-slate-300 underline"
                   >
                     Reset firma
                   </button>
                   <button
+                    type="button"
                     onClick={handleConfirmSignature}
                     className="rounded-full bg-gradient-to-r from-emerald-400 to-cyan-500 px-4 py-1.5 text-[0.7rem] font-semibold uppercase tracking-wide text-black"
                   >

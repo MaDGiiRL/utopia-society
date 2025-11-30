@@ -1,9 +1,8 @@
-// src/pages/Home.jsx
 import ScrollScene3D from "../components/ScrollScene3D";
 import HeroSection from "../components/HeroSection";
 import AboutSection from "../components/AboutSection";
 import ContactSection from "../components/ContactSection";
-import Background3D from "../components/Background3D";
+
 function Home() {
   return (
     <div className="relative">
@@ -12,7 +11,6 @@ function Home() {
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.25),_transparent_60%),radial-gradient(circle_at_bottom,_rgba(236,72,153,0.25),_transparent_60%)]" />
       {/* CONTENUTO SCROLLABILE SOPRA IL 3D */}
       <div className="relative z-10">
-                <Background3D />
         <HeroSection />
         <AboutSection />
         <ContactSection />
