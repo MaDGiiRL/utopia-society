@@ -1,3 +1,4 @@
+// src/pages/MembershipForm.jsx
 import { useRef, useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Swal from "sweetalert2";
@@ -9,6 +10,11 @@ const fadeUp = (delay = 0) => ({
   animate: { opacity: 1, y: 0 },
   transition: { duration: 0.7, delay },
 });
+
+// Base URL backend: da env, con fallback a localhost:4000 in dev
+const API_BASE =
+  import.meta.env.VITE_ADMIN_API_URL ||
+  (import.meta.env.DEV ? "http://localhost:4000" : "");
 
 function MembershipForm() {
   const formRef = useRef(null);
@@ -22,7 +28,13 @@ function MembershipForm() {
   const [ok, setOk] = useState(false);
   const [error, setError] = useState("");
 
-  // ====== SETUP CANVAS FIRMA (se usi il modal) ======
+  // 👇 Stati per anteprima documenti
+  const [frontPreview, setFrontPreview] = useState(null);
+  const [backPreview, setBackPreview] = useState(null);
+  const [frontName, setFrontName] = useState("");
+  const [backName, setBackName] = useState("");
+
+  // ====== SETUP CANVAS FIRMA (opzionale) ======
   useEffect(() => {
     if (!isModalOpen) return;
     const canvas = canvasRef.current;
@@ -89,6 +101,14 @@ function MembershipForm() {
     };
   }, [isModalOpen]);
 
+  // cleanup URL oggetti quando il componente smonta
+  useEffect(() => {
+    return () => {
+      if (frontPreview) URL.revokeObjectURL(frontPreview);
+      if (backPreview) URL.revokeObjectURL(backPreview);
+    };
+  }, [frontPreview, backPreview]);
+
   const clearSignature = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -112,7 +132,67 @@ function MembershipForm() {
     setIsModalOpen(false);
   };
 
-  // ====== SUBMIT: INSERIMENTO IN SUPABASE (members) ======
+  // === Helper anteprima file (fronte/retro) ===
+  const handleFileChange = (e, setPreview, setName) => {
+    const file = e.target.files?.[0];
+
+    // libera eventuale URL precedente
+    setPreview((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return null;
+    });
+
+    if (file) {
+      const url = URL.createObjectURL(file);
+      setPreview(url);
+      setName(file.name);
+    } else {
+      setName("");
+    }
+  };
+
+  // === Helper per upload documento verso il backend ===
+  const uploadDocumento = async (file, tipo) => {
+    if (!API_BASE) {
+      throw new Error(
+        "API_BASE non configurato (VITE_ADMIN_API_URL mancante in .env)."
+      );
+    }
+
+    const todayFolder = new Date().toISOString().slice(0, 10);
+    const random =
+      window.crypto?.randomUUID?.() ||
+      `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    const path = `${todayFolder}/${random}_${tipo}_${file.name}`;
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("path", path);
+
+    const res = await fetch(`${API_BASE}/api/admin/upload-document`, {
+      method: "POST",
+      body: formData,
+    });
+
+    let data = {};
+    try {
+      data = await res.json();
+    } catch {
+      // niente
+    }
+
+    if (!res.ok || !data.ok) {
+      console.error("Upload documento failed", res.status, data);
+      throw new Error(data.message || "Errore upload documento");
+    }
+
+    return {
+      path: data.path,
+      url: data.signedUrl,
+    };
+  };
+
+  // ====== SUBMIT: upload immagini + insert in Supabase (members) ======
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -121,23 +201,43 @@ function MembershipForm() {
 
     const formData = new FormData(e.target);
 
-    const fullName = `${formData.get("associatedName") || ""} ${
-      formData.get("associatedSurname") || ""
-    }`.trim();
+    // Campi anagrafici
+    const name = formData.get("associatedName") || "";
+    const surname = formData.get("associatedSurname") || "";
+    const fullName = `${name} ${surname}`.trim();
 
-    const payload = {
-      full_name: fullName,
-      email: formData.get("emailType"),
-      phone: formData.get("telephone"),
-      city: formData.get("city") || null,
-      date_of_birth: formData.get("birthDate") || null,
-      note: formData.get("note") || null,
-      accept_privacy: formData.get("accept_privacy") === "on",
-      accept_marketing: formData.get("accept_marketing") === "on",
-      source: "membership_form",
-    };
+    // File documento
+    const fileFront = formData.get("document_front");
+    const fileBack = formData.get("document_back");
+
+    if (!fileFront || !fileFront.size || !fileBack || !fileBack.size) {
+      setLoading(false);
+      setError("Carica sia il fronte che il retro del documento.");
+      return;
+    }
 
     try {
+      // 1) Upload documenti al backend (bucket privato)
+      const frontResult = await uploadDocumento(fileFront, "front");
+      const backResult = await uploadDocumento(fileBack, "back");
+
+      // 2) Inserimento record in members
+      const payload = {
+        full_name: fullName,
+        email: formData.get("emailType"),
+        phone: formData.get("telephone"),
+        city: formData.get("city") || null,
+        date_of_birth: formData.get("birthDate") || null,
+        birth_place: formData.get("birthPlace") || null,
+        fiscal_code: formData.get("fiscalCode") || null,
+        note: formData.get("note") || null,
+        accept_privacy: formData.get("accept_privacy") === "on",
+        accept_marketing: formData.get("accept_marketing") === "on",
+        source: "membership_form",
+        document_front_url: frontResult.url,
+        document_back_url: backResult.url,
+      };
+
       const { error: insertError } = await supabase
         .from("members")
         .insert(payload);
@@ -153,6 +253,14 @@ function MembershipForm() {
       clearSignature();
       setHasSigned(false);
 
+      // reset anteprime
+      if (frontPreview) URL.revokeObjectURL(frontPreview);
+      if (backPreview) URL.revokeObjectURL(backPreview);
+      setFrontPreview(null);
+      setBackPreview(null);
+      setFrontName("");
+      setBackName("");
+
       await Swal.fire({
         icon: "success",
         title: "Domanda inviata",
@@ -164,7 +272,7 @@ function MembershipForm() {
       });
     } catch (err) {
       console.error(err);
-      setError("Errore imprevisto, riprova più tardi.");
+      setError(err.message || "Errore imprevisto, riprova più tardi.");
     } finally {
       setLoading(false);
     }
@@ -395,38 +503,76 @@ function MembershipForm() {
                 Documento di identità
               </p>
               <div className="grid gap-4 md:grid-cols-2">
+                {/* Fronte */}
                 <label className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-cyan-400/60 bg-slate-950/70 px-4 py-6 text-center text-xs text-slate-200 hover:border-cyan-300 transition">
                   <span className="mb-1 text-[0.7rem] uppercase tracking-wide text-cyan-300">
                     Fronte
                   </span>
+                  {frontName && (
+                    <span className="mb-1 text-[0.65rem] text-cyan-200/90">
+                      {frontName}
+                    </span>
+                  )}
                   <span className="text-[0.65rem] text-slate-400">
                     Carica o scatta la foto del fronte del documento
                   </span>
                   <input
                     id="cameraInputFronte"
+                    name="document_front"
                     type="file"
                     accept="image/*"
                     capture="environment"
                     className="hidden"
                     required
+                    onChange={(e) =>
+                      handleFileChange(e, setFrontPreview, setFrontName)
+                    }
                   />
+                  {frontPreview && (
+                    <div className="mt-3 w-full max-w-[180px] overflow-hidden rounded-xl border border-white/10 bg-slate-900/70">
+                      <img
+                        src={frontPreview}
+                        alt="Anteprima documento fronte"
+                        className="block w-full h-auto object-cover"
+                      />
+                    </div>
+                  )}
                 </label>
 
+                {/* Retro */}
                 <label className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-fuchsia-400/60 bg-slate-950/70 px-4 py-6 text-center text-xs text-slate-200 hover:border-fuchsia-300 transition">
                   <span className="mb-1 text-[0.7rem] uppercase tracking-wide text-fuchsia-300">
                     Retro
                   </span>
+                  {backName && (
+                    <span className="mb-1 text-[0.65rem] text-fuchsia-200/90">
+                      {backName}
+                    </span>
+                  )}
                   <span className="text-[0.65rem] text-slate-400">
                     Carica o scatta la foto del retro del documento
                   </span>
                   <input
                     id="cameraInputRetro"
+                    name="document_back"
                     type="file"
                     accept="image/*"
                     capture="environment"
                     className="hidden"
                     required
+                    onChange={(e) =>
+                      handleFileChange(e, setBackPreview, setBackName)
+                    }
                   />
+                  {backPreview && (
+                    <div className="mt-3 w-full max-w-[180px] overflow-hidden rounded-xl border border-white/10 bg-slate-900/70">
+                      <img
+                        src={backPreview}
+                        alt="Anteprima documento retro"
+                        className="block w-full h-auto object-cover"
+                      />
+                    </div>
+                  )}
                 </label>
               </div>
             </div>
@@ -487,7 +633,7 @@ function MembershipForm() {
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-cyan-300 underline"
-                    >
+                      >
                       statuto Utopia e statuto ACSI nazionale
                     </a>
                     .
@@ -510,7 +656,7 @@ function MembershipForm() {
               </div>
             </div>
 
-            {/* CTA + eventuali messaggi errore/successo */}
+            {/* MESSAGGI + CTA */}
             {error && (
               <div className="rounded-lg border border-rose-500/40 bg-rose-500/10 px-3 py-2 text-[11px] text-rose-200">
                 {error}
@@ -527,14 +673,14 @@ function MembershipForm() {
                 id="btnSubmit"
                 type="submit"
                 disabled={loading}
-                className={`w-full sm:w-auto rounded-full bg-gradient-to-r from-cyan-400 to-fuchsia-500 px-4 py-3 text-xs md:text-sm font-semibold uppercase tracking-[0.18em] text-black shadow-[0_0_28px_rgba(56,189,248,0.9)] hover:brightness-110 transition ${
+                className={`w-full sm:w-auto rounded-full bg-gradient-to-r from-cyan-400 to-fuchsia-500 px-4 py-3 text-xs md:text-sm font-semibold uppercase tracking-[0.18em] text-black shadow-[0_0_40px_rgba(56,189,248,0.9)] hover:brightness-110 transition ${
                   loading ? "opacity-60 cursor-not-allowed" : ""
                 }`}
               >
                 {loading ? "Invio in corso..." : "Invia domanda di ammissione"}
               </button>
 
-              <button
+              {/* <button
                 type="button"
                 onClick={() => {
                   clearSignature();
@@ -543,12 +689,12 @@ function MembershipForm() {
                 className="text-[0.7rem] uppercase tracking-[0.18em] text-slate-300 hover:text-cyan-200"
               >
                 Apri riquadro firma (opzionale)
-              </button>
+              </button> */}
             </div>
           </motion.form>
 
-          {/* MODALE FIRMA */}
-          {isModalOpen && (
+       
+          {/* {isModalOpen && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
               <div className="w-full max-w-md rounded-2xl border border-white/10 bg-slate-950 p-4 shadow-2xl">
                 <div className="flex items-center justify-between">
@@ -556,6 +702,7 @@ function MembershipForm() {
                     Firma la domanda di ammissione
                   </h2>
                   <button
+                    type="button"
                     onClick={() => setIsModalOpen(false)}
                     className="text-slate-400 hover:text-slate-200"
                   >
@@ -595,7 +742,7 @@ function MembershipForm() {
                 </div>
               </div>
             </div>
-          )}
+          )} */}
         </div>
       </section>
     </div>

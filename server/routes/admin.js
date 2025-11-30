@@ -2,13 +2,20 @@
 import { Router } from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import multer from "multer";
 import { supabaseAdmin } from "../supabaseClient.js";
 import { adminAuthMiddleware } from "../middleware/auth.js";
 
 const router = Router();
 const JWT_SECRET = process.env.JWT_SECRET || "dev_secret_change_me";
 
-// POST /api/admin/register  (usata una volta via curl)
+// multer per leggere file dal form-data
+const upload = multer({ storage: multer.memoryStorage() });
+
+/**
+ * POST /api/admin/register
+ * (da usare una volta via curl per creare l'admin)
+ */
 router.post("/register", async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -53,7 +60,9 @@ router.post("/register", async (req, res) => {
     }
 });
 
-// POST /api/admin/login
+/**
+ * POST /api/admin/login
+ */
 router.post("/login", async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -98,7 +107,9 @@ router.post("/login", async (req, res) => {
     }
 });
 
-// 🔥 GET /api/admin/me  → QUESTA È QUELLA CHE MANCA E TI DÀ 404
+/**
+ * GET /api/admin/me
+ */
 router.get("/me", adminAuthMiddleware, (req, res) => {
     return res.json({
         id: req.admin.id,
@@ -106,13 +117,76 @@ router.get("/me", adminAuthMiddleware, (req, res) => {
     });
 });
 
-// POST /api/admin/logout
+/**
+ * POST /api/admin/logout
+ */
 router.post("/logout", (req, res) => {
     res.clearCookie("admin_token");
     return res.json({ ok: true });
 });
 
-// GET /api/admin/members.xml  (export lista soci in XML)
+/**
+ * POST /api/admin/upload-document
+ * Upload documento IDENTITÀ (fronte/retro) nel bucket privato "documents"
+ * Usato dal MembershipForm pubblico (NIENTE adminAuth qui)
+ */
+router.post(
+    "/upload-document",
+    upload.single("file"),
+    async (req, res) => {
+        try {
+            if (!req.file) {
+                return res.status(400).json({ message: "Nessun file inviato" });
+            }
+
+            const file = req.file;
+            const path = req.body.path; // es: "2025-11-30/uuid_front_nomefile.png"
+
+            if (!path) {
+                return res.status(400).json({ message: "Path mancante" });
+            }
+
+            // upload nel bucket privato
+            const { error: uploadErr } = await supabaseAdmin.storage
+                .from("documents") // assicurati che il bucket si chiami esattamente "documents"
+                .upload(path, file.buffer, {
+                    contentType: file.mimetype,
+                    upsert: false,
+                });
+
+            if (uploadErr) {
+                console.error("Errore upload storage:", uploadErr);
+                return res.status(500).json({ message: "Errore upload file" });
+            }
+
+            // crea URL firmata (valida 7 giorni) per il download
+            const { data: signed, error: signErr } = await supabaseAdmin.storage
+                .from("documents")
+                .createSignedUrl(path, 60 * 60 * 24 * 7);
+
+            if (signErr) {
+                console.error("Errore signedUrl:", signErr);
+                return res
+                    .status(500)
+                    .json({ message: "Errore generazione URL documento" });
+            }
+
+            return res.json({
+                ok: true,
+                path,
+                signedUrl: signed.signedUrl,
+            });
+        } catch (err) {
+            console.error(err);
+            return res.status(500).json({ message: "Errore upload documento" });
+        }
+    }
+);
+
+/**
+ * GET /api/admin/members.xml
+ * Export soci (con tutti i campi + URL documenti) in XML
+ */
 router.get("/members.xml", adminAuthMiddleware, async (req, res) => {
     try {
         const { data, error } = await supabaseAdmin
@@ -135,8 +209,16 @@ router.get("/members.xml", adminAuthMiddleware, async (req, res) => {
             xml += `    <full_name>${m.full_name ?? ""}</full_name>\n`;
             xml += `    <email>${m.email ?? ""}</email>\n`;
             xml += `    <phone>${m.phone ?? ""}</phone>\n`;
+            xml += `    <date_of_birth>${m.date_of_birth ?? ""}</date_of_birth>\n`;
+            xml += `    <birth_place>${m.birth_place ?? ""}</birth_place>\n`;
+            xml += `    <fiscal_code>${m.fiscal_code ?? ""}</fiscal_code>\n`;
             xml += `    <city>${m.city ?? ""}</city>\n`;
+            xml += `    <accept_privacy>${m.accept_privacy}</accept_privacy>\n`;
             xml += `    <accept_marketing>${m.accept_marketing}</accept_marketing>\n`;
+            xml += `    <note>${m.note ?? ""}</note>\n`;
+            xml += `    <source>${m.source ?? ""}</source>\n`;
+            xml += `    <document_front_url>${m.document_front_url ?? ""}</document_front_url>\n`;
+            xml += `    <document_back_url>${m.document_back_url ?? ""}</document_back_url>\n`;
             xml += `  </member>\n`;
         }
 
@@ -150,14 +232,19 @@ router.get("/members.xml", adminAuthMiddleware, async (req, res) => {
     }
 });
 
-// POST /api/admin/send-campaign
+/**
+ * POST /api/admin/send-campaign
+ * (come avevi già, lasciato invariato)
+ */
 router.post("/send-campaign", adminAuthMiddleware, async (req, res) => {
     try {
         const { title, event_date, message_email, message_sms, channels } =
             req.body || {};
 
         if (!title) {
-            return res.status(400).json({ message: "Titolo campagna obbligatorio" });
+            return res
+                .status(400)
+                .json({ message: "Titolo campagna obbligatorio" });
         }
 
         // 1) crea record campagna
@@ -168,7 +255,7 @@ router.post("/send-campaign", adminAuthMiddleware, async (req, res) => {
                 event_date: event_date || null,
                 message_email: message_email || null,
                 message_sms: message_sms || null,
-                status: "draft", // oppure "sending"
+                status: "draft",
             })
             .select("*")
             .single();
@@ -189,8 +276,7 @@ router.post("/send-campaign", adminAuthMiddleware, async (req, res) => {
             return res.status(500).json({ message: "Errore lettura soci" });
         }
 
-        // 3) QUI andrebbe integrato con provider email/SMS (SendGrid, Mailersend, Twilio, ecc.)
-        // Per ora facciamo finta di mandarli e logghiamo soltanto in campaign_logs
+        // 3) Finto invio + salvataggio log
         const logs = [];
 
         for (const m of members || []) {

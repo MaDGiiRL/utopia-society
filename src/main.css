@@ -2,18 +2,23 @@
 
 :root {
   /* Gradient dark neon: base scura + tocchi fucsia/ciano */
-  --gradient: linear-gradient(
-    -45deg,
-    #020617 0%,   /* quasi nero bluastro */
-    #111827 25%,  /* dark slate */
-    #3b0764 50%,  /* purple very dark */
-    #9d174d 75%,  /* fucsia scuro */
-    #0369a1 100%  /* ciano scuro */
-  );
+  --gradient: linear-gradient(-45deg,
+      #020617 0%,
+      /* quasi nero bluastro */
+      #111827 25%,
+      /* dark slate */
+      #3b0764 50%,
+      /* purple very dark */
+      #9d174d 75%,
+      /* fucsia scuro */
+      #0369a1 100%
+      /* ciano scuro */
+    );
 }
 
 body {
-  background-color: #020617;       /* fallback super dark */
+  background-color: #020617;
+  /* fallback super dark */
   background-image: var(--gradient);
   background-size: 300%;
   animation: bg-animation 15s infinite;
@@ -32,4 +37,30 @@ body {
   100% {
     background-position: left;
   }
+}
+
+/* Scrollbar personalizzata */
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+  scrollbar-width: thin;
+  /* Firefox */
+  scrollbar-color: #38bdf8 #020617;
+  /* thumb | track */
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.9);
+  /* bg-slate-900-ish */
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #22d3ee, #e879f9);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #06b6d4, #db2777);
 }

@@ -119,87 +119,96 @@ export default function ClubAudioPlayer() {
     return `${m}:${s.toString().padStart(2, "0")}`;
   };
 
-  const handleNext = (auto = false) => {
-    setCurrentTrackIndex((prev) => {
-      const nextIndex = (prev + 1) % TRACKS.length;
-      return nextIndex;
-    });
-    // se arriva da auto-end, il play viene già gestito da useEffect
+  const handleNext = () => {
+    setCurrentTrackIndex((prev) => (prev + 1) % TRACKS.length);
   };
 
   const handlePrev = () => {
-    setCurrentTrackIndex((prev) => {
-      const nextIndex = (prev - 1 + TRACKS.length) % TRACKS.length;
-      return nextIndex;
-    });
+    setCurrentTrackIndex((prev) => (prev - 1 + TRACKS.length) % TRACKS.length);
   };
 
   return (
     <div
       className="
-        fixed bottom-3 left-3 sm:bottom-4 sm:left-4 
+        fixed bottom-3 left-3 sm:bottom-4 sm:left-4
         z-30 pointer-events-auto
-        flex justify-start
-        max-w-full
+        flex items-end gap-2 max-w-full
       "
     >
-      <div
-        className={`
-          relative flex items-center gap-3 rounded-2xl border border-cyan-400/40 
-          bg-black/70 bg-gradient-to-r from-cyan-500/20 via-fuchsia-500/20 to-sky-500/20
-          px-3 py-2 shadow-[0_0_26px_rgba(56,189,248,0.55)] backdrop-blur-xl
-          cursor-pointer transition-all duration-300
-          w-auto
-          ${isExpanded ? "min-w-[260px] sm:w-[360px] md:w-[460px]" : ""}
-        `}
+      {/* BOTTONCINO TOGGLE */}
+      <button
+        type="button"
         onClick={() => setIsExpanded((v) => !v)}
+        className={`
+          flex h-11 w-11 items-center justify-center rounded-full
+          border border-cyan-300/60
+          bg-black/80 shadow-[0_0_26px_rgba(56,189,248,0.55)] backdrop-blur-xl
+          hover:bg-black/95 transition
+          relative overflow-hidden
+        `}
       >
-        {/* Icona / "cover" rotonda a sinistra (solo da aperto, su schermi >= sm) */}
-        {isExpanded && (
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="hidden sm:flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-tr from-fuchsia-500 via-cyan-400 to-blue-500 shadow-[0_0_16px_rgba(56,189,248,0.85)]"
-          >
+        {/* glow animato quando suona */}
+        {isPlaying && (
+          <span className="absolute inset-0 animate-ping rounded-full bg-cyan-400/20" />
+        )}
+        <span className="relative flex items-center justify-center">
+          {isPlaying ? (
+            <Disc className="h-5 w-5 text-cyan-200 animate-spin-slow" />
+          ) : (
+            <Music2 className="h-5 w-5 text-cyan-200" />
+          )}
+        </span>
+      </button>
+
+      {/* CARD PLAYER - SOLO QUANDO ESPANSO */}
+      {isExpanded && (
+        <div
+          className="
+            relative flex items-center gap-3 rounded-2xl border border-cyan-400/40
+            bg-black/70 bg-gradient-to-r from-cyan-500/20 via-fuchsia-500/20 to-sky-500/20
+            px-3 py-2 shadow-[0_0_26px_rgba(56,189,248,0.55)] backdrop-blur-xl
+            w-[260px] sm:w-[360px] md:w-[460px]
+          "
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Icona / "cover" rotonda a sinistra (solo da aperto, su schermi >= sm) */}
+          <div className="hidden h-9 w-9 items-center justify-center rounded-full bg-gradient-to-tr from-fuchsia-500 via-cyan-400 to-blue-500 shadow-[0_0_16px_rgba(56,189,248,0.85)] sm:flex">
             {isPlaying ? (
               <Disc className="h-5 w-5 text-slate-950 animate-spin-slow" />
             ) : (
               <Music2 className="h-5 w-5 text-slate-950" />
             )}
           </div>
-        )}
 
-        {/* Pulsante play/pause centrale (sempre visibile) */}
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            togglePlay();
-          }}
-          className="
-            flex h-9 w-9 items-center justify-center rounded-full 
-            bg-black/80 shadow-md hover:bg-black/95 transition
-            border border-cyan-300/40
-          "
-        >
-          {isPlaying ? (
-            <Pause className="h-4 w-4 text-cyan-200" />
-          ) : (
-            <Play className="h-4 w-4 text-cyan-200 translate-x-[1px]" />
-          )}
-        </button>
-
-        {/* Info traccia + progress + controlli traccia */}
-        {isExpanded && (
-          <div
-            className="flex flex-1 flex-col gap-1 min-w-0"
-            onClick={(e) => e.stopPropagation()}
+          {/* Pulsante play/pause */}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              togglePlay();
+            }}
+            className="
+              flex h-9 w-9 items-center justify-center rounded-full
+              bg-black/80 shadow-md hover:bg-black/95 transition
+              border border-cyan-300/40
+            "
           >
+            {isPlaying ? (
+              <Pause className="h-4 w-4 text-cyan-200" />
+            ) : (
+              <Play className="h-4 w-4 translate-x-[1px] text-cyan-200" />
+            )}
+          </button>
+
+          {/* Info traccia + progress + controlli traccia */}
+          <div className="flex min-w-0 flex-1 flex-col gap-1">
             {/* Riga superiore: titolo, artista, tempo, controlli prev/next */}
             <div className="flex items-center justify-between gap-2">
               <div className="flex min-w-0 flex-col">
-                <span className="text-[11px] uppercase tracking-[0.19em] text-cyan-100/90 line-clamp-1">
+                <span className="line-clamp-1 text-[11px] uppercase tracking-[0.19em] text-cyan-100/90">
                   {currentTrack.title}
                 </span>
-                <span className="text-[12px] sm:text-xs text-slate-100/85">
+                <span className="text-[12px] text-slate-100/85 sm:text-xs">
                   {currentTrack.artist}
                 </span>
               </div>
@@ -220,7 +229,7 @@ export default function ClubAudioPlayer() {
                       e.stopPropagation();
                       handlePrev();
                     }}
-                    className="flex h-7 w-7 items-center justify-center rounded-full bg-black/60 text-cyan-100/90 hover:bg-black/90 hover:text-cyan-200 transition border border-white/5"
+                    className="flex h-7 w-7 items-center justify-center rounded-full border border-white/5 bg-black/60 text-cyan-100/90 transition hover:bg-black/90 hover:text-cyan-200"
                     title="Traccia precedente"
                   >
                     <SkipBack className="h-3.5 w-3.5" />
@@ -231,7 +240,7 @@ export default function ClubAudioPlayer() {
                       e.stopPropagation();
                       handleNext();
                     }}
-                    className="flex h-7 w-7 items-center justify-center rounded-full bg-black/60 text-cyan-100/90 hover:bg-black/90 hover:text-cyan-200 transition border border-white/5"
+                    className="flex h-7 w-7 items-center justify-center rounded-full border border-white/5 bg-black/60 text-cyan-100/90 transition hover:bg-black/90 hover:text-cyan-200"
                     title="Traccia successiva"
                   >
                     <SkipForward className="h-3.5 w-3.5" />
@@ -249,7 +258,7 @@ export default function ClubAudioPlayer() {
               value={progress}
               onChange={handleSeek}
               className="
-                w-full accent-cyan-300 cursor-pointer
+                w-full cursor-pointer accent-cyan-300
                 [&::-webkit-slider-runnable-track]:h-[3px]
                 [&::-webkit-slider-runnable-track]:rounded-full
                 [&::-webkit-slider-runnable-track]:bg-cyan-400/40
@@ -271,22 +280,8 @@ export default function ClubAudioPlayer() {
               </span>
             </div>
           </div>
-        )}
-
-        {/* Indicatore stato anche quando collassato */}
-        <div className="ml-1 flex items-center gap-1">
-          <span className="hidden text-[10px] uppercase tracking-[0.2em] text-cyan-100/80 sm:block">
-            {isPlaying ? "Playing" : "Paused"}
-          </span>
-          <span
-            className={`
-              block h-[9px] w-[9px] rounded-full border border-cyan-200/70 
-              shadow-[0_0_8px_rgba(56,189,248,0.8)]
-              ${isPlaying ? "bg-cyan-300" : "bg-transparent"}
-            `}
-          />
         </div>
-      </div>
+      )}
     </div>
   );
 }
