@@ -1,5 +1,5 @@
 // src/pages/admin/NewCampaign.jsx
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Send,
   Mail,
@@ -9,10 +9,16 @@ import {
   Loader2,
   History,
   ListOrdered,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { supabase } from "../../lib/supabaseClient";
 
 const API_BASE = import.meta.env.VITE_ADMIN_API_URL || "";
+
+// paginazione tabelle storico
+const PAGE_SIZE_CAMPAIGNS = 5;
+const PAGE_SIZE_LOGS = 5;
 
 export default function NewCampaign() {
   const [loading, setLoading] = useState(false);
@@ -25,6 +31,10 @@ export default function NewCampaign() {
   const [logs, setLogs] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(true);
   const [historyError, setHistoryError] = useState("");
+
+  // pagine per le tabelle di storico
+  const [campaignPage, setCampaignPage] = useState(1);
+  const [logPage, setLogPage] = useState(1);
 
   const loadHistory = async () => {
     try {
@@ -64,6 +74,31 @@ export default function NewCampaign() {
   useEffect(() => {
     loadHistory();
   }, []);
+
+  // reset pagina quando cambia la lunghezza dati
+  useEffect(() => {
+    setCampaignPage(1);
+  }, [campaigns.length]);
+
+  useEffect(() => {
+    setLogPage(1);
+  }, [logs.length]);
+
+  const totalCampaignPages = Math.max(
+    1,
+    Math.ceil(campaigns.length / PAGE_SIZE_CAMPAIGNS)
+  );
+  const totalLogPages = Math.max(1, Math.ceil(logs.length / PAGE_SIZE_LOGS));
+
+  const pagedCampaigns = useMemo(() => {
+    const start = (campaignPage - 1) * PAGE_SIZE_CAMPAIGNS;
+    return campaigns.slice(start, start + PAGE_SIZE_CAMPAIGNS);
+  }, [campaigns, campaignPage]);
+
+  const pagedLogs = useMemo(() => {
+    const start = (logPage - 1) * PAGE_SIZE_LOGS;
+    return logs.slice(start, start + PAGE_SIZE_LOGS);
+  }, [logs, logPage]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -317,141 +352,232 @@ export default function NewCampaign() {
 
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
           {/* Tabella campagne */}
-          <div className="max-h-64 overflow-auto rounded-xl border border-white/5 bg-slate-950/70">
-            <table className="min-w-full text-[11px]">
-              <thead className="bg-slate-900/80 uppercase tracking-[0.16em] text-slate-400">
-                <tr>
-                  <th className="px-3 py-2 text-left">Data</th>
-                  <th className="px-3 py-2 text-left">Titolo</th>
-                  <th className="px-3 py-2 text-left">Evento</th>
-                  <th className="px-3 py-2 text-left">Stato</th>
-                </tr>
-              </thead>
-              <tbody>
-                {historyLoading ? (
+          <div className="flex flex-col max-h-64 rounded-xl border border-white/5 bg-slate-950/70">
+            <div className="flex-1 overflow-auto">
+              <table className="min-w-full text-[11px]">
+                <thead className="bg-slate-900/80 uppercase tracking-[0.16em] text-slate-400">
                   <tr>
-                    <td
-                      colSpan={4}
-                      className="px-3 py-4 text-center text-xs text-slate-400"
-                    >
-                      Carico storico campagne...
-                    </td>
+                    <th className="px-3 py-2 text-left">Data</th>
+                    <th className="px-3 py-2 text-left">Titolo</th>
+                    <th className="px-3 py-2 text-left">Evento</th>
+                    <th className="px-3 py-2 text-left">Stato</th>
                   </tr>
-                ) : campaigns.length ? (
-                  campaigns.map((c) => (
-                    <tr
-                      key={c.id}
-                      className="border-t border-white/5 bg-slate-950/40 hover:bg-slate-900/70"
-                    >
-                      <td className="px-3 py-2 text-[10px] text-slate-400">
-                        {c.created_at
-                          ? new Date(c.created_at).toLocaleString("it-IT")
-                          : "-"}
-                      </td>
-                      <td className="px-3 py-2">{c.title || "-"}</td>
-                      <td className="px-3 py-2 text-[10px] text-slate-300">
-                        {c.event_date
-                          ? new Date(c.event_date).toLocaleDateString("it-IT")
-                          : "—"}
-                      </td>
-                      <td className="px-3 py-2">
-                        <span
-                          className={`inline-flex rounded-full px-2 py-[2px] text-[10px] uppercase tracking-[0.16em] ${
-                            c.status === "sent"
-                              ? "bg-emerald-500/15 text-emerald-300 border border-emerald-500/40"
-                              : c.status === "sending"
-                              ? "bg-amber-500/15 text-amber-300 border border-amber-500/40"
-                              : "bg-slate-700/40 text-slate-200 border border-slate-500/40"
-                          }`}
-                        >
-                          {c.status || "N/A"}
-                        </span>
+                </thead>
+                <tbody>
+                  {historyLoading ? (
+                    <tr>
+                      <td
+                        colSpan={4}
+                        className="px-3 py-4 text-center text-xs text-slate-400"
+                      >
+                        Carico storico campagne...
                       </td>
                     </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td
-                      colSpan={4}
-                      className="px-3 py-4 text-center text-xs text-slate-500"
-                    >
-                      Nessuna campagna registrata.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+                  ) : pagedCampaigns.length ? (
+                    pagedCampaigns.map((c) => (
+                      <tr
+                        key={c.id}
+                        className="border-t border-white/5 bg-slate-950/40 hover:bg-slate-900/70"
+                      >
+                        <td className="px-3 py-2 text-[10px] text-slate-400">
+                          {c.created_at
+                            ? new Date(c.created_at).toLocaleString("it-IT")
+                            : "-"}
+                        </td>
+                        <td className="px-3 py-2">{c.title || "-"}</td>
+                        <td className="px-3 py-2 text-[10px] text-slate-300">
+                          {c.event_date
+                            ? new Date(c.event_date).toLocaleDateString("it-IT")
+                            : "—"}
+                        </td>
+                        <td className="px-3 py-2">
+                          <span
+                            className={`inline-flex rounded-full px-2 py-[2px] text-[10px] uppercase tracking-[0.16em] ${
+                              c.status === "sent"
+                                ? "bg-emerald-500/15 text-emerald-300 border border-emerald-500/40"
+                                : c.status === "sending"
+                                ? "bg-amber-500/15 text-amber-300 border border-amber-500/40"
+                                : "bg-slate-700/40 text-slate-200 border border-slate-500/40"
+                            }`}
+                          >
+                            {c.status || "N/A"}
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan={4}
+                        className="px-3 py-4 text-center text-xs text-slate-500"
+                      >
+                        Nessuna campagna registrata.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Paginazione campagne */}
+            {!historyLoading && campaigns.length > PAGE_SIZE_CAMPAIGNS && (
+              <div className="flex items-center justify-between gap-3 border-t border-white/10 px-3 py-2 text-[10px] text-slate-300">
+                <span>
+                  Pagina {campaignPage} di {totalCampaignPages} ·{" "}
+                  <span className="text-slate-500">
+                    ({PAGE_SIZE_CAMPAIGNS} per pagina)
+                  </span>
+                </span>
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setCampaignPage((p) => Math.max(1, p - 1))}
+                    disabled={campaignPage === 1}
+                    className={`inline-flex items-center gap-1 rounded-full border px-2 py-1 ${
+                      campaignPage === 1
+                        ? "border-slate-700 text-slate-600 cursor-not-allowed"
+                        : "border-slate-500/60 text-slate-100 hover:bg-slate-800"
+                    }`}
+                  >
+                    <ChevronLeft className="h-3 w-3" />
+                    Prev
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setCampaignPage((p) =>
+                        Math.min(totalCampaignPages, p + 1)
+                      )
+                    }
+                    disabled={campaignPage === totalCampaignPages}
+                    className={`inline-flex items-center gap-1 rounded-full border px-2 py-1 ${
+                      campaignPage === totalCampaignPages
+                        ? "border-slate-700 text-slate-600 cursor-not-allowed"
+                        : "border-slate-500/60 text-slate-100 hover:bg-slate-800"
+                    }`}
+                  >
+                    Next
+                    <ChevronRight className="h-3 w-3" />
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Tabella log */}
-          <div className="max-h-64 overflow-auto rounded-xl border border-white/5 bg-slate-950/70">
+          <div className="flex flex-col max-h-64 rounded-xl border border-white/5 bg-slate-950/70">
             <div className="flex items-center gap-2 px-3 pt-2 text-[10px] uppercase tracking-[0.16em] text-slate-400">
               <ListOrdered className="h-3 w-3" />
               Log invii recenti
             </div>
-            <table className="min-w-full text-[11px]">
-              <thead className="bg-slate-900/80 uppercase tracking-[0.16em] text-slate-400">
-                <tr>
-                  <th className="px-3 py-2 text-left">Ts</th>
-                  <th className="px-3 py-2 text-left">Campagna</th>
-                  <th className="px-3 py-2 text-left">Canale</th>
-                  <th className="px-3 py-2 text-left">Stato</th>
-                </tr>
-              </thead>
-              <tbody>
-                {historyLoading ? (
+
+            <div className="flex-1 overflow-auto">
+              <table className="min-w-full text-[11px]">
+                <thead className="bg-slate-900/80 uppercase tracking-[0.16em] text-slate-400">
                   <tr>
-                    <td
-                      colSpan={4}
-                      className="px-3 py-3 text-center text-xs text-slate-400"
-                    >
-                      Carico log...
-                    </td>
+                    <th className="px-3 py-2 text-left">Ts</th>
+                    <th className="px-3 py-2 text-left">Campagna</th>
+                    <th className="px-3 py-2 text-left">Canale</th>
+                    <th className="px-3 py-2 text-left">Stato</th>
                   </tr>
-                ) : logs.length ? (
-                  logs.map((l) => (
-                    <tr
-                      key={l.id}
-                      className="border-t border-white/5 bg-slate-950/40 hover:bg-slate-900/70"
-                    >
-                      <td className="px-3 py-2 text-[10px] text-slate-400">
-                        {l.created_at
-                          ? new Date(l.created_at).toLocaleString("it-IT")
-                          : "-"}
-                      </td>
-                      <td className="px-3 py-2 text-[10px] text-slate-300">
-                        {l.campaign_id}
-                      </td>
-                      <td className="px-3 py-2">
-                        <span className="rounded-full bg-slate-800/80 px-2 py-[1px] text-[10px] uppercase tracking-[0.16em] text-slate-100">
-                          {l.channel}
-                        </span>
-                      </td>
-                      <td className="px-3 py-2">
-                        <span
-                          className={`inline-flex rounded-full px-2 py-[2px] text-[10px] uppercase tracking-[0.16em] ${
-                            l.status === "sent"
-                              ? "bg-emerald-500/15 text-emerald-300"
-                              : "bg-rose-500/15 text-rose-300"
-                          }`}
-                        >
-                          {l.status}
-                        </span>
+                </thead>
+                <tbody>
+                  {historyLoading ? (
+                    <tr>
+                      <td
+                        colSpan={4}
+                        className="px-3 py-3 text-center text-xs text-slate-400"
+                      >
+                        Carico log...
                       </td>
                     </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td
-                      colSpan={4}
-                      className="px-3 py-3 text-center text-xs text-slate-500"
-                    >
-                      Nessun log recente.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+                  ) : pagedLogs.length ? (
+                    pagedLogs.map((l) => (
+                      <tr
+                        key={l.id}
+                        className="border-t border-white/5 bg-slate-950/40 hover:bg-slate-900/70"
+                      >
+                        <td className="px-3 py-2 text-[10px] text-slate-400">
+                          {l.created_at
+                            ? new Date(l.created_at).toLocaleString("it-IT")
+                            : "-"}
+                        </td>
+                        <td className="px-3 py-2 text-[10px] text-slate-300">
+                          {l.campaign_id}
+                        </td>
+                        <td className="px-3 py-2">
+                          <span className="rounded-full bg-slate-800/80 px-2 py-[1px] text-[10px] uppercase tracking-[0.16em] text-slate-100">
+                            {l.channel}
+                          </span>
+                        </td>
+                        <td className="px-3 py-2">
+                          <span
+                            className={`inline-flex rounded-full px-2 py-[2px] text-[10px] uppercase tracking-[0.16em] ${
+                              l.status === "sent"
+                                ? "bg-emerald-500/15 text-emerald-300"
+                                : "bg-rose-500/15 text-rose-300"
+                            }`}
+                          >
+                            {l.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan={4}
+                        className="px-3 py-3 text-center text-xs text-slate-500"
+                      >
+                        Nessun log recente.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Paginazione log */}
+            {!historyLoading && logs.length > PAGE_SIZE_LOGS && (
+              <div className="flex items-center justify-between gap-3 border-t border-white/10 px-3 py-2 text-[10px] text-slate-300">
+                <span>
+                  Pagina {logPage} di {totalLogPages} ·{" "}
+                  <span className="text-slate-500">
+                    ({PAGE_SIZE_LOGS} per pagina)
+                  </span>
+                </span>
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setLogPage((p) => Math.max(1, p - 1))}
+                    disabled={logPage === 1}
+                    className={`inline-flex items-center gap-1 rounded-full border px-2 py-1 ${
+                      logPage === 1
+                        ? "border-slate-700 text-slate-600 cursor-not-allowed"
+                        : "border-slate-500/60 text-slate-100 hover:bg-slate-800"
+                    }`}
+                  >
+                    <ChevronLeft className="h-3 w-3" />
+                    Prev
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setLogPage((p) => Math.min(totalLogPages, p + 1))
+                    }
+                    disabled={logPage === totalLogPages}
+                    className={`inline-flex items-center gap-1 rounded-full border px-2 py-1 ${
+                      logPage === totalLogPages
+                        ? "border-slate-700 text-slate-600 cursor-not-allowed"
+                        : "border-slate-500/60 text-slate-100 hover:bg-slate-800"
+                    }`}
+                  >
+                    Next
+                    <ChevronRight className="h-3 w-3" />
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
