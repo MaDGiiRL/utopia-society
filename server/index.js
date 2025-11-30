@@ -16,6 +16,7 @@ app.use(cookieParser());
 const allowedOrigins =
   process.env.CORS_ORIGIN?.split(",").map((o) => o.trim()) || [
     "http://localhost:5173",
+    "https://utopia-society.vercel.app",
   ];
 
 app.use(
