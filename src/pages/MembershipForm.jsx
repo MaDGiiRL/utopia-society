@@ -12,9 +12,17 @@ const fadeUp = (delay = 0) => ({
 });
 
 // Base URL backend: da env, con fallback a localhost:4000 in dev
+// In produzione VITE_ADMIN_API_URL DEVE essere valorizzata
 const API_BASE =
   import.meta.env.VITE_ADMIN_API_URL ||
-  (import.meta.env.DEV ? "http://localhost:4000" : "");
+  (import.meta.env.DEV ? "http://localhost:4000" : null);
+
+if (!API_BASE) {
+  // Questo ti aiuta a capire subito in prod se manca la variabile
+  console.error(
+    "VITE_ADMIN_API_URL non è configurata! Il frontend non sa dove chiamare l'Admin API."
+  );
+}
 
 function MembershipForm() {
   const formRef = useRef(null);
@@ -152,10 +160,11 @@ function MembershipForm() {
   };
 
   // === Helper per upload documento verso il backend ===
+
   const uploadDocumento = async (file, tipo) => {
     if (!API_BASE) {
       throw new Error(
-        "API_BASE non configurato (VITE_ADMIN_API_URL mancante in .env)."
+        "API_BASE non configurato (VITE_ADMIN_API_URL mancante in .env del frontend)."
       );
     }
 
@@ -169,21 +178,37 @@ function MembershipForm() {
     formData.append("file", file);
     formData.append("path", path);
 
+    console.log(
+      "Chiamo upload-document su:",
+      `${API_BASE}/api/admin/upload-document`,
+      {
+        path,
+      }
+    );
+
     const res = await fetch(`${API_BASE}/api/admin/upload-document`, {
       method: "POST",
       body: formData,
     });
 
+    const raw = await res.text();
     let data = {};
     try {
-      data = await res.json();
+      data = JSON.parse(raw);
     } catch {
-      // niente
+      // non è JSON, pazienza
     }
 
     if (!res.ok || !data.ok) {
-      console.error("Upload documento failed", res.status, data);
-      throw new Error(data.message || "Errore upload documento");
+      console.error("Upload documento failed", {
+        status: res.status,
+        raw,
+        data,
+      });
+      throw new Error(
+        data.message ||
+          `Errore upload documento (HTTP ${res.status}) – riprova più tardi.`
+      );
     }
 
     return {
@@ -633,7 +658,7 @@ function MembershipForm() {
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-cyan-300 underline"
-                      >
+                    >
                       statuto Utopia e statuto ACSI nazionale
                     </a>
                     .
@@ -693,7 +718,6 @@ function MembershipForm() {
             </div>
           </motion.form>
 
-       
           {/* {isModalOpen && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
               <div className="w-full max-w-md rounded-2xl border border-white/10 bg-slate-950 p-4 shadow-2xl">
