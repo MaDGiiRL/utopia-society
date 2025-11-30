@@ -13,6 +13,7 @@ dist-ssr
 *.local
 .env
 .env.local
+database.sql
 
 # Editor directories and files
 .vscode/*
