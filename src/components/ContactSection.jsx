@@ -1,9 +1,10 @@
-import { useRef, useEffect } from "react";
+
+import { useRef, useEffect, useState } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { fadeUp } from "../utils/motionPresets";
-import { Instagram, Facebook } from "lucide-react";
+import { Instagram, Facebook, Send } from "lucide-react";
 import * as THREE from "three";
-
+import { supabase } from "../lib/supabaseClient";
 
 function SocialBox3D() {
   const canvasRef = useRef(null);
@@ -31,7 +32,6 @@ function SocialBox3D() {
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(width, height);
 
-    // LUCI MOLTO SOFT
     const ambient = new THREE.AmbientLight(0x64748b, 0.5);
     scene.add(ambient);
 
@@ -43,7 +43,6 @@ function SocialBox3D() {
     cyanLight.position.set(3, -1.5, 6);
     scene.add(cyanLight);
 
-    // ANELLO SOTTILE
     const ringGeom = new THREE.TorusGeometry(2.4, 0.05, 32, 200);
     const ringMat = new THREE.MeshStandardMaterial({
       color: 0x38bdf8,
@@ -56,7 +55,6 @@ function SocialBox3D() {
     const ring = new THREE.Mesh(ringGeom, ringMat);
     scene.add(ring);
 
-    // ORBITA INTERNA
     const innerGeom = new THREE.TorusGeometry(1.5, 0.04, 32, 160);
     const innerMat = new THREE.MeshStandardMaterial({
       color: 0xec4899,
@@ -70,7 +68,6 @@ function SocialBox3D() {
     innerRing.rotation.x = Math.PI / 3;
     scene.add(innerRing);
 
-    // SFERE "SOCIAL" CHE ORBITANO
     const sphereGeom = new THREE.SphereGeometry(0.12, 24, 24);
 
     const igMat = new THREE.MeshStandardMaterial({
@@ -93,7 +90,6 @@ function SocialBox3D() {
     scene.add(igSphere);
     scene.add(fbSphere);
 
-    // PARTICELLE LEGGERISSIME
     const particlesCount = 70;
     const positions = new Float32Array(particlesCount * 3);
     for (let i = 0; i < particlesCount; i++) {
@@ -122,14 +118,12 @@ function SocialBox3D() {
     const animate = () => {
       const t = clock.getElapsedTime();
 
-      // rotazione anelli
       ring.rotation.x = Math.sin(t * 0.4) * 0.2;
       ring.rotation.y = t * 0.35;
 
       innerRing.rotation.y = -t * 0.6;
       innerRing.rotation.z = Math.sin(t * 0.45) * 0.3;
 
-      // orbite sfere
       const r = 2;
       igSphere.position.set(Math.cos(t * 0.8) * r, Math.sin(t * 0.8) * 0.4, 0);
       fbSphere.position.set(
@@ -138,10 +132,8 @@ function SocialBox3D() {
         0
       );
 
-      // particelle
       particles.rotation.y = t * 0.12;
 
-      // camera respiro leggero
       camera.position.z = 9 + Math.sin(t * 0.4) * 0.35;
       camera.lookAt(0, 0, 0);
 
@@ -184,7 +176,6 @@ function SocialBox3D() {
       className="pointer-events-none absolute inset-0 -z-10 rounded-2xl overflow-hidden"
     >
       <canvas ref={canvasRef} className="h-full w-full" />
-      {/* leggero blend col resto della UI */}
       <div className="absolute inset-0 bg-gradient-to-br from-black/40 via-transparent to-black/60" />
     </div>
   );
@@ -197,10 +188,46 @@ function ContactSection() {
     offset: ["start end", "end start"],
   });
 
-  // Parallax leggero del glow di sfondo e delle card
-  const bgY = useTransform(scrollYProgress, [0, 1], [40, -40]);
   const cardsY = useTransform(scrollYProgress, [0, 1], [20, -10]);
-  const glowOpacity = useTransform(scrollYProgress, [0, 1], [0.12, 0.4]);
+
+  const [sending, setSending] = useState(false);
+  const [ok, setOk] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSending(true);
+    setOk(false);
+    setError("");
+
+    const form = new FormData(e.target);
+
+    const payload = {
+      name: form.get("name")?.trim() || null,
+      email: form.get("email")?.trim() || null,
+      phone: form.get("phone")?.trim() || null,
+      message: form.get("message")?.trim() || null,
+    };
+
+    try {
+      const { error: insertError } = await supabase
+        .from("contact_messages")
+        .insert(payload);
+
+      if (insertError) {
+        console.error("Errore insert contact_messages:", insertError);
+        throw insertError;
+      }
+
+      setOk(true);
+      e.target.reset();
+    } catch (err) {
+      console.error(err);
+      setError("Si è verificato un errore, riprova più tardi.");
+    } finally {
+      setSending(false);
+    }
+  };
 
   return (
     <section
@@ -208,8 +235,6 @@ function ContactSection() {
       ref={sectionRef}
       className="relative overflow-hidden py-20 min-h-[90vh]"
     >
-
-
       <div className="relative mx-auto max-w-5xl px-4">
         <motion.div
           style={{ y: cardsY }}
@@ -217,11 +242,10 @@ function ContactSection() {
         >
           {/* Testo + social */}
           <motion.div {...fadeUp()}>
-            <p className="text-[0.7rem] uppercase tracking-[0.35em] text-cyan-300 mb-2">
+            <p className="mb-2 text-[0.7rem] uppercase tracking-[0.35em] text-cyan-300">
               Contact • Utopia
             </p>
 
-            {/* TITOLONE ANIMATO ALLO SCROLL */}
             <motion.h2
               initial={{
                 opacity: 0,
@@ -268,7 +292,6 @@ function ContactSection() {
               }}
               transition={{ type: "spring", stiffness: 170, damping: 18 }}
             >
-              {/* SFONDO 3D */}
               <SocialBox3D />
 
               <div className="relative z-10">
@@ -277,7 +300,6 @@ function ContactSection() {
                 </span>
 
                 <div className="mt-3 flex items-center gap-4">
-                  {/* Insta */}
                   <motion.a
                     href="https://www.instagram.com/utopia.society.pd"
                     target="_blank"
@@ -292,7 +314,6 @@ function ContactSection() {
                     <Instagram className="relative z-10 h-5 w-5 drop-shadow-[0_0_8px_rgba(15,23,42,0.8)]" />
                   </motion.a>
 
-                  {/* Facebook */}
                   <motion.a
                     href="https://www.facebook.com/utopiasociety.pd"
                     target="_blank"
@@ -307,7 +328,7 @@ function ContactSection() {
                     <Facebook className="relative z-10 h-5 w-5 drop-shadow-[0_0_8px_rgba(15,23,42,0.8)]" />
                   </motion.a>
 
-                  <div className="ml-1 text-[0.7rem] leading-relaxed text-slate-300 max-w-[220px]">
+                  <div className="ml-1 max-w-[220px] text-[0.7rem] leading-relaxed text-slate-300">
                     <p>Lineup, eventi speciali</p>
                     <p className="text-[0.65rem] text-slate-400">
                       Story e aggiornamenti in tempo reale.
@@ -323,7 +344,7 @@ function ContactSection() {
             {...fadeUp(0.1)}
             style={{ y: cardsY }}
             className="space-y-4 rounded-2xl border border-white/10 bg-black/65 p-5 backdrop-blur transform-gpu"
-            onSubmit={(e) => e.preventDefault()}
+            onSubmit={handleSubmit}
             whileHover={{
               rotateX: -3,
               rotateY: -3,
@@ -336,40 +357,75 @@ function ContactSection() {
                 Nome
               </label>
               <input
+                name="name"
                 type="text"
                 className="mt-1 w-full rounded-xl border border-white/10 bg-slate-900/80 px-3 py-2 text-sm outline-none focus:border-cyan-400"
                 placeholder="Il tuo nome"
                 required
               />
             </div>
+
             <div>
               <label className="text-xs uppercase tracking-wide text-slate-300">
                 Email
               </label>
               <input
+                name="email"
                 type="email"
                 className="mt-1 w-full rounded-xl border border-white/10 bg-slate-900/80 px-3 py-2 text-sm outline-none focus:border-cyan-400"
                 placeholder="name@email.com"
                 required
               />
             </div>
+
+            <div>
+              <label className="text-xs uppercase tracking-wide text-slate-300">
+                Telefono (opzionale)
+              </label>
+              <input
+                name="phone"
+                type="tel"
+                className="mt-1 w-full rounded-xl border border-white/10 bg-slate-900/80 px-3 py-2 text-sm outline-none focus:border-cyan-400"
+                placeholder="Numero per ricontatto"
+              />
+            </div>
+
             <div>
               <label className="text-xs uppercase tracking-wide text-slate-300">
                 Messaggio
               </label>
               <textarea
+                name="message"
                 rows="4"
                 className="mt-1 w-full rounded-xl border border-white/10 bg-slate-900/80 px-3 py-2 text-sm outline-none focus:border-cyan-400"
                 placeholder="Scrivici per info su tavoli, eventi o membership..."
                 required
               />
             </div>
+
+            {error && (
+              <div className="rounded-lg border border-rose-500/40 bg-rose-500/10 px-3 py-2 text-[11px] text-rose-200">
+                {error}
+              </div>
+            )}
+            {ok && (
+              <div className="rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-[11px] text-emerald-200">
+                Messaggio inviato correttamente. Ti risponderemo al più presto.
+              </div>
+            )}
+
             <motion.button
               type="submit"
-              className="w-full rounded-full text-white bg-gradient-to-r from-cyan-400 to-fuchsia-500 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-black shadow-[0_0_20px_rgba(56,189,248,0.7)] hover:brightness-110 transition"
-              whileTap={{ scale: 0.96 }}
+              disabled={sending}
+              className={`w-full rounded-full bg-gradient-to-r from-cyan-400 to-fuchsia-500 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-black shadow-[0_0_20px_rgba(56,189,248,0.7)] hover:brightness-110 transition ${
+                sending ? "opacity-60 cursor-not-allowed" : ""
+              }`}
+              whileTap={{ scale: sending ? 1 : 0.96 }}
             >
-              Invia
+              <span className="inline-flex items-center justify-center gap-2">
+                <Send className="h-3.5 w-3.5" />
+                {sending ? "Invio in corso..." : "Invia"}
+              </span>
             </motion.button>
           </motion.form>
         </motion.div>

@@ -27,7 +27,11 @@ export default function Layout() {
         )}
       </main>
 
-      <Footer />
+      {!isAdminRoute && (
+        <>
+          <Footer />
+        </>
+      )}
     </div>
   );
 }

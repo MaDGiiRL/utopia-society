@@ -67,7 +67,7 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] bg-slate-950/95 text-slate-50 px-3 py-25">
+    <div className="min-h-[calc(100vh)] bg-slate-950/55 text-slate-50 px-3 py-25">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 md:flex-row">
         {/* SIDEBAR */}
         <aside className="w-full space-y-4 md:w-64">

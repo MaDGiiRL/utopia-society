@@ -7,3 +7,6 @@ vai su /admin/login
 curl -X POST http://localhost:4000/api/admin/register \
   -H "Content-Type: application/json" \
   -d '{"email":"la tua mail","password":"SuperPassword123"}'
+
+
+Recovery code Twilio: 5W7RG34JVZXQXPFLNUG2GMD6
