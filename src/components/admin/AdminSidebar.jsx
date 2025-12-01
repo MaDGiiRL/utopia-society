@@ -6,6 +6,7 @@ import {
   LogOut,
   Shield,
   Activity,
+  FileSpreadsheet,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -15,6 +16,10 @@ export default function AdminSidebar({
   xmlError,
   xmlLoading,
   onExportXml,
+  // 🔹 nuove props per export ACSI
+  xlsxError,
+  xlsxLoading,
+  onExportXlsx,
   onLogout,
 }) {
   const { t } = useTranslation();
@@ -117,6 +122,7 @@ export default function AdminSidebar({
 
       {/* Export + logout */}
       <div className="flex flex-col gap-2 rounded-2xl border border-white/10 bg-slate-950/85 px-4 py-3 text-[11px] shadow-lg sm:flex-col sm:items-center sm:justify-between">
+        {/* XML (completo) */}
         <button
           type="button"
           onClick={onExportXml}
@@ -134,6 +140,24 @@ export default function AdminSidebar({
           </span>
         </button>
 
+        {/* 🔹 XLSX ACSI */}
+        <button
+          type="button"
+          onClick={onExportXlsx}
+          disabled={xlsxLoading}
+          className={`inline-flex items-center justify-center gap-1 rounded-full border border-emerald-400/70 bg-emerald-500/10 px-3 py-1.5 font-semibold uppercase tracking-[0.16em] text-emerald-100 hover:bg-emerald-500/25 transition ${
+            xlsxLoading ? "cursor-not-allowed opacity-60" : ""
+          }`}
+        >
+          <FileSpreadsheet className="h-3 w-3" />
+          <span className="hidden sm:inline">
+            {t("admin.dashboard.exportMembersAcsiFull", "Export ACSI (.xlsx)")}
+          </span>
+          <span className="sm:hidden">
+            {t("admin.dashboard.exportMembersAcsiShort", "ACSI .xlsx")}
+          </span>
+        </button>
+
         <button
           type="button"
           onClick={onLogout}
@@ -147,6 +171,12 @@ export default function AdminSidebar({
       {xmlError && (
         <div className="rounded-xl border border-rose-500/40 bg-rose-500/10 px-3 py-2 text-[11px] text-rose-200">
           {xmlError}
+        </div>
+      )}
+
+      {xlsxError && (
+        <div className="rounded-xl border border-rose-500/40 bg-rose-500/10 px-3 py-2 text-[11px] text-rose-200">
+          {xlsxError}
         </div>
       )}
     </aside>

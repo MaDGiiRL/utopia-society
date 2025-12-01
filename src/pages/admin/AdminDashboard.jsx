@@ -8,11 +8,18 @@ const API_BASE = import.meta.env.VITE_ADMIN_API_URL || "";
 
 export default function AdminDashboard() {
   const { t } = useTranslation();
-  const [tab, setTab] = useState("members"); // members | contacts | campaign
+  const [tab, setTab] =
+    (useState < "members") | "contacts" | ("campaign" > "members");
+
   const [xmlError, setXmlError] = useState("");
   const [xmlLoading, setXmlLoading] = useState(false);
+
+  const [xlsxError, setXlsxError] = useState("");
+  const [xlsxLoading, setXlsxLoading] = useState(false);
+
   const navigate = useNavigate();
 
+  // -------- XML EXPORT (completo) --------
   const handleExportXml = async () => {
     setXmlError("");
     setXmlLoading(true);
@@ -24,7 +31,9 @@ export default function AdminDashboard() {
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.message || t("admin.dashboard.xmlError"));
+        throw new Error(
+          data.message || t("admin.dashboard.xmlError", "Errore export XML")
+        );
       }
 
       const blob = await res.blob();
@@ -40,9 +49,60 @@ export default function AdminDashboard() {
       URL.revokeObjectURL(url);
     } catch (err) {
       console.error(err);
-      setXmlError(err.message || t("admin.dashboard.xmlUnexpectedError"));
+      setXmlError(
+        err instanceof Error
+          ? err.message
+          : t(
+              "admin.dashboard.xmlUnexpectedError",
+              "Errore imprevisto export XML"
+            )
+      );
     } finally {
       setXmlLoading(false);
+    }
+  };
+
+  // -------- XLSX EXPORT (ACSI) --------
+  const handleExportXlsx = async () => {
+    setXlsxError("");
+    setXlsxLoading(true);
+
+    try {
+      const res = await fetch(`${API_BASE}/api/admin/members.xlsx`, {
+        credentials: "include",
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(
+          data.message ||
+            t("admin.dashboard.xlsxError", "Errore export ACSI (.xlsx)")
+        );
+      }
+
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      const today = new Date().toISOString().slice(0, 10);
+
+      a.href = url;
+      a.download = `utopia_acsi_iscritti_${today}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error(err);
+      setXlsxError(
+        err instanceof Error
+          ? err.message
+          : t(
+              "admin.dashboard.xlsxUnexpectedError",
+              "Errore imprevisto export ACSI (.xlsx)"
+            )
+      );
+    } finally {
+      setXlsxLoading(false);
     }
   };
 
@@ -63,9 +123,15 @@ export default function AdminDashboard() {
         <AdminSidebar
           tab={tab}
           onTabChange={setTab}
+          // XML export
           xmlError={xmlError}
           xmlLoading={xmlLoading}
           onExportXml={handleExportXml}
+          // XLSX ACSI export
+          xlsxError={xlsxError}
+          xlsxLoading={xlsxLoading}
+          onExportXlsx={handleExportXlsx}
+          // logout
           onLogout={handleLogout}
         />
         <AdminMain tab={tab} />
