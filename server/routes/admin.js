@@ -11,7 +11,10 @@ import {
   normalizeItalianPhone,
 } from "../services/notifications.js";
 import { safeDecrypt } from "../services/crypto.js";
-import { createMemberFromForm } from "../services/members.js";
+import {
+  createMemberFromForm,
+  mapMemberRowDecrypted,
+} from "../services/members.js";
 
 const router = Router();
 const JWT_SECRET = process.env.JWT_SECRET || "dev_secret_change_me";
@@ -228,41 +231,8 @@ router.post("/members", async (req, res) => {
 });
 
 /**
- * Helper: mappare un membro con campi decriptati per l'admin
- */
-function mapMemberRowDecrypted(m) {
-  if (!m) return null;
-
-  const phonePlain = m.phone_enc
-    ? safeDecrypt(m.phone_enc, m.phone ?? "")
-    : m.phone ?? "";
-
-  const fiscalPlain = m.fiscal_code_enc
-    ? safeDecrypt(m.fiscal_code_enc, m.fiscal_code ?? "")
-    : m.fiscal_code ?? "";
-
-  return {
-    id: m.id,
-    created_at: m.created_at,
-    full_name: m.full_name,
-    email: m.email,
-    phone: phonePlain,
-    date_of_birth: m.date_of_birth,
-    birth_place: m.birth_place,
-    fiscal_code: fiscalPlain,
-    city: m.city,
-    accept_privacy: m.accept_privacy,
-    accept_marketing: m.accept_marketing,
-    note: m.note,
-    source: m.source,
-    document_front_url: m.document_front_url,
-    document_back_url: m.document_back_url,
-  };
-}
-
-/**
  * GET /api/admin/members
- * Lista soci per la tab admin (dati decriptati)
+ * Lista soci per la tab admin (dati già decriptati)
  */
 router.get("/members", adminAuthMiddleware, async (req, res) => {
   try {
@@ -279,7 +249,6 @@ router.get("/members", adminAuthMiddleware, async (req, res) => {
     }
 
     const members = (data || []).map(mapMemberRowDecrypted);
-
     return res.json({ ok: true, members });
   } catch (err) {
     console.error("[GET /api/admin/members] unexpected", err);
@@ -289,33 +258,25 @@ router.get("/members", adminAuthMiddleware, async (req, res) => {
 
 /**
  * GET /api/admin/members/:id
- * Dettaglio singolo socio (scheda) con dati decriptati
+ * Dettaglio singolo socio (dati decriptati)
  */
 router.get("/members/:id", adminAuthMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
-
     const { data, error } = await supabaseAdmin
       .from("members")
       .select("*")
       .eq("id", id)
       .maybeSingle();
 
-    if (error) {
+    if (error || !data) {
       console.error("[GET /api/admin/members/:id] error", error);
-      return res
-        .status(500)
-        .json({ ok: false, message: "Errore lettura membro" });
-    }
-
-    if (!data) {
       return res
         .status(404)
         .json({ ok: false, message: "Membro non trovato" });
     }
 
     const member = mapMemberRowDecrypted(data);
-
     return res.json({ ok: true, member });
   } catch (err) {
     console.error("[GET /api/admin/members/:id] unexpected", err);
@@ -326,10 +287,7 @@ router.get("/members/:id", adminAuthMiddleware, async (req, res) => {
 /**
  * GET /api/admin/members.xml
  * Export soci (con tutti i campi + URL documenti) in XML
- *
- * Usa campi cifrati se presenti:
- *   - phone_enc        -> <phone>
- *   - fiscal_code_enc  -> <fiscal_code>
+ * Usa campi in chiaro se presenti, altrimenti prova a decriptare *_enc.
  */
 router.get("/members.xml", adminAuthMiddleware, async (req, res) => {
   try {
@@ -347,19 +305,29 @@ router.get("/members.xml", adminAuthMiddleware, async (req, res) => {
     let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<members>\n`;
 
     for (const m of rows) {
-      const phonePlain = m.phone_enc
-        ? safeDecrypt(m.phone_enc, m.phone ?? "")
-        : m.phone ?? "";
+      // email
+      let emailPlain = m.email ?? "";
+      if (!emailPlain && m.email_enc) {
+        emailPlain = safeDecrypt(m.email_enc, "");
+      }
 
-      const fiscalPlain = m.fiscal_code_enc
-        ? safeDecrypt(m.fiscal_code_enc, m.fiscal_code ?? "")
-        : m.fiscal_code ?? "";
+      // phone
+      let phonePlain = m.phone ?? "";
+      if (!phonePlain && m.phone_enc) {
+        phonePlain = safeDecrypt(m.phone_enc, "");
+      }
+
+      // fiscal code
+      let fiscalPlain = m.fiscal_code ?? "";
+      if (!fiscalPlain && m.fiscal_code_enc) {
+        fiscalPlain = safeDecrypt(m.fiscal_code_enc, "");
+      }
 
       xml += `  <member>\n`;
       xml += `    <id>${m.id}</id>\n`;
       xml += `    <created_at>${m.created_at}</created_at>\n`;
       xml += `    <full_name>${m.full_name ?? ""}</full_name>\n`;
-      xml += `    <email>${m.email ?? ""}</email>\n`;
+      xml += `    <email>${emailPlain}</email>\n`;
       xml += `    <phone>${phonePlain}</phone>\n`;
       xml += `    <date_of_birth>${m.date_of_birth ?? ""}</date_of_birth>\n`;
       xml += `    <birth_place>${m.birth_place ?? ""}</birth_place>\n`;
@@ -369,10 +337,8 @@ router.get("/members.xml", adminAuthMiddleware, async (req, res) => {
       xml += `    <accept_marketing>${m.accept_marketing}</accept_marketing>\n`;
       xml += `    <note>${m.note ?? ""}</note>\n`;
       xml += `    <source>${m.source ?? ""}</source>\n`;
-      xml += `    <document_front_url>${m.document_front_url ?? ""
-        }</document_front_url>\n`;
-      xml += `    <document_back_url>${m.document_back_url ?? ""
-        }</document_back_url>\n`;
+      xml += `    <document_front_url>${m.document_front_url ?? ""}</document_front_url>\n`;
+      xml += `    <document_back_url>${m.document_back_url ?? ""}</document_back_url>\n`;
       xml += `  </member>\n`;
     }
 
@@ -389,6 +355,7 @@ router.get("/members.xml", adminAuthMiddleware, async (req, res) => {
 /**
  * Helper template email & SMS
  */
+
 function renderEmailTemplate({ member, title, event_date, message_email }) {
   const nome = member.full_name || "Socio";
   let body = message_email || "";
@@ -477,8 +444,14 @@ router.post("/send-campaign", adminAuthMiddleware, async (req, res) => {
 
     // 3) Invio reale + salvataggio log
     for (const m of members || []) {
+      // ricavo email decriptata / fallback
+      let emailPlain = m.email ?? "";
+      if (!emailPlain && m.email_enc) {
+        emailPlain = safeDecrypt(m.email_enc, "");
+      }
+
       // EMAIL
-      if (channels?.email && m.email && message_email) {
+      if (channels?.email && emailPlain && message_email) {
         const html = renderEmailTemplate({
           member: m,
           title,
@@ -487,7 +460,7 @@ router.post("/send-campaign", adminAuthMiddleware, async (req, res) => {
         });
 
         const result = await sendEmailToMember({
-          to: m.email,
+          to: emailPlain,
           subject: title,
           html,
         });
@@ -501,7 +474,7 @@ router.post("/send-campaign", adminAuthMiddleware, async (req, res) => {
         });
       }
 
-      // SMS
+      // SMS: usa phone / phone_enc
       if (channels?.sms && message_sms && (m.phone || m.phone_enc)) {
         const rawPhone = m.phone_enc
           ? safeDecrypt(m.phone_enc, m.phone ?? "")

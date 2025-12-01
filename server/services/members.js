@@ -35,8 +35,7 @@ function normalizeFormPayload(body = {}) {
 
 /**
  * Crea un nuovo membro partendo dai dati del form pubblico.
- * Cifra phone e fiscal_code nelle colonne *_enc.
- * NON salva più i dati in chiaro nelle colonne phone / fiscal_code.
+ * Cifra email, phone e fiscal_code nelle colonne *_enc.
  */
 export async function createMemberFromForm(rawBody) {
     const {
@@ -69,14 +68,20 @@ export async function createMemberFromForm(rawBody) {
 
     const phonePlain = phone || null;
     const fiscalPlain = fiscalCode || null;
+    const emailPlain = email || null;
 
     const insertPayload = {
         full_name: fullName,
-        email,
 
-        // 🔐 NON salviamo più il valore in chiaro
-        phone: null,
+        // valori in chiaro (opzionali, ma li teniamo per ricerca / fallback)
+        email: emailPlain,
+        phone: phonePlain,
+        fiscal_code: fiscalPlain,
+
+        // valori cifrati
+        email_enc: emailPlain ? encrypt(emailPlain) : null,
         phone_enc: phonePlain ? encrypt(phonePlain) : null,
+        fiscal_code_enc: fiscalPlain ? encrypt(fiscalPlain) : null,
 
         date_of_birth: dateOfBirth || null,
         city: city || null,
@@ -85,11 +90,6 @@ export async function createMemberFromForm(rawBody) {
         note: note || null,
         source: source || "membership_form",
         birth_place: birthPlace || null,
-
-        // 🔐 anche il CF solo cifrato
-        fiscal_code: null,
-        fiscal_code_enc: fiscalPlain ? encrypt(fiscalPlain) : null,
-
         document_front_url: documentFrontUrl || null,
         document_back_url: documentBackUrl || null,
     };
@@ -107,26 +107,49 @@ export async function createMemberFromForm(rawBody) {
         throw err;
     }
 
-    // ritorno già un oggetto "pulito" (decifrato) per il frontend se serve
+    // ritorno oggetto "pulito" (sempre decriptato) per eventuali usi
+    return mapMemberRowDecrypted(data);
+}
+
+/**
+ * Helper: mappa una row del DB in un oggetto pulito con campi decriptati.
+ */
+export function mapMemberRowDecrypted(m) {
+    if (!m) return null;
+
+    // email
+    let emailPlain = m.email ?? "";
+    if (!emailPlain && m.email_enc) {
+        emailPlain = safeDecrypt(m.email_enc, "");
+    }
+
+    // phone
+    let phonePlain = m.phone ?? "";
+    if (!phonePlain && m.phone_enc) {
+        phonePlain = safeDecrypt(m.phone_enc, "");
+    }
+
+    // fiscal code
+    let fiscalPlain = m.fiscal_code ?? "";
+    if (!fiscalPlain && m.fiscal_code_enc) {
+        fiscalPlain = safeDecrypt(m.fiscal_code_enc, "");
+    }
+
     return {
-        id: data.id,
-        created_at: data.created_at,
-        full_name: data.full_name,
-        email: data.email,
-        phone: data.phone_enc
-            ? safeDecrypt(data.phone_enc, data.phone ?? "")
-            : data.phone ?? "",
-        date_of_birth: data.date_of_birth,
-        city: data.city,
-        accept_privacy: data.accept_privacy,
-        accept_marketing: data.accept_marketing,
-        note: data.note,
-        source: data.source,
-        birth_place: data.birth_place,
-        fiscal_code: data.fiscal_code_enc
-            ? safeDecrypt(data.fiscal_code_enc, data.fiscal_code ?? "")
-            : data.fiscal_code ?? "",
-        document_front_url: data.document_front_url,
-        document_back_url: data.document_back_url,
+        id: m.id,
+        created_at: m.created_at,
+        full_name: m.full_name,
+        email: emailPlain,
+        phone: phonePlain,
+        date_of_birth: m.date_of_birth,
+        birth_place: m.birth_place,
+        fiscal_code: fiscalPlain,
+        city: m.city,
+        accept_privacy: m.accept_privacy,
+        accept_marketing: m.accept_marketing,
+        note: m.note,
+        source: m.source,
+        document_front_url: m.document_front_url,
+        document_back_url: m.document_back_url,
     };
 }

@@ -1,6 +1,7 @@
 // src/api/admin.js
 import { api } from "./client";
 
+// LOGIN / LOGOUT / ME (già esistenti)
 export async function adminLogin({ email, password }) {
   const res = await api.post("/api/admin/login", { email, password });
   return res.data;
@@ -16,18 +17,18 @@ export async function adminLogout() {
   return res.data;
 }
 
-/**
- * Lista soci (dati decriptati) per la tab admin
- */
+// 👇 AGGIUNTO: lista soci (usa /api/admin/members)
 export async function fetchMembers() {
-  const res = await api.get("/api/admin/members");
-  return res.data; // { ok: true, members: [...] }
+  const res = await api.get("/api/admin/members", {
+    withCredentials: true,
+  });
+  return res.data; // { ok, members: [...] } con email decriptata
 }
 
-/**
- * Dettaglio singolo socio (scheda)
- */
+// 👇 AGGIUNTO: dettaglio singolo socio
 export async function fetchMemberById(id) {
-  const res = await api.get(`/api/admin/members/${id}`);
-  return res.data; // { ok: true, member: {...} }
+  const res = await api.get(`/api/admin/members/${id}`, {
+    withCredentials: true,
+  });
+  return res.data; // { ok, member: {...} } con email/phone/fiscal decriptati
 }
