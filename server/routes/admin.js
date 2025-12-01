@@ -13,6 +13,7 @@ import {
 
 const router = Router();
 const JWT_SECRET = process.env.JWT_SECRET || "dev_secret_change_me";
+const isProd = process.env.NODE_ENV === "production"; // 👈 AGGIUNTO
 
 // multer per leggere file dal form-data
 const upload = multer({ storage: multer.memoryStorage() });
@@ -100,8 +101,8 @@ router.post("/login", async (req, res) => {
 
     res.cookie("admin_token", token, {
       httpOnly: true,
-      secure: false, // in prod true con HTTPS
-      sameSite: "lax",
+      secure: isProd,                 // 👈 true in produzione (HTTPS)
+      sameSite: isProd ? "none" : "lax", // 👈 per cookie cross-site in prod
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -167,7 +168,6 @@ router.post("/upload-document", upload.single("file"), async (req, res) => {
     if (uploadErr) {
       console.error("Errore upload storage:", uploadErr);
 
-      // (opzionale) se è conflitto, mappa a 409
       if (
         uploadErr.statusCode === "409" ||
         uploadErr.statusCode === 409 ||
@@ -181,7 +181,6 @@ router.post("/upload-document", upload.single("file"), async (req, res) => {
       return res.status(500).json({ message: "Errore upload file" });
     }
 
-    // crea URL firmata (valida 7 giorni) per il download
     const { data: signed, error: signErr } = await supabaseAdmin.storage
       .from("documents")
       .createSignedUrl(path, 60 * 60 * 24 * 7);
@@ -261,7 +260,6 @@ function renderEmailTemplate({ member, title, event_date, message_email }) {
   const nome = member.full_name || "Socio";
   let body = message_email || "";
 
-  // placeholder {{ nome }}
   body = body.replace(/{{\s*nome\s*}}/gi, nome);
 
   if (event_date) {
@@ -383,7 +381,7 @@ router.post("/send-campaign", adminAuthMiddleware, async (req, res) => {
           });
 
           logs.push({
-            campaign_id: m.id,
+            campaign_id: campaign.id, // (fix rispetto al codice che avevi)
             member_id: m.id,
             channel: "sms",
             status: result.ok ? "sent" : "error",

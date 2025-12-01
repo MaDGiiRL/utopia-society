@@ -1,7 +1,7 @@
 {
-  "name": "vite-project",
+  "name": "utopia-website",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -13,6 +13,7 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.86.0",
     "@tailwindcss/vite": "^4.1.17",
+    "@vercel/speed-insights": "^1.2.0",
     "bcryptjs": "^3.0.3",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",

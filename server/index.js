@@ -11,8 +11,6 @@ app.use(express.json());
 app.use(cookieParser());
 
 // CORS configurabile via env
-// Esempio .env:
-//   CORS_ORIGIN=http://localhost:5173,https://utopia.club
 const allowedOrigins =
   process.env.CORS_ORIGIN?.split(",").map((o) => o.trim()) || [
     "http://localhost:5173",
