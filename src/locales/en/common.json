@@ -14,7 +14,7 @@
     },
     "hero": {
         "tagline": "Night Club • Members Only",
-        "title": "Welcome to Utopia.",
+        "title": "Welcome to ",
         "description": "A private club where lights, music and futuristic design meet. Members-only access and out-of-the-ordinary experiences.",
         "cta": "Become a member",
         "scheduleDays": "Friday / Saturday",
@@ -55,7 +55,7 @@
     "footer": {
         "home": "Home",
         "becomeMember": "Become a member",
-        "copyright": "© {{year}} Utopia Night Club",
+        "copyright": "© {{year}} Utopia ASDC",
         "rights": "All rights reserved.",
         "developedWith": "Developed with",
         "by": "by"
@@ -271,8 +271,8 @@
         "sectionNotes": "Additional notes (optional)",
         "notesPlaceholder": "Any requests or additional information…",
         "sectionConsents": "Consents",
-        "consentPrivacy": "I declare that I have read and accept the <link>data privacy policy</link>.",
-        "consentStatute": "I approve the <link>Utopia statute and national ACSI statute</link>.",
+        "consentPrivacy": "I declare that I have read and accept the <a>data privacy policy</a>.",
+        "consentStatute": "I approve the <a>Utopia statute and ACSI national statute</a>.",
         "consentMarketing": "I authorize the use of my contacts for communications about club events and activities (newsletter/SMS).",
         "errorMissingDocs": "Please upload both front and back of the document.",
         "errorGeneric": "An error occurred, please try again later.",

@@ -1,4 +1,3 @@
-// server/services/notifications.js
 import { Resend } from "resend";
 import twilio from "twilio";
 

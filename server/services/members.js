@@ -1,4 +1,3 @@
-// server/services/members.js
 import { supabaseAdmin } from "../supabaseClient.js";
 import { encrypt, safeDecrypt } from "./crypto.js";
 

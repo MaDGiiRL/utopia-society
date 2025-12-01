@@ -1,4 +1,3 @@
-// server/services/crypto.js
 import crypto from "crypto";
 
 const ALGORITHM = "aes-256-gcm";

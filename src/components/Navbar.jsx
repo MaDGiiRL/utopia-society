@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Instagram, Facebook, Menu, X, Lock } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import ReactCountryFlag from "react-country-flag";
+import TikTokIcon from "./icons/TikTokIcon";
 
 const navLinkClasses =
   "relative px-3 py-1 text-sm font-medium tracking-wide uppercase transition hover:text-cyan-300";
@@ -32,7 +33,6 @@ function Navbar() {
   return (
     <header className="fixed inset-x-0 top-0 z-50 bg-black/70 backdrop-blur border-b border-white/10">
       <nav className="relative mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-
         {/* LOGO */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
@@ -136,12 +136,21 @@ function Navbar() {
             </a>
 
             <a
-              href="https://www.facebook.com/utopiasociety.pd"
+              href="https://www.facebook.com/utopiasocietypd"
               target="_blank"
               rel="noreferrer"
               className="text-slate-300 hover:text-cyan-300 transition"
             >
               <Facebook className="h-4 w-4" />
+            </a>
+
+            <a
+              href="https://www.tiktok.com/@utopiasocietypd"
+              target="_blank"
+              rel="noreferrer"
+              className="text-slate-300 hover:text-cyan-300 transition"
+            >
+              <TikTokIcon className="h-4 w-4" />
             </a>
           </div>
         </motion.div>
@@ -164,13 +173,16 @@ function Navbar() {
           animate={{ opacity: 1, y: 0 }}
         >
           <div className="border-t border-white/10 bg-black/90 backdrop-blur px-4 pb-4 pt-2">
-
             <div className="flex flex-col gap-2 text-xs uppercase tracking-wide text-slate-100">
               <NavLink to="/" onClick={closeMenu} className="py-2">
                 {t("nav.home")}
               </NavLink>
 
-              <NavLink to="/ammissione-socio" onClick={closeMenu} className="py-2">
+              <NavLink
+                to="/ammissione-socio"
+                onClick={closeMenu}
+                className="py-2"
+              >
                 {t("nav.becomeMember")}
               </NavLink>
 
@@ -207,10 +219,11 @@ function Navbar() {
               </div>
 
               {/* SOCIAL MOBILE */}
-              <div className="mt-3 flex items-center gap-4 pt-1">
+              <div className="mt-3 flex flex-wrap items-center gap-4 pt-1">
                 <a
                   href="https://www.instagram.com/utopia.society.pd"
                   target="_blank"
+                  rel="noreferrer"
                   className="flex items-center gap-1 text-slate-300 hover:text-fuchsia-300 transition"
                 >
                   <Instagram className="h-4 w-4" />
@@ -218,16 +231,26 @@ function Navbar() {
                 </a>
 
                 <a
-                  href="https://www.facebook.com/utopiasociety.pd"
+                  href="https://www.facebook.com/utopiasocietypd"
                   target="_blank"
+                  rel="noreferrer"
                   className="flex items-center gap-1 text-slate-300 hover:text-cyan-300 transition"
                 >
                   <Facebook className="h-4 w-4" />
-                  <span className="text-[0.7rem]">/utopiasociety.pd</span>
+                  <span className="text-[0.7rem]">/utopiasocietypd</span>
+                </a>
+
+                <a
+                  href="https://www.tiktok.com/@utopiasocietypd"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center gap-1 text-slate-300 hover:text-cyan-300 transition"
+                >
+                  <TikTokIcon className="h-4 w-4" />
+                  <span className="text-[0.7rem]">@utopiasocietypd</span>
                 </a>
               </div>
             </div>
-
           </div>
         </motion.div>
       )}

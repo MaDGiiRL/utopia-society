@@ -1,8 +1,8 @@
 {
     "ui": {
         "pagination": {
-            "prev": "Prev",
-            "next": "Next",
+            "prev": "Prec",
+            "next": "Succ",
             "pageOf": "Pagina {{current}} di {{total}} · ({{pageSize}} per pagina)"
         }
     },
@@ -13,11 +13,11 @@
         "adminArea": "Area Admin"
     },
     "hero": {
-        "tagline": "Night Club • Members Only",
-        "title": "Benvenuto in Utopia.",
+        "tagline": "Night Club • Solo soci",
+        "title": "Benvenuto in ",
         "description": "Un club privato dove luci, musica e design futuristico si incontrano. Accesso riservato ai soci, esperienze fuori dal quotidiano.",
         "cta": "Diventa socio",
-        "scheduleDays": "Friday / Saturday",
+        "scheduleDays": "Venerdì / Sabato",
         "scheduleTime": "23:30 – Late"
     },
     "about": {
@@ -31,7 +31,7 @@
         "card3Text": "Ingresso solo per soci e accompagnatori registrati. Compila la domanda di ammissione online in pochi minuti."
     },
     "contact": {
-        "badge": "Contact • Utopia",
+        "badge": "Contatti • Utopia",
         "title": "Contattaci",
         "description": "Per info su tavoli, eventi privati o partnership compila il form. Ti risponderemo il prima possibile.",
         "emailLabel": "Email",
@@ -55,10 +55,10 @@
     "footer": {
         "home": "Home",
         "becomeMember": "Diventa socio",
-        "copyright": "© {{year}} Utopia Night Club",
+        "copyright": "© {{year}} Utopia ASDC",
         "rights": "Tutti i diritti riservati.",
         "developedWith": "Developed with",
-        "by": "by"
+        "by": "da"
     },
     "admin": {
         "dashboard": {
@@ -132,7 +132,7 @@
                 "docFront": "Documento fronte",
                 "docBack": "Documento retro",
                 "notAvailable": "Non disponibile",
-                "source": "Source",
+                "source": "Origine",
                 "close": "Chiudi"
             }
         },
@@ -271,8 +271,8 @@
         "sectionNotes": "Note aggiuntive (opzionale)",
         "notesPlaceholder": "Eventuali richieste o informazioni aggiuntive…",
         "sectionConsents": "Consensi",
-        "consentPrivacy": "Dichiaro di aver preso visione e di accettare la <link>privacy dei dati</link>.",
-        "consentStatute": "Approvo lo <link>statuto Utopia e statuto ACSI nazionale</link>.",
+        "consentPrivacy": "Dichiaro di aver preso visione e di accettare la <a>privacy dei dati</a>.",
+        "consentStatute": "Approvo lo <a>statuto Utopia e statuto ACSI nazionale</a>.",
         "consentMarketing": "Autorizzo l'utilizzo dei miei contatti per comunicazioni riguardanti eventi e attività del club (newsletter/SMS).",
         "errorMissingDocs": "Carica sia il fronte che il retro del documento.",
         "errorGeneric": "Si è verificato un errore, riprova più tardi.",

@@ -27,6 +27,11 @@ i18n
       order: ["localStorage", "navigator", "htmlTag"],
       caches: ["localStorage"],
     },
+    react: {
+      useSuspense: false,
+      transSupportBasicHtmlNodes: true,
+      transKeepBasicHtmlNodesFor: ["br", "strong", "i", "p", "link"],
+    },
   });
 
 export default i18n;

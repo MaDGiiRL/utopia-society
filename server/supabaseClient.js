@@ -1,4 +1,3 @@
-// server/supabaseClient.js
 import { createClient } from "@supabase/supabase-js";
 
 const SUPABASE_URL = process.env.SUPABASE_URL;            // 👈 CORRETTO

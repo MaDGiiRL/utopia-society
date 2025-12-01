@@ -1,8 +1,8 @@
 {
     "ui": {
         "pagination": {
-            "prev": "Prev",
-            "next": "Next",
+            "prev": "Înapoi",
+            "next": "Înainte",
             "pageOf": "Pagina {{current}} din {{total}} · ({{pageSize}} pe pagină)"
         }
     },
@@ -14,7 +14,7 @@
     },
     "hero": {
         "tagline": "Night Club • Doar pentru membri",
-        "title": "Bun venit la Utopia.",
+        "title": "Bun venit la ",
         "description": "Un club privat unde luminile, muzica și designul futurist se întâlnesc. Acces rezervat membrilor, experiențe ieșite din cotidian.",
         "cta": "Devino membru",
         "scheduleDays": "Vineri / Sâmbătă",
@@ -55,9 +55,9 @@
     "footer": {
         "home": "Home",
         "becomeMember": "Devino membru",
-        "copyright": "© {{year}} Utopia Night Club",
+        "copyright": "© {{year}} Utopia ASDC",
         "rights": "Toate drepturile rezervate.",
-        "developedWith": "Dezvoltat cu",
+        "developedWith": "Developed with",
         "by": "de"
     },
     "admin": {
@@ -132,7 +132,7 @@
                 "docFront": "Document față",
                 "docBack": "Document verso",
                 "notAvailable": "Indisponibil",
-                "source": "Source",
+                "source": "Sursă",
                 "close": "Închide"
             }
         },
@@ -271,8 +271,8 @@
         "sectionNotes": "Note suplimentare (opțional)",
         "notesPlaceholder": "Orice solicitări sau informații suplimentare…",
         "sectionConsents": "Consimțăminte",
-        "consentPrivacy": "Declar că am citit și accept <link>politica de confidențialitate a datelor</link>.",
-        "consentStatute": "Aprob <link>statutul Utopia și statutul național ACSI</link>.",
+        "consentPrivacy": "Declar că am citit și accept <a>politica de confidențialitate a datelor</a>.",
+        "consentStatute": "Aprob <a>statutul Utopia și statutul național ACSI</a>.",
         "consentMarketing": "Autorizez utilizarea datelor mele de contact pentru comunicări despre evenimentele și activitățile clubului (newsletter/SMS).",
         "errorMissingDocs": "Te rugăm să încarci atât fața, cât și verso-ul documentului.",
         "errorGeneric": "A apărut o eroare, încearcă din nou mai târziu.",

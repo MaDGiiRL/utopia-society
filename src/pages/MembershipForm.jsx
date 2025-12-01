@@ -2,17 +2,16 @@
 import { useRef, useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Swal from "sweetalert2";
-import { useTranslation, Trans } from "react-i18next";
+import { useTranslation } from "react-i18next";
 import ScrollScene3D from "../components/ScrollScene3D";
-
-// ❌ NIENTE più supabase qui
-// import { supabase } from "../lib/supabaseClient";
-
-const fadeUp = (delay = 0) => ({
-  initial: { opacity: 0, y: 24 },
-  animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.7, delay },
-});
+import MembershipIntro from "../components/membership/MembershipIntro";
+import MembershipFormHeader from "../components/membership/MembershipFormHeader";
+import MembershipDocumentsSection from "../components/membership/MembershipDocumentsSection";
+import MembershipNotesSection from "../components/membership/MembershipNotesSection";
+import MembershipConsentsSection from "../components/membership/MembershipConsentsSection";
+import MembershipMessages from "../components/membership/MembershipMessages";
+import MembershipSubmitRow from "../components/membership/MembershipSubmitRow";
+import SignatureModal from "../components/membership/SignatureModal";
 
 // Base URL backend
 const API_BASE =
@@ -303,90 +302,15 @@ function MembershipForm() {
       <section className="relative overflow-hidden py-24">
         <div className="relative mx-auto flex max-w-6xl flex-col gap-12 px-4 lg:grid lg:grid-cols-[1.05fr_minmax(0,1.1fr)] lg:items-start">
           {/* COLONNA TESTO */}
-          <motion.div
-            {...fadeUp()}
-            className="space-y-6 text-center lg:text-left"
-          >
-            <p className="text-[0.7rem] uppercase tracking-[0.4em] text-cyan-300">
-              {t("membership.badge")}
-            </p>
-
-            <motion.h1
-              initial={{
-                opacity: 0,
-                y: 60,
-                scale: 0.9,
-                letterSpacing: "0.05em",
-              }}
-              whileInView={{
-                opacity: 1,
-                y: 0,
-                scale: 1,
-                letterSpacing: "0.22em",
-              }}
-              transition={{
-                duration: 1,
-                ease: [0.25, 0.1, 0.25, 1],
-              }}
-              viewport={{ once: true, amount: 0.5 }}
-              className="text-3xl md:text-4xl lg:text-5xl font-semibold tracking-[0.18em] uppercase"
-            >
-              <Trans
-                i18nKey="membership.title"
-                components={{
-                  strong: (
-                    <span className="bg-linear-to-r from-cyan-300 to-fuchsia-400 bg-clip-text text-transparent" />
-                  ),
-                }}
-              />
-            </motion.h1>
-
-            <p className="text-xs md:text-sm text-slate-300 max-w-md mx-auto lg:mx-0">
-              {t("membership.description")}
-            </p>
-
-            <div className="flex flex-wrap items-center justify-center gap-3 lg:justify-start text-[0.7rem]">
-              <span className="rounded-full border border-cyan-400/40 bg-cyan-400/10 px-3 py-1 uppercase tracking-[0.2em] text-cyan-200">
-                {t("membership.stepBadge")}
-              </span>
-              <span className="rounded-full border border-fuchsia-400/40 bg-fuchsia-400/10 px-3 py-1 uppercase tracking-[0.18em] text-fuchsia-200">
-                {t("membership.stepLabel")}
-              </span>
-            </div>
-
-            <div className="hidden md:flex flex-col gap-2 text-[0.75rem] text-slate-300 pt-4 border-t border-white/10 max-w-md lg:max-w-none">
-              <p className="uppercase tracking-[0.22em] text-slate-400">
-                {t("membership.needTitle")}
-              </p>
-              <ul className="list-disc list-inside space-y-1 text-slate-200">
-                <li>{t("membership.needItem1")}</li>
-                <li>{t("membership.needItem2")}</li>
-                <li>{t("membership.needItem3")}</li>
-              </ul>
-            </div>
-          </motion.div>
+          <MembershipIntro />
 
           {/* COLONNA FORM */}
           <motion.form
-            {...fadeUp(0.15)}
             ref={formRef}
             onSubmit={handleSubmit}
             className="mt-2 space-y-6 rounded-3xl border border-white/10 bg-black/70 p-6 md:p-7 text-sm backdrop-blur-xl shadow-[0_0_40px_rgba(15,23,42,0.8)] lg:mt-0"
           >
-            {/* HEADER FORM */}
-            <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-4">
-              <div>
-                <p className="text-[0.7rem] uppercase tracking-[0.25em] text-slate-400">
-                  {t("membership.formHeaderBadge")}
-                </p>
-                <p className="text-xs text-slate-200">
-                  {t("membership.formHeaderSubtitle")}
-                </p>
-              </div>
-              <div className="rounded-full border border-emerald-400/60 bg-emerald-400/10 px-3 py-1 text-[0.65rem] uppercase tracking-[0.18em] text-emerald-300">
-                {t("membership.formHeaderChip")}
-              </div>
-            </div>
+            <MembershipFormHeader />
 
             {/* DATI ANAGRAFICI */}
             <div className="space-y-3">
@@ -514,257 +438,48 @@ function MembershipForm() {
             </div>
 
             {/* DOCUMENTO */}
-            <div className="space-y-3 border-t border-white/5 pt-4">
-              <p className="text-[0.7rem] uppercase tracking-[0.22em] text-slate-400">
-                {t("membership.sectionDocument")}
-              </p>
-              <div className="grid gap-4 md:grid-cols-2">
-                {/* Fronte */}
-                <label className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-cyan-400/60 bg-slate-950/70 px-4 py-6 text-center text-xs text-slate-200 hover:border-cyan-300 transition">
-                  <span className="mb-1 text-[0.7rem] uppercase tracking-wide text-cyan-300">
-                    {t("membership.docFrontTitle")}
-                  </span>
-                  {frontName && (
-                    <span className="mb-1 text-[0.65rem] text-cyan-200/90">
-                      {frontName}
-                    </span>
-                  )}
-                  <span className="text-[0.65rem] text-slate-400">
-                    {t("membership.docFrontSubtitle")}
-                  </span>
-                  <input
-                    id="cameraInputFronte"
-                    name="document_front"
-                    type="file"
-                    accept="image/*"
-                    capture="environment"
-                    className="hidden"
-                    required
-                    onChange={(e) =>
-                      handleFileChange(e, setFrontPreview, setFrontName)
-                    }
-                  />
-                  {frontPreview && (
-                    <div className="mt-3 w-full max-w-[180px] overflow-hidden rounded-xl border border-white/10 bg-slate-900/70">
-                      <img
-                        src={frontPreview}
-                        alt="Anteprima documento fronte"
-                        className="block w-full h-auto object-cover"
-                      />
-                    </div>
-                  )}
-                </label>
-
-                {/* Retro */}
-                <label className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-fuchsia-400/60 bg-slate-950/70 px-4 py-6 text-center text-xs text-slate-200 hover:border-fuchsia-300 transition">
-                  <span className="mb-1 text-[0.7rem] uppercase tracking-wide text-fuchsia-300">
-                    {t("membership.docBackTitle")}
-                  </span>
-                  {backName && (
-                    <span className="mb-1 text-[0.65rem] text-fuchsia-200/90">
-                      {backName}
-                    </span>
-                  )}
-                  <span className="text-[0.65rem] text-slate-400">
-                    {t("membership.docBackSubtitle")}
-                  </span>
-                  <input
-                    id="cameraInputRetro"
-                    name="document_back"
-                    type="file"
-                    accept="image/*"
-                    capture="environment"
-                    className="hidden"
-                    required
-                    onChange={(e) =>
-                      handleFileChange(e, setBackPreview, setBackName)
-                    }
-                  />
-                  {backPreview && (
-                    <div className="mt-3 w-full max-w-[180px] overflow-hidden rounded-xl border border-white/10 bg-slate-900/70">
-                      <img
-                        src={backPreview}
-                        alt="Anteprima documento retro"
-                        className="block w-full h-auto object-cover"
-                      />
-                    </div>
-                  )}
-                </label>
-              </div>
-            </div>
+            <MembershipDocumentsSection
+              frontName={frontName}
+              backName={backName}
+              frontPreview={frontPreview}
+              backPreview={backPreview}
+              onFrontChange={(e) =>
+                handleFileChange(e, setFrontPreview, setFrontName)
+              }
+              onBackChange={(e) =>
+                handleFileChange(e, setBackPreview, setBackName)
+              }
+            />
 
             {/* NOTE */}
-            <div className="space-y-2 border-t border-white/5 pt-4">
-              <p className="text-[0.7rem] uppercase tracking-[0.22em] text-slate-400">
-                {t("membership.sectionNotes")}
-              </p>
-              <textarea
-                id="note"
-                name="note"
-                rows={3}
-                className="mt-1 w-full rounded-xl border border-white/10 bg-slate-950/70 px-3 py-2 text-sm outline-none focus:border-cyan-400"
-                placeholder={t("membership.notesPlaceholder")}
-              />
-            </div>
+            <MembershipNotesSection />
 
             {/* CONSENSI */}
-            <div className="space-y-3 border-t border-white/5 pt-4">
-              <p className="text-[0.7rem] uppercase tracking-[0.22em] text-slate-400">
-                {t("membership.sectionConsents")}
-              </p>
-              <div className="space-y-2 text-xs text-slate-300">
-                <label className="flex items-start gap-2">
-                  <input
-                    id="accept_privacy"
-                    name="accept_privacy"
-                    type="checkbox"
-                    required
-                    className="mt-0.5 h-4 w-4 rounded border-slate-500 bg-slate-900 text-cyan-400 focus:ring-cyan-400"
-                  />
-                  <span>
-                    <Trans
-                      i18nKey="membership.consentPrivacy"
-                      components={{
-                        link: (
-                          <a
-                            href="/pdf/privacy.pdf"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-cyan-300 underline"
-                          />
-                        ),
-                      }}
-                    />
-                  </span>
-                </label>
-
-                <label className="flex items-start gap-2">
-                  <input
-                    id="accept_statute"
-                    type="checkbox"
-                    required
-                    className="mt-0.5 h-4 w-4 rounded border-slate-500 bg-slate-900 text-cyan-400 focus:ring-cyan-400"
-                  />
-                  <span>
-                    <Trans
-                      i18nKey="membership.consentStatute"
-                      components={{
-                        link: (
-                          <a
-                            href="/pdf/statuto.pdf"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-cyan-300 underline"
-                          />
-                        ),
-                      }}
-                    />
-                  </span>
-                </label>
-
-                <label className="flex items-start gap-2">
-                  <input
-                    id="accept_marketing"
-                    name="accept_marketing"
-                    type="checkbox"
-                    className="mt-0.5 h-4 w-4 rounded border-slate-500 bg-slate-900 text-cyan-400 focus:ring-cyan-400"
-                  />
-                  <span>{t("membership.consentMarketing")}</span>
-                </label>
-              </div>
-            </div>
+            <MembershipConsentsSection />
 
             {/* MESSAGGI + CTA */}
-            {error && (
-              <div className="rounded-lg border border-rose-500/40 bg-rose-500/10 px-3 py-2 text-[11px] text-rose-200">
-                {error}
-              </div>
-            )}
-            {ok && (
-              <div className="rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-[11px] text-emerald-200">
-                {t("membership.successInline")}
-              </div>
-            )}
+            <MembershipMessages
+              error={error}
+              ok={ok}
+              successText={t("membership.successInline")}
+            />
 
-            <div className="pt-2 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <button
-                id="btnSubmit"
-                type="submit"
-                disabled={loading}
-                className={`w-full sm:w-auto rounded-full bg-linear-to-r from-cyan-400 to-fuchsia-500 px-4 py-3 text-xs md:text-sm font-semibold uppercase tracking-[0.18em] text-black shadow-[0_0_40px_rgba(56,189,248,0.9)] hover:brightness-110 transition ${
-                  loading ? "opacity-60 cursor-not-allowed" : ""
-                }`}
-              >
-                {loading
-                  ? t("membership.submitLoading")
-                  : t("membership.submitIdle")}
-              </button>
-
-              {/* bottone per la firma (se lo riattivi) */}
-              {/*
-              <button
-                type="button"
-                onClick={() => {
-                  clearSignature();
-                  setIsModalOpen(true);
-                }}
-                className="text-[0.7rem] uppercase tracking-[0.18em] text-slate-300 hover:text-cyan-200"
-              >
-                Apri riquadro firma (opzionale)
-              </button>
-              */}
-            </div>
+            <MembershipSubmitRow
+              loading={loading}
+              submitLabel={t("membership.submitIdle")}
+              submitLoadingLabel={t("membership.submitLoading")}
+            />
           </motion.form>
 
-          {/* MODALE FIRMA (ancora commentata come nel tuo codice) */}
-          {/*
-          {isModalOpen && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
-              <div className="w-full max-w-md rounded-2xl border border-white/15 bg-slate-950/95 p-4 text-xs text-slate-100 shadow-xl">
-                <h2 className="mb-2 text-[0.75rem] font-semibold uppercase tracking-[0.2em] text-slate-200">
-                  Firma la domanda
-                </h2>
-                <p className="mb-3 text-[0.7rem] text-slate-400">
-                  Firma all'interno del riquadro utilizzando il mouse o il dito (su mobile).
-                </p>
-
-                <div className="mb-3 overflow-hidden rounded-xl border border-white/15 bg-slate-900/80">
-                  <canvas
-                    ref={canvasRef}
-                    width={500}
-                    height={220}
-                    className="block w-full"
-                  />
-                </div>
-
-                <div className="flex items-center justify-between gap-2">
-                  <button
-                    type="button"
-                    onClick={clearSignature}
-                    className="rounded-full border border-slate-600/60 bg-slate-900/80 px-3 py-1 text-[0.7rem] uppercase tracking-[0.16em] text-slate-300 hover:border-amber-400 hover:text-amber-300"
-                  >
-                    Cancella
-                  </button>
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setIsModalOpen(false)}
-                      className="rounded-full border border-slate-600/60 bg-slate-900/80 px-3 py-1 text-[0.7rem] uppercase tracking-[0.16em] text-slate-300 hover:border-rose-400 hover:text-rose-300"
-                    >
-                      Annulla
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleConfirmSignature}
-                      className="rounded-full bg-linear-to-r from-cyan-400 to-fuchsia-500 px-3 py-1 text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-black"
-                    >
-                      Conferma
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+          {/* MODALE FIRMA (opzionale) */}
+          {/* 
+          <SignatureModal
+            isOpen={isModalOpen}
+            canvasRef={canvasRef}
+            onClear={clearSignature}
+            onClose={() => setIsModalOpen(false)}
+            onConfirm={handleConfirmSignature}
+          />
           */}
         </div>
       </section>
