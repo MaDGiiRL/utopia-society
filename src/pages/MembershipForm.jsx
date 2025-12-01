@@ -5,6 +5,9 @@ import Swal from "sweetalert2";
 import { useTranslation, Trans } from "react-i18next";
 import ScrollScene3D from "../components/ScrollScene3D";
 
+// ❌ NIENTE più supabase qui
+// import { supabase } from "../lib/supabaseClient";
+
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 24 },
   animate: { opacity: 1, y: 0 },
@@ -223,9 +226,11 @@ function MembershipForm() {
     }
 
     try {
+      // 1) upload documenti al backend
       const frontResult = await uploadDocumento(fileFront, "front");
       const backResult = await uploadDocumento(fileBack, "back");
 
+      // 2) payload per /api/admin/members
       const payload = {
         full_name: fullName,
         email: formData.get("emailType"),
@@ -242,33 +247,23 @@ function MembershipForm() {
         document_back_url: backResult.url,
       };
 
-      if (!API_BASE) {
-        throw new Error(t("membership.apiBaseMissing"));
-      }
-
+      // 3) chiamata al backend → qui scatta la CIFRATURA
       const res = await fetch(`${API_BASE}/api/admin/members`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify(payload),
       });
 
-      const raw = await res.text();
-      let data = {};
-      try {
-        data = JSON.parse(raw);
-      } catch {
-        // non è JSON
+      const data = await res.json().catch(() => null);
+
+      if (!res.ok || !data?.ok) {
+        console.error("Errore creazione membro", { status: res.status, data });
+        throw new Error(data?.message || t("membership.errorGeneric"));
       }
 
-      if (!res.ok || !data.ok) {
-        console.error("Create member failed", {
-          status: res.status,
-          raw,
-          data,
-        });
-        throw new Error(data.message || t("membership.errorGeneric"));
-      }
-
+      // 4) reset UI
       setOk(true);
       e.target.reset();
       clearSignature();
@@ -706,7 +701,7 @@ function MembershipForm() {
               </button>
 
               {/* bottone per la firma (se lo riattivi) */}
-              {/* 
+              {/*
               <button
                 type="button"
                 onClick={() => {
@@ -722,30 +717,31 @@ function MembershipForm() {
           </motion.form>
 
           {/* MODALE FIRMA (ancora commentata come nel tuo codice) */}
-          {/* 
+          {/*
           {isModalOpen && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
-              <div className="w-full max-w-md rounded-3xl border border-white/10 bg-slate-950/95 p-6 shadow-xl">
-                <h2 className="mb-3 text-sm font-semibold uppercase tracking-[0.18em] text-slate-200">
-                  Firma domanda
+              <div className="w-full max-w-md rounded-2xl border border-white/15 bg-slate-950/95 p-4 text-xs text-slate-100 shadow-xl">
+                <h2 className="mb-2 text-[0.75rem] font-semibold uppercase tracking-[0.2em] text-slate-200">
+                  Firma la domanda
                 </h2>
-                <p className="mb-3 text-xs text-slate-400">
-                  Firma all'interno del riquadro. Usa il mouse o il dito (su
-                  dispositivi touch).
+                <p className="mb-3 text-[0.7rem] text-slate-400">
+                  Firma all'interno del riquadro utilizzando il mouse o il dito (su mobile).
                 </p>
-                <div className="mb-4 rounded-2xl border border-white/20 bg-slate-900/80 p-2">
+
+                <div className="mb-3 overflow-hidden rounded-xl border border-white/15 bg-slate-900/80">
                   <canvas
                     ref={canvasRef}
-                    width={400}
-                    height={200}
-                    className="h-40 w-full rounded-xl bg-slate-900"
+                    width={500}
+                    height={220}
+                    className="block w-full"
                   />
                 </div>
-                <div className="flex items-center justify-between gap-3 text-xs">
+
+                <div className="flex items-center justify-between gap-2">
                   <button
                     type="button"
                     onClick={clearSignature}
-                    className="rounded-full border border-slate-500/60 px-3 py-2 text-[0.7rem] uppercase tracking-[0.18em] text-slate-200 hover:border-cyan-400 hover:text-cyan-200"
+                    className="rounded-full border border-slate-600/60 bg-slate-900/80 px-3 py-1 text-[0.7rem] uppercase tracking-[0.16em] text-slate-300 hover:border-amber-400 hover:text-amber-300"
                   >
                     Cancella
                   </button>
@@ -753,22 +749,22 @@ function MembershipForm() {
                     <button
                       type="button"
                       onClick={() => setIsModalOpen(false)}
-                      className="rounded-full border border-slate-500/60 px-3 py-2 text-[0.7rem] uppercase tracking-[0.18em] text-slate-200 hover:border-rose-400 hover:text-rose-200"
+                      className="rounded-full border border-slate-600/60 bg-slate-900/80 px-3 py-1 text-[0.7rem] uppercase tracking-[0.16em] text-slate-300 hover:border-rose-400 hover:text-rose-300"
                     >
                       Annulla
                     </button>
                     <button
                       type="button"
                       onClick={handleConfirmSignature}
-                      className="rounded-full bg-linear-to-r from-cyan-400 to-fuchsia-500 px-3 py-2 text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-black"
+                      className="rounded-full bg-linear-to-r from-cyan-400 to-fuchsia-500 px-3 py-1 text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-black"
                     >
-                      Conferma firma
+                      Conferma
                     </button>
                   </div>
                 </div>
               </div>
             </div>
-          )} 
+          )}
           */}
         </div>
       </section>
