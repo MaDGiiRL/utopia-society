@@ -204,20 +204,27 @@ function ContactSection() {
     const form = new FormData(e.target);
 
     const payload = {
-      name: form.get("name")?.trim() || null,
-      email: form.get("email")?.trim() || null,
-      phone: form.get("phone")?.trim() || null,
-      message: form.get("message")?.trim() || null,
+      name: form.get("name")?.trim() || "",
+      email: form.get("email")?.trim() || "",
+      phone: form.get("phone")?.trim() || "",
+      message: form.get("message")?.trim() || "",
+      source_page: "contact_section",
     };
 
     try {
-      const { error: insertError } = await supabase
-        .from("contact_messages")
-        .insert(payload);
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
 
-      if (insertError) {
-        console.error("Errore insert contact_messages:", insertError);
-        throw insertError;
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok || data.ok === false) {
+        console.error("Errore /api/contact:", data);
+        throw new Error(data.message || "Errore invio messaggio");
       }
 
       setOk(true);

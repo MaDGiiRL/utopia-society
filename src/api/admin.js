@@ -31,3 +31,11 @@ export async function fetchMemberById(id) {
   const res = await api.get(`/api/admin/members/${id}`);
   return res.data; // { ok: true, member: {...} }
 }
+
+/**
+ * Lista messaggi contatti (dati decriptati)
+ */
+export async function fetchContactMessages() {
+  const res = await api.get("/api/admin/contact-messages");
+  return res.data; // { ok: true, messages: [...] }
+}

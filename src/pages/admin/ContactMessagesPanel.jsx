@@ -1,6 +1,5 @@
 // src/pages/admin/ContactMessagesPanel.jsx
 import { useEffect, useMemo, useState } from "react";
-import { supabase } from "../../lib/supabaseClient";
 import {
   Mail,
   User,
@@ -13,6 +12,7 @@ import {
   Reply,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { fetchContactMessages } from "../../api/admin";
 
 const PAGE_SIZE = 40;
 
@@ -30,19 +30,19 @@ export default function ContactMessagesPanel() {
     const load = async () => {
       setLoading(true);
       setError("");
-      const { data, error } = await supabase
-        .from("contact_messages")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (error) {
-        console.error("Errore caricamento contact_messages:", error);
+      try {
+        const data = await fetchContactMessages();
+        if (!data.ok) {
+          throw new Error(data.message || "Errore lettura messaggi");
+        }
+        setMessages(data.messages || []);
+      } catch (err) {
+        console.error("Errore caricamento contact_messages:", err);
         setError(t("admin.contactsPanel.errorLoad"));
         setMessages([]);
-      } else {
-        setMessages(data || []);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
     load();
   }, [t]);

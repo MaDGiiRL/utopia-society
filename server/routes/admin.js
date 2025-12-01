@@ -10,7 +10,7 @@ import {
   sendSmsToMember,
   normalizeItalianPhone,
 } from "../services/notifications.js";
-import { safeDecrypt } from "../services/crypto.js";
+import { safeDecrypt, encrypt } from "../services/crypto.js";
 import {
   createMemberFromForm,
   mapMemberRowDecrypted,
@@ -352,9 +352,138 @@ router.get("/members.xml", adminAuthMiddleware, async (req, res) => {
   }
 });
 
+/* ------------------------------------------------------------------
+   CONTACT MESSAGES – cifrati
+-------------------------------------------------------------------*/
+
 /**
- * Helper template email & SMS
+ * Helper: mappa una row di contact_messages in oggetto decriptato
  */
+function mapContactRowDecrypted(m) {
+  if (!m) return null;
+
+  // name
+  let namePlain = m.name ?? "";
+  if (!namePlain && m.name_enc) {
+    namePlain = safeDecrypt(m.name_enc, "");
+  }
+
+  // email
+  let emailPlain = m.email ?? "";
+  if (!emailPlain && m.email_enc) {
+    emailPlain = safeDecrypt(m.email_enc, "");
+  }
+
+  // phone
+  let phonePlain = m.phone ?? "";
+  if (!phonePlain && m.phone_enc) {
+    phonePlain = safeDecrypt(m.phone_enc, "");
+  }
+
+  // message
+  let messagePlain = m.message ?? "";
+  if (!messagePlain && m.message_enc) {
+    messagePlain = safeDecrypt(m.message_enc, "");
+  }
+
+  return {
+    id: m.id,
+    created_at: m.created_at,
+    name: namePlain,
+    email: emailPlain,
+    phone: phonePlain,
+    message: messagePlain,
+    source_page: m.source_page,
+    handled: m.handled,
+  };
+}
+
+/**
+ * POST /api/contact
+ * Form contatti pubblico: salva cifrando i dati nella tabella contact_messages
+ */
+router.post("/contact", async (req, res) => {
+  try {
+    const { name, email, phone, message, source_page } = req.body || {};
+
+    if (!email || !message) {
+      return res
+        .status(400)
+        .json({ ok: false, message: "Email e messaggio sono obbligatori" });
+    }
+
+    const nameClean = name?.trim() || "";
+    const emailClean = email?.trim() || "";
+    const phoneClean = phone?.trim() || "";
+    const messageClean = message?.trim() || "";
+
+    const insertPayload = {
+      // in chiaro li lasciamo null per i nuovi record
+      name: null,
+      email: null,
+      phone: null,
+      message: null,
+
+      // cifrati
+      name_enc: nameClean ? encrypt(nameClean) : null,
+      email_enc: encrypt(emailClean),
+      phone_enc: phoneClean ? encrypt(phoneClean) : null,
+      message_enc: encrypt(messageClean),
+
+      source_page: source_page || "contact_section",
+      handled: false,
+    };
+
+    const { data, error } = await supabaseAdmin
+      .from("contact_messages")
+      .insert(insertPayload)
+      .select("*")
+      .single();
+
+    if (error) {
+      console.error("[POST /api/contact] insert error", error);
+      return res
+        .status(500)
+        .json({ ok: false, message: "Errore salvataggio messaggio" });
+    }
+
+    return res.json({ ok: true });
+  } catch (err) {
+    console.error("[POST /api/contact] unexpected", err);
+    return res
+      .status(500)
+      .json({ ok: false, message: "Errore imprevisto invio messaggio" });
+  }
+});
+
+/**
+ * GET /api/admin/contact-messages
+ * Lista messaggi contatti (dati decriptati) per tab admin
+ */
+router.get("/contact-messages", adminAuthMiddleware, async (req, res) => {
+  try {
+    const { data, error } = await supabaseAdmin
+      .from("contact_messages")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("[GET /api/admin/contact-messages] error", error);
+      return res.status(500).json({
+        ok: false,
+        message: "Errore lettura messaggi contatti",
+      });
+    }
+
+    const messages = (data || []).map(mapContactRowDecrypted);
+    return res.json({ ok: true, messages });
+  } catch (err) {
+    console.error("[GET /api/admin/contact-messages] unexpected", err);
+    return res.status(500).json({ ok: false, message: "Errore imprevisto" });
+  }
+});
+
+/* ------------------------------------------------------------------ */
 
 function renderEmailTemplate({ member, title, event_date, message_email }) {
   const nome = member.full_name || "Socio";
