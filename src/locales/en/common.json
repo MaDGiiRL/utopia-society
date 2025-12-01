@@ -13,7 +13,7 @@
         "adminArea": "Admin area"
     },
     "hero": {
-        "tagline": "Night Club • Members Only",
+        "tagline": "Private Club • Members Only",
         "title": "Welcome to ",
         "description": "A private club where lights, music and futuristic design meet. Members-only access and out-of-the-ordinary experiences.",
         "cta": "Become a member",
@@ -22,13 +22,13 @@
     },
     "about": {
         "title": "About",
-        "paragraph": "Utopia is a private club located in the heart of the city. An exclusive environment, refined in every detail, where electronic sounds, light installations and high-end mixology blend to create a unique experience.",
+        "paragraph": "Utopia is a private club located in the heart of the city. An exclusive environment, crafted with attention to every detail, where Balkan sounds, light installations and high-end mixology blend together to create a unique experience.",
         "card1Title": "Futuristic atmosphere",
-        "card1Text": "Neon lights, lasers and a digital scenography that turns the dance floor into a virtual space.",
-        "card2Title": "Curated music",
-        "card2Text": "Resident DJs and international guests with house, techno, electronic sounds and modern influences.",
-        "card3Title": "Members-only access",
-        "card3Text": "Entry reserved only for members and registered guests. Fill out the online membership application in just a few minutes."
+        "card1Text": "Utopia embraces contemporary aesthetics through a luminous design and modern visual elements. The space brings together technology and artistic expression, offering members a cultural experience built on identity, creativity and dialogue. Materials, light displays and digital interactions create a setting where the community can meet, socialise and discover new forms of expression.",
+        "card2Title": "Selected music",
+        "card2Text": "Our Cultural Association promotes Romanian culture through traditional dance courses and Romanian language classes for all ages. We create an open, welcoming space rich in cultural activities, events and shared moments, in order to enhance traditions and support integration within the community.",
+        "card3Title": "Reserved access",
+        "card3Text": "Access is reserved for registered members, to preserve a safe, respectful environment focused on cultural development. Registration takes place online, through a simple and transparent process, to facilitate the participation of all those interested in the activities, events and experiences proposed within the Utopia community."
     },
     "contact": {
         "badge": "Contact • Utopia",

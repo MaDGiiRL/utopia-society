@@ -39,7 +39,7 @@ export default function TiltCard({ title, color, text, idx }) {
       }}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      className="relative overflow-hidden rounded-2xl border border-white/10 bg-slate-900/60 p-8 backdrop-blur group transform-gpu will-change-transform"
+      className="relative overflow-hidden text-justify rounded-2xl border border-white/10 bg-slate-900/60 p-5 px-7 backdrop-blur group transform-gpu will-change-transform"
     >
       <div className="pointer-events-none absolute inset-px rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-[radial-gradient(circle_at_top,rgba(56,189,248,0.22),transparent_55%),radial-gradient(circle_at_bottom,rgba(236,72,153,0.22),transparent_55%)]" />
       <div className="pointer-events-none absolute -inset-x-10 -top-10 h-20 bg-linear-to-r from-transparent via-white/15 to-transparent opacity-0 group-hover:opacity-100 group-hover:translate-x-24 transition duration-700" />
