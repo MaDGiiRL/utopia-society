@@ -263,7 +263,7 @@ export default function EventsGallery() {
                     <button
                       key={idx}
                       type="button"
-                      className="group relative aspect-[4/3] overflow-hidden rounded-xl border border-white/10 bg-slate-900/70 hover:border-cyan-400/70 transition"
+                      className="group relative aspect-4/3 overflow-hidden rounded-xl border border-white/10 bg-slate-900/70 hover:border-cyan-400/70 transition"
                       onClick={() => openModal(idx)}
                     >
                       <img
@@ -272,7 +272,7 @@ export default function EventsGallery() {
                         className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
                         loading="lazy"
                       />
-                      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition" />
+                      <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition" />
                     </button>
                   ))}
                 </div>
@@ -328,7 +328,7 @@ export default function EventsGallery() {
             {/* Preview singola */}
             <div className="space-y-3">
               <div className="rounded-2xl border border-white/10 bg-black/65 backdrop-blur transform-gpu p-2">
-                <div className="aspect-[4/3] w-full overflow-hidden rounded-xl bg-slate-900/70">
+                <div className="aspect-4/3 w-full overflow-hidden rounded-xl bg-slate-900/70">
                   <img
                     src={`/events/${activeEvent.slug}/1.jpg`}
                     alt={activeEvent.title}
@@ -359,7 +359,7 @@ export default function EventsGallery() {
               <X className="h-4 w-4" />
             </button>
 
-            <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl border border-white/20 bg-black">
+            <div className="relative aspect-video w-full overflow-hidden rounded-2xl border border-white/20 bg-black">
               <img
                 src={`/events/${activeEvent.slug}/${modalImageIndex + 1}.jpg`}
                 alt={`${activeEvent.title} fullscreen ${modalImageIndex + 1}`}

@@ -15,7 +15,7 @@ export default function GalleryGrid({ events, onImageClick }) {
             key={`${ev.slug}-${imageIndex}`}
             type="button"
             onClick={() => onImageClick(eventIndex, imageIndex)}
-            className="group relative aspect-[4/3] overflow-hidden rounded-xl border border-white/10 bg-slate-900/70 hover:border-cyan-400/70 transition"
+            className="group relative aspect-4/3 overflow-hidden rounded-xl border border-white/10 bg-slate-900/70 hover:border-cyan-400/70 transition"
           >
             <img
               src={`/events/${ev.slug}/${imageIndex + 1}.jpg`}
@@ -23,7 +23,7 @@ export default function GalleryGrid({ events, onImageClick }) {
               className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
               loading="lazy"
             />
-            <div className="pointer-events-none absolute inset-0 flex items-end justify-between px-2 pb-1 bg-gradient-to-t from-black/55 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition">
+            <div className="pointer-events-none absolute inset-0 flex items-end justify-between px-2 pb-1 bg-linear-to-t from-black/55 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition">
               <span className="text-[0.65rem] text-slate-100">{ev.title}</span>
               <span className="text-[0.65rem] text-slate-200/80">
                 #{imageIndex + 1}

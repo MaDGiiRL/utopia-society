@@ -138,7 +138,7 @@ export default function GalleryPage() {
                 key={`${ev.slug}-${imageIndex}`}
                 type="button"
                 onClick={() => openModal(eventIndex, imageIndex)}
-                className="group relative aspect-[4/3] overflow-hidden rounded-xl border border-white/10 bg-slate-900/70 hover:border-cyan-400/70 transition"
+                className="group relative aspect-4/3 overflow-hidden rounded-xl border border-white/10 bg-slate-900/70 hover:border-cyan-400/70 transition"
               >
                 <img
                   src={`/events/${ev.slug}/${imageIndex + 1}.jpg`}
@@ -146,7 +146,7 @@ export default function GalleryPage() {
                   className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
                   loading="lazy"
                 />
-                <div className="pointer-events-none absolute inset-0 flex items-end justify-between px-2 pb-1 bg-gradient-to-t from-black/55 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition">
+                <div className="pointer-events-none absolute inset-0 flex items-end justify-between px-2 pb-1 bg-linear-to-t from-black/55 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition">
                   <span className="text-[0.65rem] text-slate-100">
                     {ev.title}
                   </span>
@@ -186,7 +186,7 @@ export default function GalleryPage() {
               <X className="h-4 w-4" />
             </button>
 
-            <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl border border-white/20 bg-black">
+            <div className="relative aspect-video w-full overflow-hidden rounded-2xl border border-white/20 bg-black">
               <img
                 src={`/events/${currentEvent.slug}/${modalImageIndex + 1}.jpg`}
                 alt={`${currentEvent.title} fullscreen ${modalImageIndex + 1}`}

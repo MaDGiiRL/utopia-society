@@ -49,7 +49,7 @@ function AboutSection() {
             ease: [0.25, 0.1, 0.25, 1],
           }}
           viewport={{ once: true, amount: 0.4 }}
-          className="text-center font-semibold uppercase text-4xl md:text-5xl lg:text-6xl tracking-[0.1em] leading-tight"
+          className="text-center font-semibold uppercase text-4xl md:text-5xl lg:text-6xl tracking-widest leading-tight"
         >
           {t("about.title", "About")}{" "}
           <span className="bg-linear-to-r from-cyan-300 to-fuchsia-400 bg-clip-text text-transparent drop-shadow-[0_0_12px_rgba(236,72,153,0.45)]">

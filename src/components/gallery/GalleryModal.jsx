@@ -26,7 +26,7 @@ export default function GalleryModal({
           <X className="h-4 w-4" />
         </button>
 
-        <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl border border-white/20 bg-black">
+        <div className="relative aspect-video w-full overflow-hidden rounded-2xl border border-white/20 bg-black">
           <img
             src={`/events/${event.slug}/${imageIndex + 1}.jpg`}
             alt={`${event.title} fullscreen ${imageIndex + 1}`}
