@@ -4,10 +4,13 @@ import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
 import MembershipForm from "./pages/MembershipForm";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { Analytics } from "@vercel/analytics/next";
+
 function App() {
   return (
     <Router>
       <SpeedInsights />
+      <Analytics />
       <div className="min-h-screen w-full text-slate-50">
         <Navbar />
         <main className="pt-20">
