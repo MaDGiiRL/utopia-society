@@ -5,7 +5,9 @@ const ALGORITHM = "aes-256-gcm";
 const RAW_KEY = process.env.ENCRYPTION_KEY || "";
 
 if (!RAW_KEY) {
-    console.warn("[crypto] ENCRYPTION_KEY non impostata: cifratura DISABILITATA.");
+    console.warn(
+        "[crypto] ENCRYPTION_KEY non impostata: cifratura DISABILITATA."
+    );
 }
 
 // Normalizzo la chiave a 32 byte (AES-256)

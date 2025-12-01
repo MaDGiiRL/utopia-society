@@ -3,7 +3,6 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { fadeUp } from "../utils/motionPresets";
 import { Instagram, Facebook, Send } from "lucide-react";
 import * as THREE from "three";
-import { supabase } from "../lib/supabaseClient";
 import { useTranslation } from "react-i18next";
 
 function SocialBox3D() {
@@ -212,6 +211,7 @@ function ContactSection() {
     };
 
     try {
+      // ⚠️ Se il router è montato su /api/admin, usa "/api/admin/contact"
       const res = await fetch("/api/contact", {
         method: "POST",
         headers: {

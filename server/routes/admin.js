@@ -358,6 +358,7 @@ router.get("/members.xml", adminAuthMiddleware, async (req, res) => {
 
 /**
  * Helper: mappa una row di contact_messages in oggetto decriptato
+ * Usa *_enc se presenti, altrimenti cade sui campi in chiaro (vecchi record).
  */
 function mapContactRowDecrypted(m) {
   if (!m) return null;
@@ -399,8 +400,12 @@ function mapContactRowDecrypted(m) {
 }
 
 /**
- * POST /api/contact
+ * POST /api/contact  (ATTENZIONE al mount del router)
  * Form contatti pubblico: salva cifrando i dati nella tabella contact_messages
+ * Le colonne in chiaro (name, email, phone, message) vengono messe a NULL.
+ *
+ * Se il router è montato come app.use("/api/admin", router),
+ * allora l'endpoint effettivo è /api/admin/contact.
  */
 router.post("/contact", async (req, res) => {
   try {
@@ -412,19 +417,19 @@ router.post("/contact", async (req, res) => {
         .json({ ok: false, message: "Email e messaggio sono obbligatori" });
     }
 
-    const nameClean = name?.trim() || "";
-    const emailClean = email?.trim() || "";
-    const phoneClean = phone?.trim() || "";
-    const messageClean = message?.trim() || "";
+    const nameClean = (name || "").trim();
+    const emailClean = email.trim();
+    const phoneClean = (phone || "").trim();
+    const messageClean = (message || "").trim();
 
     const insertPayload = {
-      // in chiaro li lasciamo null per i nuovi record
+      // ❌ per i nuovi record NON teniamo i dati in chiaro
       name: null,
       email: null,
       phone: null,
       message: null,
 
-      // cifrati
+      // ✅ cifrati
       name_enc: nameClean ? encrypt(nameClean) : null,
       email_enc: encrypt(emailClean),
       phone_enc: phoneClean ? encrypt(phoneClean) : null,
@@ -434,14 +439,14 @@ router.post("/contact", async (req, res) => {
       handled: false,
     };
 
-    const { data, error } = await supabaseAdmin
+    const { error } = await supabaseAdmin
       .from("contact_messages")
       .insert(insertPayload)
       .select("*")
       .single();
 
     if (error) {
-      console.error("[POST /api/contact] insert error", error);
+      console.error("[POST /contact] insert error", error);
       return res
         .status(500)
         .json({ ok: false, message: "Errore salvataggio messaggio" });
@@ -449,7 +454,7 @@ router.post("/contact", async (req, res) => {
 
     return res.json({ ok: true });
   } catch (err) {
-    console.error("[POST /api/contact] unexpected", err);
+    console.error("[POST /contact] unexpected", err);
     return res
       .status(500)
       .json({ ok: false, message: "Errore imprevisto invio messaggio" });
