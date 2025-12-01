@@ -1,4 +1,3 @@
-
 import { startUtopiaAdminServer } from "@madgiirl/utopia-core";
 
-startUtopiaAdminServer();
+startUtopiaAdminServer({ port: process.env.PORT || 4000 });
