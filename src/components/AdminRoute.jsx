@@ -1,5 +1,7 @@
+// src/components/AdminRoute.jsx
 import { useEffect, useState } from "react";
 import { Navigate, useLocation } from "react-router";
+import { fetchAdminMe } from "../api/admin"; // 👈 usa il client API
 
 export default function AdminRoute({ children }) {
   const [checking, setChecking] = useState(true);
@@ -11,13 +13,13 @@ export default function AdminRoute({ children }) {
 
     (async () => {
       try {
-        const res = await fetch("/api/admin/me", {
-          credentials: "include",
-        });
+        // 👇 chiama il backend (Render) tramite axios client
+        await fetchAdminMe();
         if (!active) return;
-        setIsAuthed(res.ok);
-      } catch {
+        setIsAuthed(true);
+      } catch (err) {
         if (!active) return;
+        // se 401/403 o errore di rete, consideriamo non autenticato
         setIsAuthed(false);
       } finally {
         if (active) setChecking(false);
@@ -29,7 +31,7 @@ export default function AdminRoute({ children }) {
     };
   }, []);
 
-  if (checking) return null; // o uno spinner se vuoi
+  if (checking) return null; // qui puoi mettere uno spinner se vuoi
 
   if (!isAuthed) {
     return <Navigate to="/admin/login" replace state={{ from: location }} />;
