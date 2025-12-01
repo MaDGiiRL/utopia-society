@@ -1,15 +1,24 @@
-# 🌌 UTOPIA — Futuristic Night Club Platform  
-### Frontend + Backend + Admin Dashboard
+# 🌌 UTOPIA — Futuristic Night Club Platform
+
+### Frontend + Backend Core (NPM privato) + Admin Dashboard
 
 Utopia è una **piattaforma completa** per la gestione di un night club esclusivo, con estetica futuristica e funzionalità avanzate per la registrazione e amministrazione dei soci.
 
-L’intero progetto utilizza **React + Vite** per il frontend e un **backend Node/Express** che gestisce login admin, registrazioni, upload documenti, invio email e integrazioni esterne.
+L’architettura è divisa in:
+
+- **Frontend pubblico** (React + Vite)
+- **Backend core** incapsulato in un **pacchetto NPM privato** di proprietà dell’autrice
+- **Dashboard admin** per la gestione operativa
+
+Il backend (Express) non è presente nel repository pubblico, ma viene installato come dipendenza privata tramite NPM (`@madgiirl/utopia-core`).  
+Questo garantisce la **protezione della logica interna**, dei servizi e degli algoritmi di criptazione.
 
 ---
 
 ## 🚀 Tech Stack
 
 ### Frontend
+
 - ⚛️ **React 19**
 - ⚡ **Vite 7**
 - 🎨 **Tailwind CSS 4**
@@ -21,7 +30,10 @@ L’intero progetto utilizza **React + Vite** per il frontend e un **backend Nod
 - 🎵 **Global Audio Player**
 - 📡 **Supabase JS Client**
 
-### Backend
+### Backend (core privato NPM)
+
+Il backend è strutturato come modulo interno, pubblicato come **pacchetto NPM privato**:
+
 - 🟩 **Node + Express 5**
 - 🔐 **JWT Authentication**
 - 🔑 **bcryptjs**
@@ -32,116 +44,135 @@ L’intero progetto utilizza **React + Vite** per il frontend e un **backend Nod
 - 🍪 **cookie-parser**
 - 🔒 **CORS** dinamico dev/prod
 
-Avvio locale:
+### 🔏 Criptazione Dati Sensibili
 
-```bash
-npm run dev    # frontend
-node server/index.js   # backend
+Il backend core implementa un sistema di **criptazione trasparente**:
+
+✔️ I dati vengono cifrati prima del salvataggio su Supabase  
+✔️ Vengono decifrati solo lato server quando richiesti dall’area admin  
+✔️ Nessun dato critico viaggia o rimane mai in chiaro
+
+Tabelle protette (Supabase):
+
+- `members`
+- `contact_messages`
+- `campaigns`
+- `campaign_logs`
+
+Campi considerati sensibili:
+
+- anagrafica soci
+- documenti caricati
+- email, telefono
+- messaggi
+- note interne
+
+---
+
+## 🧩 Backend via NPM Privato
+
+Il backend è distribuito come pacchetto NPM privato:
+
+```sh
+npm install @madgiirl/utopia-core --registry=https://npm.pkg.github.com
 ```
+
+L'app host lo avvia così:
+
+```js
+import { startUtopiaAdminServer } from "@madgiirl/utopia-core";
+
+startUtopiaAdminServer({ port: process.env.PORT });
+```
+
+In questo modo:
+
+- nessun sorgente backend è presente nel progetto pubblico
+- la logica è isolata, sicura e aggiornata tramite versioning NPM
+- solo chi ha accesso al registry GitHub può installarlo
 
 ---
 
 ## ☁️ Deploy & Hosting
 
-L’infrastruttura di Utopia è completamente deployata e funzionante in ambiente cloud:
+### 🌐 Frontend
 
-### 🌐 **Frontend**
 - **Vercel**
-- Deployment continuo collegato a GitHub
-- Variabili ambiente gestite tramite pannello Vercel (`VITE_*`)
+- Build automatica da GitHub
+- Variabili ambiente (`VITE_*`)
 
-### 🖥️ **Backend**
-- **Render.com**  
-- Deploy automatico da GitHub branch `main`
-- Variabili ambiente protette nel pannello Render  
-- Runtime Node.js  
-- Porta gestita automaticamente da Render (binding su `$PORT`)
-- CORS configurato per comunicare correttamente con Vercel  
-- Cookie JWT configurati correttamente (`secure`, `sameSite=none`, `HttpOnly`)
+### 🖥️ Backend
+
+- **Render.com**
+- Usa il core privato NPM
+- Deploy automatico
+- CORS e Cookie configurati per comunicazione sicura con Vercel
 
 ### 📦 Supabase
-- Database Postgres gestito
-- Bucket Storage privato per i documenti
-- API REST + Client JS
 
-### ✉️ Email + SMS Providers
-- **Resend**  
-- **Twilio**
+- Database Postgres
+- Storage documenti privato
+- Row Level Security attiva
+- Accesso mediato solo dal backend privato
 
-Utopia risulta quindi distribuita su un’architettura moderna separata **frontend / backend**, con:
+### ✉️ Resend & Twilio
 
-- Backend → `https://utopia-society.onrender.com`
-- Frontend → `https://utopia-society.vercel.app`
-
-Il tutto comunicante tramite HTTPS, cookie sicuri e CORS configurato correttamente.
+- Email & SMS delivery
+- Integrati dal backend privato
 
 ---
 
-## ✨ Funzionalità Utente
+## ✨ Funzionalità Principali
 
-### 🌀 Landing Page Futuristica
-- Navbar animata
-- HeroSection con CTA
-- ScrollScene3D sincronizzata alla musica
-- AboutSection con tilt 3D
-- ContactSection collegata a Supabase
+### Landing Page
 
-### 🎧 Audio Player Globale
-- Player fisso con controlli
-- Sincronizzazione con la scena 3D
+- Animazioni futuristiche
+- Audio sincronizzato
+- Scroll 3D
 
-### 📝 Form Ammissione Socio
+### Gestione Soci
+
+- Form di iscrizione criptato
 - Upload documento fronte/retro
-- URL firmati da Supabase Storage
-- Salvataggio su tabella `members`
+- Storage privato
 
----
+### Contact System
 
-## 🧑‍💼 Admin Area
+- Messaggi contatti memorizzati in Supabase
+- Sempre cifrati
+- Consultabili solo via Admin Panel
 
-### Login & Protezione
-- Login con JWT in cookie HttpOnly
-- Rotte protette tramite `AdminRoute`
+### Admin Panel
 
-### Dashboard
+- Login protetto JWT HttpOnly
 - Gestione soci
 - Log contatti
-- Sistema campagne email/SMS
-
-### Export Soci XML
-`GET /api/admin/members.xml`
-
-### Logout
-`POST /api/admin/logout`
-
----
-
-## 🧱 Architettura Dati (Supabase)
-
-### Tabella `members`
-Campi anagrafici, documenti, consensi.
-
-### Tabella `contact_messages`
-Messaggi dal form contatti.
-
-### Storage
-Bucket privato per documenti.
+- Campagne email e SMS
+- Esportazioni in XML e CSV
 
 ---
 
 ## 🔐 Sicurezza
+
 - Password hashate con bcrypt
+- Dati personali criptati AES
 - JWT HttpOnly
 - CORS rigido
-- Upload protetti
+- Backend chiuso e privato
+- Variabili ambiente nascoste su Vercel & Render
+
+📌 Nemmeno in Supabase i dati sono leggibili in chiaro.
 
 ---
 
 ## 🧑‍💻 Developer
+
 Realizzato con ❤️ da **MaDGiiRL**  
 🔗 https://www.linkedin.com/in/sofia-vidotto-junior-developer/
 
 ---
 
 ## 📄 Licenza
-Questo template è un progetto privato non destinato a uso pubblico.
+
+Questo progetto è privato e non destinato a uso pubblico.  
+Il backend è distribuito come **NPM privato** e non può essere riutilizzato o copiato senza consenso.
