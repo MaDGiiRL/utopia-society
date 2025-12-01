@@ -8,8 +8,9 @@ const API_BASE = import.meta.env.VITE_ADMIN_API_URL || "";
 
 export default function AdminDashboard() {
   const { t } = useTranslation();
-  const [tab, setTab] =
-    (useState < "members") | "contacts" | ("campaign" > "members");
+
+  // niente <...> qui, solo JS
+  const [tab, setTab] = useState("members"); // "members" | "contacts" | "campaign"
 
   const [xmlError, setXmlError] = useState("");
   const [xmlLoading, setXmlLoading] = useState(false);
