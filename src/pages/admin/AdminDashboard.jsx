@@ -10,6 +10,7 @@ import {
   Shield,
   Activity,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import NewCampaign from "./NewCampaign";
 import MembersPanel from "./MembersPanel";
 import ContactMessagesPanel from "./ContactMessagesPanel";
@@ -17,6 +18,7 @@ import ContactMessagesPanel from "./ContactMessagesPanel";
 const API_BASE = import.meta.env.VITE_ADMIN_API_URL || "";
 
 export default function AdminDashboard() {
+  const { t } = useTranslation();
   const [tab, setTab] = useState("members"); // members | contacts | campaign
   const [xmlError, setXmlError] = useState("");
   const [xmlLoading, setXmlLoading] = useState(false);
@@ -33,7 +35,7 @@ export default function AdminDashboard() {
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.message || "Errore durante la generazione XML");
+        throw new Error(data.message || t("admin.dashboard.xmlError"));
       }
 
       const blob = await res.blob();
@@ -49,7 +51,7 @@ export default function AdminDashboard() {
       URL.revokeObjectURL(url);
     } catch (err) {
       console.error(err);
-      setXmlError(err.message || "Errore imprevisto");
+      setXmlError(err.message || t("admin.dashboard.xmlUnexpectedError"));
     } finally {
       setXmlLoading(false);
     }
@@ -82,11 +84,11 @@ export default function AdminDashboard() {
               </div>
               <div>
                 <h1 className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-100">
-                  Utopia · Admin
+                  {t("admin.dashboard.badge")}
                 </h1>
                 <p className="mt-1 flex items-center gap-1 text-[11px] text-slate-400">
                   <Activity className="h-3 w-3 text-emerald-300" />
-                  <span>Gestisci soci, contatti e campagne.</span>
+                  <span>{t("admin.dashboard.subtitle")}</span>
                 </p>
               </div>
             </div>
@@ -110,10 +112,10 @@ export default function AdminDashboard() {
                   </div>
                   <div className="flex flex-col">
                     <span className="uppercase tracking-[0.18em]">
-                      Log soci
+                      {t("admin.dashboard.membersTabTitle")}
                     </span>
                     <span className="text-[10px] text-slate-500">
-                      Anagrafica e documenti
+                      {t("admin.dashboard.membersTabSubtitle")}
                     </span>
                   </div>
                 </button>
@@ -132,10 +134,10 @@ export default function AdminDashboard() {
                   </div>
                   <div className="flex flex-col">
                     <span className="uppercase tracking-[0.18em]">
-                      Log contatti
+                      {t("admin.dashboard.contactsTabTitle")}
                     </span>
                     <span className="text-[10px] text-slate-500">
-                      Richieste dal sito
+                      {t("admin.dashboard.contactsTabSubtitle")}
                     </span>
                   </div>
                 </button>
@@ -154,10 +156,10 @@ export default function AdminDashboard() {
                   </div>
                   <div className="flex flex-col">
                     <span className="uppercase tracking-[0.18em]">
-                      Nuova campagna
+                      {t("admin.dashboard.campaignTabTitle")}
                     </span>
                     <span className="text-[10px] text-slate-500">
-                      Email &amp; SMS ai soci
+                      {t("admin.dashboard.campaignTabSubtitle")}
                     </span>
                   </div>
                 </button>
@@ -176,8 +178,12 @@ export default function AdminDashboard() {
               }`}
             >
               <Download className="h-3 w-3" />
-              <span className="hidden sm:inline">Export soci XML</span>
-              <span className="sm:hidden">Export XML</span>
+              <span className="hidden sm:inline">
+                {t("admin.dashboard.exportMembersXmlFull")}
+              </span>
+              <span className="sm:hidden">
+                {t("admin.dashboard.exportMembersXmlShort")}
+              </span>
             </button>
 
             <button
@@ -186,7 +192,7 @@ export default function AdminDashboard() {
               className="inline-flex items-center justify-center gap-1 text-[10px] text-slate-400 transition hover:text-rose-300"
             >
               <LogOut className="h-3 w-3" />
-              <span>Esci dall&apos;area admin</span>
+              <span>{t("admin.dashboard.logout")}</span>
             </button>
           </div>
 

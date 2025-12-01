@@ -2,10 +2,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import { X, ChevronLeft, ChevronRight, Search, Users } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const PAGE_SIZE = 40;
 
-// === DEBUG: generatore soci finti per test UI (NON scrive sul DB) ===
+// generator soci finti (immutato)
 function generateFakeMembers(count = 120, offset = 0) {
   const cities = [
     "Verona",
@@ -46,7 +47,7 @@ function generateFakeMembers(count = 120, offset = 0) {
     const city = cities[idx % cities.length];
 
     const now = new Date();
-    const created = new Date(now.getTime() - idx * 60 * 60 * 1000 * 6); // ogni 6 ore
+    const created = new Date(now.getTime() - idx * 60 * 60 * 1000 * 6);
     const birth = new Date(1990, idx % 12, (idx % 28) + 1);
 
     const id =
@@ -85,6 +86,7 @@ function generateFakeMembers(count = 120, offset = 0) {
 }
 
 export default function MembersPanel() {
+  const { t } = useTranslation();
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -107,7 +109,7 @@ export default function MembersPanel() {
 
       if (error) {
         console.error("Errore caricamento members:", error);
-        setError("Errore nel caricamento dei soci.");
+        setError(t("admin.membersPanel.errorLoad"));
         setMembers([]);
       } else {
         setMembers(data || []);
@@ -115,9 +117,8 @@ export default function MembersPanel() {
       setLoading(false);
     };
     load();
-  }, []);
+  }, [t]);
 
-  // lista città uniche per filtro
   const cities = useMemo(() => {
     const set = new Set();
     for (const m of members) {
@@ -126,12 +127,11 @@ export default function MembersPanel() {
     return Array.from(set).sort((a, b) => a.localeCompare(b, "it-IT"));
   }, [members]);
 
-  // filtro per testo + città
   const filteredMembers = useMemo(() => {
-    const t = searchText.trim().toLowerCase();
+    const txt = searchText.trim().toLowerCase();
     return members.filter((m) => {
       if (cityFilter && m.city !== cityFilter) return false;
-      if (!t) return true;
+      if (!txt) return true;
 
       const haystack = [
         m.full_name,
@@ -145,11 +145,10 @@ export default function MembersPanel() {
         .join(" ")
         .toLowerCase();
 
-      return haystack.includes(t);
+      return haystack.includes(txt);
     });
   }, [members, searchText, cityFilter]);
 
-  // reset pagina quando cambia il filtro
   useEffect(() => {
     setPage(1);
   }, [searchText, cityFilter]);
@@ -173,7 +172,11 @@ export default function MembersPanel() {
   };
 
   if (loading) {
-    return <div className="text-sm text-slate-300">Carico soci...</div>;
+    return (
+      <div className="text-sm text-slate-300">
+        {t("admin.membersPanel.loading")}
+      </div>
+    );
   }
 
   return (
@@ -187,17 +190,16 @@ export default function MembersPanel() {
             </div>
             <div>
               <h2 className="text-sm font-semibold uppercase tracking-[0.2em]">
-                Soci iscritti
+                {t("admin.membersPanel.title")}
               </h2>
               <p className="text-[11px] text-slate-400">
-                Elenco degli invii dal form di ammissione socio.
+                {t("admin.membersPanel.subtitle")}
               </p>
             </div>
           </div>
           {debugUsed && (
             <p className="mt-1 text-[10px] text-amber-300">
-              Debug attivo: sono stati aggiunti soci fake in memoria (non nel
-              database).
+              {t("admin.membersPanel.debugNotice")}
             </p>
           )}
         </div>
@@ -208,7 +210,7 @@ export default function MembersPanel() {
             <Search className="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-500" />
             <input
               type="text"
-              placeholder="Cerca per nome, email, città..."
+              placeholder={t("admin.membersPanel.searchPlaceholder")}
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
               className="w-full rounded-full border border-white/10 bg-slate-950/80 py-1.5 pl-7 pr-3 text-xs text-slate-100 outline-none focus:border-cyan-400/70"
@@ -221,7 +223,7 @@ export default function MembersPanel() {
             onChange={(e) => setCityFilter(e.target.value)}
             className="w-full rounded-full border border-white/10 bg-slate-950/80 px-3 py-1.5 text-xs text-slate-100 outline-none focus:border-cyan-400/70 md:w-40"
           >
-            <option value="">Tutte le città</option>
+            <option value="">{t("admin.membersPanel.allCities")}</option>
             {cities.map((c) => (
               <option key={c} value={c}>
                 {c}
@@ -230,17 +232,18 @@ export default function MembersPanel() {
           </select>
 
           <span className="rounded-full bg-slate-900/80 px-3 py-1 text-center text-[10px] uppercase tracking-[0.18em] text-slate-300">
-            Mostrati {filteredMembers.length} / {members.length}
+            {t("admin.membersPanel.countShown", {
+              shown: filteredMembers.length,
+              total: members.length,
+            })}
           </span>
 
-          {/* Bottone debug opzionale */}
-          {/* 
+          {/* bottone debug se vuoi riattivarlo
           <button
             type="button"
             onClick={handleAddDebugMembers}
             className="inline-flex items-center gap-1 rounded-full border border-amber-400/60 bg-amber-500/10 px-3 py-1 text-[10px] uppercase tracking-[0.18em] text-amber-200 hover:bg-amber-500/20 transition"
           >
-            <Bug className="h-3 w-3" />
             Debug soci fake
           </button>
           */}
@@ -253,17 +256,29 @@ export default function MembersPanel() {
         </div>
       )}
 
-      {/* tabella compatta */}
+      {/* tabella */}
       <div className="max-h-[60vh] overflow-auto rounded-xl border border-white/5 bg-slate-950/60">
         <table className="min-w-full text-xs">
           <thead className="bg-slate-900/80 text-[11px] uppercase tracking-[0.18em] text-slate-400">
             <tr>
-              <th className="px-3 py-2 text-left">Data</th>
-              <th className="px-3 py-2 text-left">Nome</th>
-              <th className="px-3 py-2 text-left">Email</th>
-              <th className="px-3 py-2 text-left">Città</th>
-              <th className="px-3 py-2 text-left">Marketing</th>
-              <th className="px-3 py-2 text-right">Scheda</th>
+              <th className="px-3 py-2 text-left">
+                {t("admin.membersPanel.table.date")}
+              </th>
+              <th className="px-3 py-2 text-left">
+                {t("admin.membersPanel.table.name")}
+              </th>
+              <th className="px-3 py-2 text-left">
+                {t("admin.membersPanel.table.email")}
+              </th>
+              <th className="px-3 py-2 text-left">
+                {t("admin.membersPanel.table.city")}
+              </th>
+              <th className="px-3 py-2 text-left">
+                {t("admin.membersPanel.table.marketing")}
+              </th>
+              <th className="px-3 py-2 text-left">
+                {t("admin.membersPanel.table.card")}
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -283,11 +298,11 @@ export default function MembersPanel() {
                 <td className="px-3 py-2">
                   {m.accept_marketing ? (
                     <span className="rounded-full bg-emerald-500/15 px-2 py-[2px] text-[10px] text-emerald-300">
-                      Sì
+                      {t("admin.membersPanel.marketingYes")}
                     </span>
                   ) : (
                     <span className="rounded-full bg-slate-700/40 px-2 py-[2px] text-[10px] text-slate-300">
-                      No
+                      {t("admin.membersPanel.marketingNo")}
                     </span>
                   )}
                 </td>
@@ -297,7 +312,7 @@ export default function MembersPanel() {
                     onClick={() => handleOpenMember(m)}
                     className="rounded-full border border-cyan-400/60 bg-cyan-500/15 px-3 py-1 text-[10px] uppercase tracking-[0.18em] text-cyan-100 transition hover:bg-cyan-500/30"
                   >
-                    Apri scheda
+                    {t("admin.membersPanel.table.card")}
                   </button>
                 </td>
               </tr>
@@ -309,7 +324,7 @@ export default function MembersPanel() {
                   colSpan={6}
                   className="px-3 py-4 text-center text-xs text-slate-500"
                 >
-                  Nessun socio trovato con i filtri correnti.
+                  {t("admin.membersPanel.noMembersFiltered")}
                 </td>
               </tr>
             )}
@@ -321,8 +336,11 @@ export default function MembersPanel() {
       {filteredMembers.length > PAGE_SIZE && (
         <div className="flex items-center justify-between gap-3 text-[11px] text-slate-300">
           <div>
-            Pagina {page} di {totalPages} ·{" "}
-            <span className="text-slate-400">({PAGE_SIZE} per pagina)</span>
+            {t("ui.pagination.pageOf", {
+              current: page,
+              total: totalPages,
+              pageSize: PAGE_SIZE,
+            })}
           </div>
           <div className="flex items-center gap-1">
             <button
@@ -336,7 +354,7 @@ export default function MembersPanel() {
               }`}
             >
               <ChevronLeft className="h-3 w-3" />
-              Prev
+              {t("ui.pagination.prev")}
             </button>
             <button
               type="button"
@@ -348,7 +366,7 @@ export default function MembersPanel() {
                   : "border-slate-500/60 text-slate-100 hover:bg-slate-800"
               }`}
             >
-              Next
+              {t("ui.pagination.next")}
               <ChevronRight className="h-3 w-3" />
             </button>
           </div>
@@ -362,7 +380,7 @@ export default function MembersPanel() {
             <div className="flex items-center justify-between gap-2 border-b border-white/10 pb-3">
               <div>
                 <h3 className="text-sm font-semibold text-slate-100">
-                  Scheda socio
+                  {t("admin.membersPanel.modal.title")}
                 </h3>
                 <p className="text-[11px] text-slate-400">
                   ID:{" "}
@@ -385,25 +403,25 @@ export default function MembersPanel() {
               <div className="grid gap-3 md:grid-cols-2">
                 <div className="space-y-1">
                   <p className="text-[10px] uppercase tracking-[0.18em] text-slate-400">
-                    Nome completo
+                    {t("admin.membersPanel.modal.fullName")}
                   </p>
                   <p>{selectedMember.full_name || "-"}</p>
                 </div>
                 <div className="space-y-1">
                   <p className="text-[10px] uppercase tracking-[0.18em] text-slate-400">
-                    Email
+                    {t("admin.membersPanel.modal.email")}
                   </p>
                   <p>{selectedMember.email || "-"}</p>
                 </div>
                 <div className="space-y-1">
                   <p className="text-[10px] uppercase tracking-[0.18em] text-slate-400">
-                    Cellulare
+                    {t("admin.membersPanel.modal.phone")}
                   </p>
                   <p>{selectedMember.phone || "-"}</p>
                 </div>
                 <div className="space-y-1">
                   <p className="text-[10px] uppercase tracking-[0.18em] text-slate-400">
-                    Città
+                    {t("admin.membersPanel.modal.city")}
                   </p>
                   <p>{selectedMember.city || "-"}</p>
                 </div>
@@ -413,13 +431,13 @@ export default function MembersPanel() {
               <div className="grid gap-3 border-t border-white/10 pt-3 md:grid-cols-3">
                 <div className="space-y-1">
                   <p className="text-[10px] uppercase tracking-[0.18em] text-slate-400">
-                    Nato/a a
+                    {t("admin.membersPanel.modal.birthPlace")}
                   </p>
                   <p>{selectedMember.birth_place || "-"}</p>
                 </div>
                 <div className="space-y-1">
                   <p className="text-[10px] uppercase tracking-[0.18em] text-slate-400">
-                    Data di nascita
+                    {t("admin.membersPanel.modal.birthDate")}
                   </p>
                   <p>
                     {selectedMember.date_of_birth
@@ -431,7 +449,7 @@ export default function MembersPanel() {
                 </div>
                 <div className="space-y-1">
                   <p className="text-[10px] uppercase tracking-[0.18em] text-slate-400">
-                    Codice fiscale
+                    {t("admin.membersPanel.modal.fiscalCode")}
                   </p>
                   <p className="font-mono text-[11px] uppercase">
                     {selectedMember.fiscal_code || "-"}
@@ -443,19 +461,27 @@ export default function MembersPanel() {
               <div className="grid gap-3 border-t border-white/10 pt-3 md:grid-cols-3">
                 <div className="space-y-1">
                   <p className="text-[10px] uppercase tracking-[0.18em] text-slate-400">
-                    Privacy
+                    {t("admin.membersPanel.modal.privacy")}
                   </p>
-                  <p>{selectedMember.accept_privacy ? "Accettata" : "No"}</p>
+                  <p>
+                    {selectedMember.accept_privacy
+                      ? t("admin.membersPanel.modal.privacyAccepted")
+                      : t("admin.membersPanel.modal.privacyNo")}
+                  </p>
                 </div>
                 <div className="space-y-1">
                   <p className="text-[10px] uppercase tracking-[0.18em] text-slate-400">
-                    Marketing
+                    {t("admin.membersPanel.modal.marketing")}
                   </p>
-                  <p>{selectedMember.accept_marketing ? "Sì" : "No"}</p>
+                  <p>
+                    {selectedMember.accept_marketing
+                      ? t("admin.membersPanel.marketingYes")
+                      : t("admin.membersPanel.marketingNo")}
+                  </p>
                 </div>
                 <div className="space-y-1">
                   <p className="text-[10px] uppercase tracking-[0.18em] text-slate-400">
-                    Inserito il
+                    {t("admin.membersPanel.modal.insertedAt")}
                   </p>
                   <p>
                     {selectedMember.created_at
@@ -470,7 +496,7 @@ export default function MembersPanel() {
               {/* note */}
               <div className="space-y-1 border-t border-white/10 pt-3">
                 <p className="text-[10px] uppercase tracking-[0.18em] text-slate-400">
-                  Note
+                  {t("admin.membersPanel.modal.notes")}
                 </p>
                 <p className="whitespace-pre-wrap text-slate-200/90">
                   {selectedMember.note || "—"}
@@ -480,12 +506,12 @@ export default function MembersPanel() {
               {/* documenti */}
               <div className="space-y-2 border-t border-white/10 pt-3">
                 <p className="text-[10px] uppercase tracking-[0.18em] text-slate-400">
-                  Documenti caricati
+                  {t("admin.membersPanel.modal.documents")}
                 </p>
                 <div className="grid gap-3 md:grid-cols-2">
                   <div className="space-y-1">
                     <p className="text-[11px] text-slate-300">
-                      Documento fronte
+                      {t("admin.membersPanel.modal.docFront")}
                     </p>
                     {selectedMember.document_front_url ? (
                       <a
@@ -494,17 +520,17 @@ export default function MembersPanel() {
                         rel="noopener noreferrer"
                         className="break-all text-[11px] text-cyan-300 underline"
                       >
-                        Apri fronte
+                        {t("admin.membersPanel.modal.docFront")}
                       </a>
                     ) : (
                       <p className="text-[11px] text-slate-500">
-                        Non disponibile
+                        {t("admin.membersPanel.modal.notAvailable")}
                       </p>
                     )}
                   </div>
                   <div className="space-y-1">
                     <p className="text-[11px] text-slate-300">
-                      Documento retro
+                      {t("admin.membersPanel.modal.docBack")}
                     </p>
                     {selectedMember.document_back_url ? (
                       <a
@@ -513,11 +539,11 @@ export default function MembersPanel() {
                         rel="noopener noreferrer"
                         className="break-all text-[11px] text-cyan-300 underline"
                       >
-                        Apri retro
+                        {t("admin.membersPanel.modal.docBack")}
                       </a>
                     ) : (
                       <p className="text-[11px] text-slate-500">
-                        Non disponibile
+                        {t("admin.membersPanel.modal.notAvailable")}
                       </p>
                     )}
                   </div>
@@ -527,7 +553,7 @@ export default function MembersPanel() {
               {/* source */}
               <div className="space-y-1 border-t border-white/10 pt-3">
                 <p className="text-[10px] uppercase tracking-[0.18em] text-slate-400">
-                  Source
+                  {t("admin.membersPanel.modal.source")}
                 </p>
                 <p className="text-[11px] text-slate-300">
                   {selectedMember.source || "-"}
@@ -541,7 +567,7 @@ export default function MembersPanel() {
                 onClick={handleCloseModal}
                 className="rounded-full border border-slate-500/60 px-4 py-1.5 text-[11px] uppercase tracking-[0.18em] text-slate-200 hover:bg-slate-800"
               >
-                Chiudi
+                {t("admin.membersPanel.modal.close")}
               </button>
             </div>
           </div>

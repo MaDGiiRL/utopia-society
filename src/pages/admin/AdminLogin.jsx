@@ -2,9 +2,11 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router";
 import { Lock, Mail } from "lucide-react";
-import { adminLogin } from "../../api/admin"; // 👈 usa il client API
+import { useTranslation } from "react-i18next";
+import { adminLogin } from "../../api/admin";
 
 export default function AdminLogin() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -13,7 +15,6 @@ export default function AdminLogin() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // se arrivi da AdminRoute, ti rimanda dove volevi andare
   const fromState = location.state?.from?.pathname;
   const from =
     fromState && fromState.startsWith("/admin") ? fromState : "/admin";
@@ -24,16 +25,13 @@ export default function AdminLogin() {
     setError("");
 
     try {
-      // 👇 chiama il backend giusto (baseURL = VITE_ADMIN_API_URL)
       await adminLogin({ email, password });
 
-      // login ok -> AdminRoute chiamerà /api/admin/me e ti farà entrare
       navigate(from, { replace: true });
     } catch (err) {
       console.error(err);
-      // se axios risponde con 4xx/5xx:
-      const msg =
-        err.response?.data?.message || err.message || "Errore di login";
+      const fallback = t("admin.login.errorGeneric");
+      const msg = err.response?.data?.message || fallback;
       setError(msg);
     } finally {
       setLoading(false);
@@ -48,17 +46,17 @@ export default function AdminLogin() {
             <Lock className="h-5 w-5 text-slate-950" />
           </div>
           <h1 className="text-lg font-semibold tracking-[0.2em] uppercase text-slate-50">
-            Admin
+            {t("admin.login.title")}
           </h1>
           <p className="text-[11px] text-slate-400">
-            Accesso riservato allo staff Utopia.
+            {t("admin.login.subtitle")}
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1.5">
             <label className="text-[11px] font-medium uppercase tracking-[0.16em] text-slate-300">
-              Email
+              {t("admin.login.emailLabel")}
             </label>
             <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-slate-900/70 px-3 py-2">
               <Mail className="h-3.5 w-3.5 text-slate-400" />
@@ -66,7 +64,7 @@ export default function AdminLogin() {
                 type="email"
                 required
                 className="flex-1 bg-transparent text-sm text-slate-50 outline-none border-none"
-                placeholder="admin@utopia.club"
+                placeholder={t("admin.login.emailPlaceholder")}
                 value={email}
                 onChange={(e) => {
                   setEmail(e.target.value);
@@ -78,7 +76,7 @@ export default function AdminLogin() {
 
           <div className="space-y-1.5">
             <label className="text-[11px] font-medium uppercase tracking-[0.16em] text-slate-300">
-              Password
+              {t("admin.login.passwordLabel")}
             </label>
             <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-slate-900/70 px-3 py-2">
               <Lock className="h-3.5 w-3.5 text-slate-400" />
@@ -86,7 +84,7 @@ export default function AdminLogin() {
                 type="password"
                 required
                 className="flex-1 bg-transparent text-sm text-slate-50 outline-none border-none"
-                placeholder="••••••••••••"
+                placeholder={t("admin.login.passwordPlaceholder")}
                 value={password}
                 onChange={(e) => {
                   setPassword(e.target.value);
@@ -109,7 +107,7 @@ export default function AdminLogin() {
               loading ? "opacity-60 cursor-not-allowed" : ""
             }`}
           >
-            {loading ? "Accesso in corso..." : "Entra nell'area admin"}
+            {loading ? t("admin.login.submitting") : t("admin.login.submit")}
           </button>
         </form>
       </div>

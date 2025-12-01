@@ -12,10 +12,12 @@ import {
   Eye,
   Reply,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const PAGE_SIZE = 40;
 
 export default function ContactMessagesPanel() {
+  const { t } = useTranslation();
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -35,7 +37,7 @@ export default function ContactMessagesPanel() {
 
       if (error) {
         console.error("Errore caricamento contact_messages:", error);
-        setError("Errore nel caricamento dei messaggi di contatto.");
+        setError(t("admin.contactsPanel.errorLoad"));
         setMessages([]);
       } else {
         setMessages(data || []);
@@ -43,9 +45,8 @@ export default function ContactMessagesPanel() {
       setLoading(false);
     };
     load();
-  }, []);
+  }, [t]);
 
-  // reset pagina se cambia la lista
   useEffect(() => {
     setPage(1);
   }, [messages.length]);
@@ -69,16 +70,22 @@ export default function ContactMessagesPanel() {
     try {
       setExportError("");
       if (!messages.length) {
-        setExportError("Non ci sono messaggi da esportare.");
+        setExportError(t("admin.contactsPanel.errorNoMessages"));
         return;
       }
 
-      const headers = ["ID", "Data", "Nome", "Email", "Telefono", "Messaggio"];
+      const headers = [
+        "ID",
+        t("admin.contactsPanel.table.date"),
+        t("admin.contactsPanel.table.name"),
+        t("admin.contactsPanel.table.email"),
+        t("admin.contactsPanel.table.phone"),
+        t("admin.contactsPanel.modal.message"),
+      ];
 
       const escapeCsv = (value) => {
         if (value === null || value === undefined) return "";
         const s = String(value);
-        // rimpiazza eventuali doppi apici e racchiudi tra virgolette
         return `"${s.replace(/"/g, '""')}"`;
       };
 
@@ -112,27 +119,18 @@ export default function ContactMessagesPanel() {
       URL.revokeObjectURL(url);
     } catch (err) {
       console.error("Errore export CSV:", err);
-      setExportError("Errore durante l'esportazione dei messaggi.");
+      setExportError(t("admin.contactsPanel.errorExport"));
     }
   };
 
   const buildMailtoLink = (msg) => {
     if (!msg?.email) return "#";
 
-    const subject = "Re: contatto da sito Utopia";
-    const body = `Ciao ${msg.name || ""},
-
-ti rispondiamo al messaggio che ci hai inviato dal form contatti.
-
----
-
-Messaggio originale:
-${msg.message || ""}
-
----
-
-Team Utopia
-`;
+    const subject = t("admin.contactsPanel.replySubject");
+    const body = t("admin.contactsPanel.replyBody", {
+      name: msg.name || "",
+      message: msg.message || "",
+    });
 
     return `mailto:${encodeURIComponent(
       msg.email
@@ -140,7 +138,11 @@ Team Utopia
   };
 
   if (loading) {
-    return <div className="text-sm text-slate-300">Carico messaggi...</div>;
+    return (
+      <div className="text-sm text-slate-300">
+        {t("admin.contactsPanel.loading")}
+      </div>
+    );
   }
 
   return (
@@ -153,10 +155,10 @@ Team Utopia
           </div>
           <div>
             <h2 className="text-sm font-semibold uppercase tracking-[0.2em]">
-              Messaggi di contatto
+              {t("admin.contactsPanel.title")}
             </h2>
             <p className="text-[11px] text-slate-400">
-              Tutti gli invii dal form contatti del sito.
+              {t("admin.contactsPanel.subtitle")}
             </p>
           </div>
         </div>
@@ -168,11 +170,11 @@ Team Utopia
             className="inline-flex items-center gap-1 rounded-full border border-cyan-400/70 bg-cyan-500/10 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-cyan-100 hover:bg-cyan-500/25 transition"
           >
             <Download className="h-3 w-3" />
-            <span>Esporta Excel</span>
+            <span>{t("admin.contactsPanel.exportExcel")}</span>
           </button>
 
           <span className="rounded-full bg-slate-900/80 px-3 py-1 text-[10px] uppercase tracking-[0.18em] text-slate-300">
-            Totale: {messages.length}
+            {t("admin.contactsPanel.total", { count: messages.length })}
           </span>
         </div>
       </div>
@@ -196,20 +198,25 @@ Team Utopia
         <table className="min-w-full text-xs">
           <thead className="bg-slate-900/80 text-[11px] uppercase tracking-[0.18em] text-slate-400">
             <tr>
-              <th className="px-3 py-2 text-left">Data</th>
+              <th className="px-3 py-2 text-left">
+                {t("admin.contactsPanel.table.date")}
+              </th>
               <th className="px-3 py-2 text-left">
                 <span className="inline-flex items-center gap-1">
-                  <User className="h-3 w-3" /> Nome
+                  <User className="h-3 w-3" />{" "}
+                  {t("admin.contactsPanel.table.name")}
                 </span>
               </th>
               <th className="px-3 py-2 text-left">
                 <span className="inline-flex items-center gap-1">
-                  <Mail className="h-3 w-3" /> Email
+                  <Mail className="h-3 w-3" />{" "}
+                  {t("admin.contactsPanel.table.email")}
                 </span>
               </th>
               <th className="px-3 py-2 text-left">
                 <span className="inline-flex items-center gap-1">
-                  <Phone className="h-3 w-3" /> Telefono
+                  <Phone className="h-3 w-3" />{" "}
+                  {t("admin.contactsPanel.table.phone")}
                 </span>
               </th>
               <th className="px-3 py-2 text-right"></th>
@@ -238,7 +245,7 @@ Team Utopia
                     className="inline-flex items-center gap-1 rounded-full border border-cyan-400/60 bg-cyan-500/15 px-3 py-1 text-[10px] uppercase tracking-[0.18em] text-cyan-100 hover:bg-cyan-500/30 transition"
                   >
                     <Eye className="h-3 w-3" />
-                    Dettagli
+                    {t("admin.contactsPanel.table.details")}
                   </button>
                 </td>
               </tr>
@@ -249,7 +256,7 @@ Team Utopia
                   colSpan={5}
                   className="px-3 py-4 text-center text-xs text-slate-500"
                 >
-                  Nessun messaggio ricevuto.
+                  {t("admin.contactsPanel.noMessages")}
                 </td>
               </tr>
             )}
@@ -261,8 +268,11 @@ Team Utopia
       {messages.length > PAGE_SIZE && (
         <div className="flex items-center justify-between gap-3 text-[11px] text-slate-300">
           <div>
-            Pagina {page} di {totalPages} ·{" "}
-            <span className="text-slate-400">({PAGE_SIZE} per pagina)</span>
+            {t("ui.pagination.pageOf", {
+              current: page,
+              total: totalPages,
+              pageSize: PAGE_SIZE,
+            })}
           </div>
           <div className="flex items-center gap-1">
             <button
@@ -276,7 +286,7 @@ Team Utopia
               }`}
             >
               <ChevronLeft className="h-3 w-3" />
-              Prev
+              {t("ui.pagination.prev")}
             </button>
             <button
               type="button"
@@ -288,7 +298,7 @@ Team Utopia
                   : "border-slate-500/60 text-slate-100 hover:bg-slate-800"
               }`}
             >
-              Next
+              {t("ui.pagination.next")}
               <ChevronRight className="h-3 w-3" />
             </button>
           </div>
@@ -302,7 +312,7 @@ Team Utopia
             <div className="flex items-center justify-between gap-2 border-b border-white/10 pb-3">
               <div>
                 <h3 className="text-sm font-semibold text-slate-100">
-                  Dettaglio messaggio
+                  {t("admin.contactsPanel.modal.title")}
                 </h3>
                 <p className="text-[11px] text-slate-400">
                   ID:{" "}
@@ -321,29 +331,28 @@ Team Utopia
             </div>
 
             <div className="mt-3 space-y-3 text-xs text-slate-100">
-              {/* dati principali */}
               <div className="grid gap-3 md:grid-cols-2">
                 <div className="space-y-1">
                   <p className="text-[10px] uppercase tracking-[0.18em] text-slate-400">
-                    Nome
+                    {t("admin.contactsPanel.modal.name")}
                   </p>
                   <p>{selectedMessage.name || "-"}</p>
                 </div>
                 <div className="space-y-1">
                   <p className="text-[10px] uppercase tracking-[0.18em] text-slate-400">
-                    Email
+                    {t("admin.contactsPanel.modal.email")}
                   </p>
                   <p className="break-all">{selectedMessage.email || "-"}</p>
                 </div>
                 <div className="space-y-1">
                   <p className="text-[10px] uppercase tracking-[0.18em] text-slate-400">
-                    Telefono
+                    {t("admin.contactsPanel.modal.phone")}
                   </p>
                   <p>{selectedMessage.phone || "-"}</p>
                 </div>
                 <div className="space-y-1">
                   <p className="text-[10px] uppercase tracking-[0.18em] text-slate-400">
-                    Inviato il
+                    {t("admin.contactsPanel.modal.sentAt")}
                   </p>
                   <p>
                     {selectedMessage.created_at
@@ -355,10 +364,9 @@ Team Utopia
                 </div>
               </div>
 
-              {/* messaggio */}
               <div className="border-t border-white/10 pt-3 space-y-1">
                 <p className="text-[10px] uppercase tracking-[0.18em] text-slate-400">
-                  Messaggio
+                  {t("admin.contactsPanel.modal.message")}
                 </p>
                 <p className="whitespace-pre-wrap text-slate-200/90">
                   {selectedMessage.message || "—"}
@@ -372,7 +380,7 @@ Team Utopia
                 onClick={handleCloseModal}
                 className="rounded-full border border-slate-500/60 px-4 py-1.5 text-[11px] uppercase tracking-[0.18em] text-slate-200 hover:bg-slate-800"
               >
-                Chiudi
+                {t("admin.contactsPanel.modal.close")}
               </button>
 
               {selectedMessage.email && (
@@ -381,7 +389,7 @@ Team Utopia
                   className="inline-flex items-center gap-1 rounded-full border border-cyan-400/70 bg-cyan-500/20 px-4 py-1.5 text-[11px] uppercase tracking-[0.18em] text-cyan-100 hover:bg-cyan-500/35 transition"
                 >
                   <Reply className="h-3.5 w-3.5" />
-                  Rispondi via email
+                  {t("admin.contactsPanel.modal.reply")}
                 </a>
               )}
             </div>

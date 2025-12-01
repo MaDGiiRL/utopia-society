@@ -1,8 +1,12 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router";
 import { Instagram, Facebook } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const Footer = () => {
+  const { t } = useTranslation();
+  const year = new Date().getFullYear();
+
   return (
     <footer className="relative overflow-hidden border-t border-white/10  bg-black/70 backdrop-blur py-10">
       <div className="relative mx-auto max-w-6xl px-4">
@@ -31,14 +35,14 @@ const Footer = () => {
             className="flex flex-wrap items-center justify-center gap-6 text-xs uppercase tracking-wide text-slate-400"
           >
             <Link to="/" className="hover:text-cyan-300 transition">
-              Home
+              {t("footer.home")}
             </Link>
 
             <Link
               to="/ammissione-socio"
               className="hover:text-cyan-300 transition"
             >
-              Diventa socio
+              {t("footer.becomeMember")}
             </Link>
           </motion.div>
 
@@ -80,12 +84,13 @@ const Footer = () => {
           className="mt-6 text-center space-y-1"
         >
           <p className="text-[0.7rem] text-slate-300">
-            © {new Date().getFullYear()} Utopia Night Club —{" "}
-            <span className="text-slate-400">Tutti i diritti riservati.</span>
+            {t("footer.copyright", { year })} —{" "}
+            <span className="text-slate-400">{t("footer.rights")}</span>
           </p>
 
           <p className="text-[0.65rem] text-slate-400">
-            Developed with <span className="text-fuchsia-400">❤️</span> by{" "}
+            {t("footer.developedWith")}{" "}
+            <span className="text-fuchsia-400">❤️</span> {t("footer.by")}{" "}
             <a
               href="https://www.linkedin.com/in/sofia-vidotto-junior-developer/"
               target="_blank"

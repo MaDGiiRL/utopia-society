@@ -1,10 +1,10 @@
-
 import { useRef, useEffect, useState } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { fadeUp } from "../utils/motionPresets";
 import { Instagram, Facebook, Send } from "lucide-react";
 import * as THREE from "three";
 import { supabase } from "../lib/supabaseClient";
+import { useTranslation } from "react-i18next";
 
 function SocialBox3D() {
   const canvasRef = useRef(null);
@@ -182,6 +182,7 @@ function SocialBox3D() {
 }
 
 function ContactSection() {
+  const { t } = useTranslation();
   const sectionRef = useRef(null);
   const { scrollYProgress } = useScroll({
     target: sectionRef,
@@ -223,7 +224,7 @@ function ContactSection() {
       e.target.reset();
     } catch (err) {
       console.error(err);
-      setError("Si è verificato un errore, riprova più tardi.");
+      setError(t("contact.formError"));
     } finally {
       setSending(false);
     }
@@ -243,7 +244,7 @@ function ContactSection() {
           {/* Testo + social */}
           <motion.div {...fadeUp()}>
             <p className="mb-2 text-[0.7rem] uppercase tracking-[0.35em] text-cyan-300">
-              Contact • Utopia
+              {t("contact.badge")}
             </p>
 
             <motion.h2
@@ -266,18 +267,19 @@ function ContactSection() {
               viewport={{ once: true, amount: 0.5 }}
               className="text-3xl md:text-4xl lg:text-5xl font-semibold tracking-[0.14em] uppercase"
             >
-              Contattaci
+              {t("contact.title")}
             </motion.h2>
 
             <p className="mt-3 text-sm text-slate-300">
-              Per info su tavoli, eventi privati o partnership compila il form.
-              Ti risponderemo il prima possibile.
+              {t("contact.description")}
             </p>
 
             <div className="mt-6 space-y-2 text-sm text-slate-300">
               <p>
-                Email:{" "}
-                <span className="text-cyan-300">info@utopia-nightclub.it</span>
+                {t("contact.emailLabel")}:{" "}
+                <span className="text-cyan-300">
+                  {t("contact.emailAddress")}
+                </span>
               </p>
             </div>
 
@@ -296,7 +298,7 @@ function ContactSection() {
 
               <div className="relative z-10">
                 <span className="text-[0.7rem] uppercase tracking-[0.25em] text-cyan-300">
-                  Follow Utopia
+                  {t("contact.socialTagline")}
                 </span>
 
                 <div className="mt-3 flex items-center gap-4">
@@ -329,9 +331,9 @@ function ContactSection() {
                   </motion.a>
 
                   <div className="ml-1 max-w-[220px] text-[0.7rem] leading-relaxed text-slate-300">
-                    <p>Lineup, eventi speciali</p>
+                    <p>{t("contact.socialLine1")}</p>
                     <p className="text-[0.65rem] text-slate-400">
-                      Story e aggiornamenti in tempo reale.
+                      {t("contact.socialLine2")}
                     </p>
                   </div>
                 </div>
@@ -354,51 +356,51 @@ function ContactSection() {
           >
             <div>
               <label className="text-xs uppercase tracking-wide text-slate-300">
-                Nome
+                {t("contact.formNameLabel")}
               </label>
               <input
                 name="name"
                 type="text"
                 className="mt-1 w-full rounded-xl border border-white/10 bg-slate-900/80 px-3 py-2 text-sm outline-none focus:border-cyan-400"
-                placeholder="Il tuo nome"
+                placeholder={t("contact.formNamePlaceholder")}
                 required
               />
             </div>
 
             <div>
               <label className="text-xs uppercase tracking-wide text-slate-300">
-                Email
+                {t("contact.formEmailLabel")}
               </label>
               <input
                 name="email"
                 type="email"
                 className="mt-1 w-full rounded-xl border border-white/10 bg-slate-900/80 px-3 py-2 text-sm outline-none focus:border-cyan-400"
-                placeholder="name@email.com"
+                placeholder={t("contact.formEmailPlaceholder")}
                 required
               />
             </div>
 
             <div>
               <label className="text-xs uppercase tracking-wide text-slate-300">
-                Telefono (opzionale)
+                {t("contact.formPhoneLabel")}
               </label>
               <input
                 name="phone"
                 type="tel"
                 className="mt-1 w-full rounded-xl border border-white/10 bg-slate-900/80 px-3 py-2 text-sm outline-none focus:border-cyan-400"
-                placeholder="Numero per ricontatto"
+                placeholder={t("contact.formPhonePlaceholder")}
               />
             </div>
 
             <div>
               <label className="text-xs uppercase tracking-wide text-slate-300">
-                Messaggio
+                {t("contact.formMessageLabel")}
               </label>
               <textarea
                 name="message"
                 rows="4"
                 className="mt-1 w-full rounded-xl border border-white/10 bg-slate-900/80 px-3 py-2 text-sm outline-none focus:border-cyan-400"
-                placeholder="Scrivici per info su tavoli, eventi o membership..."
+                placeholder={t("contact.formMessagePlaceholder")}
                 required
               />
             </div>
@@ -410,7 +412,7 @@ function ContactSection() {
             )}
             {ok && (
               <div className="rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-[11px] text-emerald-200">
-                Messaggio inviato correttamente. Ti risponderemo al più presto.
+                {t("contact.formSuccess")}
               </div>
             )}
 
@@ -424,7 +426,7 @@ function ContactSection() {
             >
               <span className="inline-flex items-center justify-center gap-2">
                 <Send className="h-3.5 w-3.5" />
-                {sending ? "Invio in corso..." : "Invia"}
+                {sending ? t("contact.submitSending") : t("contact.submitIdle")}
               </span>
             </motion.button>
           </motion.form>

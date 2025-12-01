@@ -2,6 +2,7 @@
 import { useRef, useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Swal from "sweetalert2";
+import { useTranslation, Trans } from "react-i18next";
 import ScrollScene3D from "../components/ScrollScene3D";
 import { supabase } from "../lib/supabaseClient";
 
@@ -11,20 +12,19 @@ const fadeUp = (delay = 0) => ({
   transition: { duration: 0.7, delay },
 });
 
-// Base URL backend: da env, con fallback a localhost:4000 in dev
-// In produzione VITE_ADMIN_API_URL DEVE essere valorizzata
+// Base URL backend
 const API_BASE =
   import.meta.env.VITE_ADMIN_API_URL ||
   (import.meta.env.DEV ? "http://localhost:4000" : null);
 
 if (!API_BASE) {
-  // Questo ti aiuta a capire subito in prod se manca la variabile
   console.error(
     "VITE_ADMIN_API_URL non è configurata! Il frontend non sa dove chiamare l'Admin API."
   );
 }
 
 function MembershipForm() {
+  const { t } = useTranslation();
   const formRef = useRef(null);
   const canvasRef = useRef(null);
   const drawing = useRef(false);
@@ -36,13 +36,12 @@ function MembershipForm() {
   const [ok, setOk] = useState(false);
   const [error, setError] = useState("");
 
-  // 👇 Stati per anteprima documenti
   const [frontPreview, setFrontPreview] = useState(null);
   const [backPreview, setBackPreview] = useState(null);
   const [frontName, setFrontName] = useState("");
   const [backName, setBackName] = useState("");
 
-  // ====== SETUP CANVAS FIRMA (opzionale) ======
+  // Firma (se la riattivi)
   useEffect(() => {
     if (!isModalOpen) return;
     const canvas = canvasRef.current;
@@ -109,7 +108,6 @@ function MembershipForm() {
     };
   }, [isModalOpen]);
 
-  // cleanup URL oggetti quando il componente smonta
   useEffect(() => {
     return () => {
       if (frontPreview) URL.revokeObjectURL(frontPreview);
@@ -140,11 +138,9 @@ function MembershipForm() {
     setIsModalOpen(false);
   };
 
-  // === Helper anteprima file (fronte/retro) ===
   const handleFileChange = (e, setPreview, setName) => {
     const file = e.target.files?.[0];
 
-    // libera eventuale URL precedente
     setPreview((prev) => {
       if (prev) URL.revokeObjectURL(prev);
       return null;
@@ -159,13 +155,9 @@ function MembershipForm() {
     }
   };
 
-  // === Helper per upload documento verso il backend ===
-
   const uploadDocumento = async (file, tipo) => {
     if (!API_BASE) {
-      throw new Error(
-        "API_BASE non configurato (VITE_ADMIN_API_URL mancante in .env del frontend)."
-      );
+      throw new Error(t("membership.apiBaseMissing"));
     }
 
     const todayFolder = new Date().toISOString().slice(0, 10);
@@ -178,14 +170,6 @@ function MembershipForm() {
     formData.append("file", file);
     formData.append("path", path);
 
-    console.log(
-      "Chiamo upload-document su:",
-      `${API_BASE}/api/admin/upload-document`,
-      {
-        path,
-      }
-    );
-
     const res = await fetch(`${API_BASE}/api/admin/upload-document`, {
       method: "POST",
       body: formData,
@@ -196,7 +180,7 @@ function MembershipForm() {
     try {
       data = JSON.parse(raw);
     } catch {
-      // non è JSON, pazienza
+      // non è JSON
     }
 
     if (!res.ok || !data.ok) {
@@ -205,9 +189,10 @@ function MembershipForm() {
         raw,
         data,
       });
+      const prefix = t("membership.uploadErrorPrefix");
       throw new Error(
         data.message ||
-          `Errore upload documento (HTTP ${res.status}) – riprova più tardi.`
+          `${prefix} (HTTP ${res.status}) – ${t("membership.errorGeneric")}`
       );
     }
 
@@ -217,7 +202,6 @@ function MembershipForm() {
     };
   };
 
-  // ====== SUBMIT: upload immagini + insert in Supabase (members) ======
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -226,27 +210,23 @@ function MembershipForm() {
 
     const formData = new FormData(e.target);
 
-    // Campi anagrafici
     const name = formData.get("associatedName") || "";
     const surname = formData.get("associatedSurname") || "";
     const fullName = `${name} ${surname}`.trim();
 
-    // File documento
     const fileFront = formData.get("document_front");
     const fileBack = formData.get("document_back");
 
     if (!fileFront || !fileFront.size || !fileBack || !fileBack.size) {
       setLoading(false);
-      setError("Carica sia il fronte che il retro del documento.");
+      setError(t("membership.errorMissingDocs"));
       return;
     }
 
     try {
-      // 1) Upload documenti al backend (bucket privato)
       const frontResult = await uploadDocumento(fileFront, "front");
       const backResult = await uploadDocumento(fileBack, "back");
 
-      // 2) Inserimento record in members
       const payload = {
         full_name: fullName,
         email: formData.get("emailType"),
@@ -269,7 +249,7 @@ function MembershipForm() {
 
       if (insertError) {
         console.error(insertError);
-        setError("Si è verificato un errore, riprova più tardi.");
+        setError(t("membership.errorGeneric"));
         return;
       }
 
@@ -278,7 +258,6 @@ function MembershipForm() {
       clearSignature();
       setHasSigned(false);
 
-      // reset anteprime
       if (frontPreview) URL.revokeObjectURL(frontPreview);
       if (backPreview) URL.revokeObjectURL(backPreview);
       setFrontPreview(null);
@@ -288,16 +267,16 @@ function MembershipForm() {
 
       await Swal.fire({
         icon: "success",
-        title: "Domanda inviata",
-        text: "La tua richiesta di ammissione è stata registrata correttamente.",
-        confirmButtonText: "Chiudi",
+        title: t("membership.alertSuccessTitle"),
+        text: t("membership.alertSuccessText"),
+        confirmButtonText: "OK",
         confirmButtonColor: "#22c55e",
         background: "#020617",
         color: "#e5e7eb",
       });
     } catch (err) {
       console.error(err);
-      setError(err.message || "Errore imprevisto, riprova più tardi.");
+      setError(err.message || t("membership.errorGeneric"));
     } finally {
       setLoading(false);
     }
@@ -305,10 +284,9 @@ function MembershipForm() {
 
   return (
     <div className="relative min-h-[90vh]">
-      {/* Glow generale */}
+      {/* Glow */}
       <div className="pointer-events-none absolute inset-0 m-0 bg-[radial-gradient(circle_at_top,rgba(236,72,153,0.18),transparent_60%),radial-gradient(circle_at_bottom,rgba(56,189,248,0.18),transparent_60%)]" />
 
-      {/* SFONDO 3D SCROLL-DRIVEN */}
       <ScrollScene3D />
 
       <section className="relative overflow-hidden py-24">
@@ -319,7 +297,7 @@ function MembershipForm() {
             className="space-y-6 text-center lg:text-left"
           >
             <p className="text-[0.7rem] uppercase tracking-[0.4em] text-cyan-300">
-              Membership • Accesso riservato
+              {t("membership.badge")}
             </p>
 
             <motion.h1
@@ -342,35 +320,38 @@ function MembershipForm() {
               viewport={{ once: true, amount: 0.5 }}
               className="text-3xl md:text-4xl lg:text-5xl font-semibold tracking-[0.18em] uppercase"
             >
-              Diventa{" "}
-              <span className="bg-linear-to-r from-cyan-300 to-fuchsia-400 bg-clip-text text-transparent">
-                Socio Utopia
-              </span>
+              {/* gestione <strong> nel testo con Trans */}
+              <Trans
+                i18nKey="membership.title"
+                components={{
+                  strong: (
+                    <span className="bg-linear-to-r from-cyan-300 to-fuchsia-400 bg-clip-text text-transparent" />
+                  ),
+                }}
+              />
             </motion.h1>
 
             <p className="text-xs md:text-sm text-slate-300 max-w-md mx-auto lg:mx-0">
-              Compila la domanda online per richiedere la tessera socio. La
-              richiesta deve essere inviata almeno 24 ore prima
-              dell&apos;ingresso in struttura.
+              {t("membership.description")}
             </p>
 
             <div className="flex flex-wrap items-center justify-center gap-3 lg:justify-start text-[0.7rem]">
               <span className="rounded-full border border-cyan-400/40 bg-cyan-400/10 px-3 py-1 uppercase tracking-[0.2em] text-cyan-200">
-                Step 1 / 1
+                {t("membership.stepBadge")}
               </span>
               <span className="rounded-full border border-fuchsia-400/40 bg-fuchsia-400/10 px-3 py-1 uppercase tracking-[0.18em] text-fuchsia-200">
-                Registrazione socio
+                {t("membership.stepLabel")}
               </span>
             </div>
 
             <div className="hidden md:flex flex-col gap-2 text-[0.75rem] text-slate-300 pt-4 border-t border-white/10 max-w-md lg:max-w-none">
               <p className="uppercase tracking-[0.22em] text-slate-400">
-                Cosa ti serve
+                {t("membership.needTitle")}
               </p>
               <ul className="list-disc list-inside space-y-1 text-slate-200">
-                <li>Dati anagrafici corretti e aggiornati</li>
-                <li>Foto fronte / retro di un documento valido</li>
-                <li>Accettazione privacy e statuto Utopia / ACSI</li>
+                <li>{t("membership.needItem1")}</li>
+                <li>{t("membership.needItem2")}</li>
+                <li>{t("membership.needItem3")}</li>
               </ul>
             </div>
           </motion.div>
@@ -386,44 +367,44 @@ function MembershipForm() {
             <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-4">
               <div>
                 <p className="text-[0.7rem] uppercase tracking-[0.25em] text-slate-400">
-                  Domanda di ammissione
+                  {t("membership.formHeaderBadge")}
                 </p>
                 <p className="text-xs text-slate-200">
-                  I tuoi dati saranno utilizzati solo ai fini associativi.
+                  {t("membership.formHeaderSubtitle")}
                 </p>
               </div>
               <div className="rounded-full border border-emerald-400/60 bg-emerald-400/10 px-3 py-1 text-[0.65rem] uppercase tracking-[0.18em] text-emerald-300">
-                24h prima
+                {t("membership.formHeaderChip")}
               </div>
             </div>
 
-            {/* SEZIONE: DATI ANAGRAFICI */}
+            {/* DATI ANAGRAFICI */}
             <div className="space-y-3">
               <p className="text-[0.7rem] uppercase tracking-[0.22em] text-slate-400">
-                Dati anagrafici
+                {t("membership.sectionPersonal")}
               </p>
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
                   <label className="text-[0.7rem] uppercase tracking-wide text-slate-300">
-                    Nome
+                    {t("membership.labelName")}
                   </label>
                   <input
                     id="associatedName"
                     name="associatedName"
                     className="mt-1 w-full rounded-xl border border-white/10 bg-slate-950/70 px-3 py-2 text-sm outline-none focus:border-cyan-400"
-                    placeholder="Nome"
+                    placeholder={t("membership.placeholderName")}
                     required
                   />
                 </div>
                 <div>
                   <label className="text-[0.7rem] uppercase tracking-wide text-slate-300">
-                    Cognome
+                    {t("membership.labelSurname")}
                   </label>
                   <input
                     id="associatedSurname"
                     name="associatedSurname"
                     className="mt-1 w-full rounded-xl border border-white/10 bg-slate-950/70 px-3 py-2 text-sm outline-none focus:border-cyan-400"
-                    placeholder="Cognome"
+                    placeholder={t("membership.placeholderSurname")}
                     required
                   />
                 </div>
@@ -432,19 +413,19 @@ function MembershipForm() {
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
                   <label className="text-[0.7rem] uppercase tracking-wide text-slate-300">
-                    Nato/a a
+                    {t("membership.labelBirthPlace")}
                   </label>
                   <input
                     id="birthPlace"
                     name="birthPlace"
                     className="mt-1 w-full rounded-xl border border-white/10 bg-slate-950/70 px-3 py-2 text-sm outline-none focus:border-cyan-400"
-                    placeholder="Luogo di nascita"
+                    placeholder={t("membership.placeholderBirthPlace")}
                     required
                   />
                 </div>
                 <div>
                   <label className="text-[0.7rem] uppercase tracking-wide text-slate-300">
-                    Data di nascita
+                    {t("membership.labelBirthDate")}
                   </label>
                   <input
                     id="birthDate"
@@ -457,15 +438,15 @@ function MembershipForm() {
               </div>
             </div>
 
-            {/* SEZIONE: CONTATTI */}
+            {/* CONTATTI */}
             <div className="space-y-3 border-t border-white/5 pt-4">
               <p className="text-[0.7rem] uppercase tracking-[0.22em] text-slate-400">
-                Contatti
+                {t("membership.sectionContacts")}
               </p>
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
                   <label className="text-[0.7rem] uppercase tracking-wide text-slate-300">
-                    Codice fiscale
+                    {t("membership.labelFiscalCode")}
                   </label>
                   <input
                     id="fiscalCode"
@@ -473,20 +454,20 @@ function MembershipForm() {
                     maxLength={16}
                     minLength={16}
                     className="mt-1 w-full rounded-xl border border-white/10 bg-slate-950/70 px-3 py-2 text-sm uppercase outline-none focus:border-cyan-400"
-                    placeholder="Codice fiscale"
+                    placeholder={t("membership.placeholderFiscalCode")}
                     required
                   />
                 </div>
                 <div>
                   <label className="text-[0.7rem] uppercase tracking-wide text-slate-300">
-                    Email
+                    {t("membership.labelEmail")}
                   </label>
                   <input
                     id="emailType"
                     name="emailType"
                     type="email"
                     className="mt-1 w-full rounded-xl border border-white/10 bg-slate-950/70 px-3 py-2 text-sm outline-none focus:border-cyan-400"
-                    placeholder="Email"
+                    placeholder={t("membership.placeholderEmail")}
                     required
                   />
                 </div>
@@ -495,7 +476,7 @@ function MembershipForm() {
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
                   <label className="text-[0.7rem] uppercase tracking-wide text-slate-300">
-                    Cellulare
+                    {t("membership.labelPhone")}
                   </label>
                   <input
                     id="telephone"
@@ -503,35 +484,35 @@ function MembershipForm() {
                     type="tel"
                     maxLength={10}
                     className="mt-1 w-full rounded-xl border border-white/10 bg-slate-950/70 px-3 py-2 text-sm outline-none focus:border-cyan-400"
-                    placeholder="Numero cellulare"
+                    placeholder={t("membership.placeholderPhone")}
                     required
                   />
                 </div>
                 <div>
                   <label className="text-[0.7rem] uppercase tracking-wide text-slate-300">
-                    Città di residenza
+                    {t("membership.labelCity")}
                   </label>
                   <input
                     id="city"
                     name="city"
                     className="mt-1 w-full rounded-xl border border-white/10 bg-slate-950/70 px-3 py-2 text-sm outline-none focus:border-cyan-400"
-                    placeholder="Città"
+                    placeholder={t("membership.placeholderCity")}
                     required
                   />
                 </div>
               </div>
             </div>
 
-            {/* SEZIONE: DOCUMENTO */}
+            {/* DOCUMENTO */}
             <div className="space-y-3 border-t border-white/5 pt-4">
               <p className="text-[0.7rem] uppercase tracking-[0.22em] text-slate-400">
-                Documento di identità
+                {t("membership.sectionDocument")}
               </p>
               <div className="grid gap-4 md:grid-cols-2">
                 {/* Fronte */}
                 <label className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-cyan-400/60 bg-slate-950/70 px-4 py-6 text-center text-xs text-slate-200 hover:border-cyan-300 transition">
                   <span className="mb-1 text-[0.7rem] uppercase tracking-wide text-cyan-300">
-                    Fronte
+                    {t("membership.docFrontTitle")}
                   </span>
                   {frontName && (
                     <span className="mb-1 text-[0.65rem] text-cyan-200/90">
@@ -539,7 +520,7 @@ function MembershipForm() {
                     </span>
                   )}
                   <span className="text-[0.65rem] text-slate-400">
-                    Carica o scatta la foto del fronte del documento
+                    {t("membership.docFrontSubtitle")}
                   </span>
                   <input
                     id="cameraInputFronte"
@@ -567,7 +548,7 @@ function MembershipForm() {
                 {/* Retro */}
                 <label className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-fuchsia-400/60 bg-slate-950/70 px-4 py-6 text-center text-xs text-slate-200 hover:border-fuchsia-300 transition">
                   <span className="mb-1 text-[0.7rem] uppercase tracking-wide text-fuchsia-300">
-                    Retro
+                    {t("membership.docBackTitle")}
                   </span>
                   {backName && (
                     <span className="mb-1 text-[0.65rem] text-fuchsia-200/90">
@@ -575,7 +556,7 @@ function MembershipForm() {
                     </span>
                   )}
                   <span className="text-[0.65rem] text-slate-400">
-                    Carica o scatta la foto del retro del documento
+                    {t("membership.docBackSubtitle")}
                   </span>
                   <input
                     id="cameraInputRetro"
@@ -602,24 +583,24 @@ function MembershipForm() {
               </div>
             </div>
 
-            {/* NOTE OPZIONALI */}
+            {/* NOTE */}
             <div className="space-y-2 border-t border-white/5 pt-4">
               <p className="text-[0.7rem] uppercase tracking-[0.22em] text-slate-400">
-                Note aggiuntive (opzionale)
+                {t("membership.sectionNotes")}
               </p>
               <textarea
                 id="note"
                 name="note"
                 rows={3}
                 className="mt-1 w-full rounded-xl border border-white/10 bg-slate-950/70 px-3 py-2 text-sm outline-none focus:border-cyan-400"
-                placeholder="Eventuali richieste o informazioni aggiuntive…"
+                placeholder={t("membership.notesPlaceholder")}
               />
             </div>
 
-            {/* SEZIONE: CONSENSI */}
+            {/* CONSENSI */}
             <div className="space-y-3 border-t border-white/5 pt-4">
               <p className="text-[0.7rem] uppercase tracking-[0.22em] text-slate-400">
-                Consensi
+                {t("membership.sectionConsents")}
               </p>
               <div className="space-y-2 text-xs text-slate-300">
                 <label className="flex items-start gap-2">
@@ -631,16 +612,19 @@ function MembershipForm() {
                     className="mt-0.5 h-4 w-4 rounded border-slate-500 bg-slate-900 text-cyan-400 focus:ring-cyan-400"
                   />
                   <span>
-                    Dichiaro di aver preso visione e di accettare la{" "}
-                    <a
-                      href="/pdf/privacy.pdf"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-cyan-300 underline"
-                    >
-                      privacy dei dati
-                    </a>
-                    .
+                    <Trans
+                      i18nKey="membership.consentPrivacy"
+                      components={{
+                        link: (
+                          <a
+                            href="/pdf/privacy.pdf"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-cyan-300 underline"
+                          />
+                        ),
+                      }}
+                    />
                   </span>
                 </label>
 
@@ -652,16 +636,19 @@ function MembershipForm() {
                     className="mt-0.5 h-4 w-4 rounded border-slate-500 bg-slate-900 text-cyan-400 focus:ring-cyan-400"
                   />
                   <span>
-                    Approvo lo{" "}
-                    <a
-                      href="/pdf/statuto.pdf"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-cyan-300 underline"
-                    >
-                      statuto Utopia e statuto ACSI nazionale
-                    </a>
-                    .
+                    <Trans
+                      i18nKey="membership.consentStatute"
+                      components={{
+                        link: (
+                          <a
+                            href="/pdf/statuto.pdf"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-cyan-300 underline"
+                          />
+                        ),
+                      }}
+                    />
                   </span>
                 </label>
 
@@ -672,11 +659,7 @@ function MembershipForm() {
                     type="checkbox"
                     className="mt-0.5 h-4 w-4 rounded border-slate-500 bg-slate-900 text-cyan-400 focus:ring-cyan-400"
                   />
-                  <span>
-                    Autorizzo l&apos;utilizzo dei miei contatti per
-                    comunicazioni riguardanti eventi e attività del club
-                    (newsletter/SMS).
-                  </span>
+                  <span>{t("membership.consentMarketing")}</span>
                 </label>
               </div>
             </div>
@@ -689,7 +672,7 @@ function MembershipForm() {
             )}
             {ok && (
               <div className="rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-[11px] text-emerald-200">
-                Domanda inviata correttamente.
+                {t("membership.successInline")}
               </div>
             )}
 
@@ -702,10 +685,14 @@ function MembershipForm() {
                   loading ? "opacity-60 cursor-not-allowed" : ""
                 }`}
               >
-                {loading ? "Invio in corso..." : "Invia domanda di ammissione"}
+                {loading
+                  ? t("membership.submitLoading")
+                  : t("membership.submitIdle")}
               </button>
 
-              {/* <button
+              {/* bottone per la firma (se lo riattivi) */}
+              {/* 
+              <button
                 type="button"
                 onClick={() => {
                   clearSignature();
@@ -714,59 +701,19 @@ function MembershipForm() {
                 className="text-[0.7rem] uppercase tracking-[0.18em] text-slate-300 hover:text-cyan-200"
               >
                 Apri riquadro firma (opzionale)
-              </button> */}
+              </button>
+              */}
             </div>
           </motion.form>
 
-          {/* {isModalOpen && (
+          {/* MODALE FIRMA (ancora commentata come nel tuo codice) */}
+          {/* 
+          {isModalOpen && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
-              <div className="w-full max-w-md rounded-2xl border border-white/10 bg-slate-950 p-4 shadow-2xl">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-sm font-semibold">
-                    Firma la domanda di ammissione
-                  </h2>
-                  <button
-                    type="button"
-                    onClick={() => setIsModalOpen(false)}
-                    className="text-slate-400 hover:text-slate-200"
-                  >
-                    ✕
-                  </button>
-                </div>
-                <p className="mt-2 text-[0.7rem] text-slate-400">
-                  Firma all&apos;interno del riquadro usando mouse o dito (su
-                  mobile).
-                </p>
-
-                <div className="mt-4 flex justify-center">
-                  <canvas
-                    id="signature-pad"
-                    ref={canvasRef}
-                    width={350}
-                    height={200}
-                    className="rounded-xl border border-white/20 bg-slate-900"
-                  />
-                </div>
-
-                <div className="mt-3 flex items-center justify-between">
-                  <button
-                    type="button"
-                    onClick={clearSignature}
-                    className="text-[0.7rem] uppercase tracking-wide text-slate-300 underline"
-                  >
-                    Reset firma
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleConfirmSignature}
-                    className="rounded-full bg-linear-to-r from-emerald-400 to-cyan-500 px-4 py-1.5 text-[0.7rem] font-semibold uppercase tracking-wide text-black"
-                  >
-                    Conferma firma
-                  </button>
-                </div>
-              </div>
+              ...
             </div>
-          )} */}
+          )} 
+          */}
         </div>
       </section>
     </div>

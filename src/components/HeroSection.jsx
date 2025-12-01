@@ -1,12 +1,14 @@
 import { useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { fadeUp } from "../utils/motionPresets";
+import { useTranslation } from "react-i18next";
 
 function HeroSection() {
+  const { t } = useTranslation();
   const sectionRef = useRef(null);
   const { scrollYProgress } = useScroll({
     target: sectionRef,
-    offset: ["start start", "end start"], // quando esce dall'hero
+    offset: ["start start", "end start"],
   });
 
   const titleY = useTransform(scrollYProgress, [0, 1], ["0%", "-20%"]);
@@ -28,7 +30,7 @@ function HeroSection() {
           className="flex-1 text-center md:text-left space-y-5"
         >
           <p className="text-xs uppercase tracking-[0.4em] text-cyan-300">
-            Night Club • Members Only
+            {t("hero.tagline")}
           </p>
 
           {/* TITOLONE ANIMATO ALLO SCROLL */}
@@ -47,17 +49,11 @@ function HeroSection() {
             viewport={{ once: true, amount: 0.5 }}
             className="text-4xl md:text-5xl lg:text-7xl font-semibold leading-tight tracking-[0.15em] uppercase"
           >
-            Benvenuto in{" "}
-            <span className="bg-linear-to-r from-fuchsia-400 via-cyan-300 to-blue-400 bg-clip-text text-transparent drop-shadow-[0_0_18px_rgba(56,189,248,0.7)]">
-              Utopia
-            </span>
-            .
+            {t("hero.title")}
           </motion.h1>
 
           <p className="max-w-xl text-sm text-slate-300 md:text-base">
-            Un club privato dove luci, musica e design futuristico si
-            incontrano. Accesso riservato ai soci, esperienze fuori dal
-            quotidiano.
+            {t("hero.description")}
           </p>
 
           <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-start">
@@ -65,7 +61,7 @@ function HeroSection() {
               href="/ammissione-socio"
               className="inline-flex items-center justify-center rounded-full text-black bg-linear-to-r from-cyan-400 to-fuchsia-500 px-6 py-2 text-xl font-semibold uppercase tracking-wide shadow-[0_0_25px_rgba(56,189,248,0.75)] hover:brightness-110 transition"
             >
-              Diventa socio
+              {t("hero.cta")}
             </a>
           </div>
         </motion.div>
@@ -80,7 +76,7 @@ function HeroSection() {
           className="flex-1 flex justify-center"
         >
           <div className="relative h-72 w-72 rounded-[2.5rem] border border-cyan-300/40 bg-linear-to-br from-slate-900 via-slate-950 to-black p-4 shadow-[0_0_40px_rgba(56,189,248,0.55)] overflow-hidden">
-            {/* LOGO ANIMATO (resta) */}
+            {/* LOGO ANIMATO */}
             <motion.img
               src="/img/logo-small.png"
               alt="Utopia Logo"
@@ -101,10 +97,10 @@ function HeroSection() {
             <div className="h-full w-full rounded-3xl bg-[radial-gradient(circle_at_20%_20%,rgba(236,72,153,0.65),transparent_55%),radial-gradient(circle_at_80%_80%,rgba(56,189,248,0.6),transparent_55%)]" />
 
             <span className="absolute bottom-5 left-6 text-xs font-medium tracking-[0.2em] uppercase text-slate-200">
-              Friday / Saturday
+              {t("hero.scheduleDays")}
             </span>
             <span className="absolute bottom-5 right-8 text-xs text-cyan-200">
-              23:30 – Late
+              {t("hero.scheduleTime")}
             </span>
           </div>
         </motion.div>

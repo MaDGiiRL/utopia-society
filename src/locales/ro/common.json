@@ -1,0 +1,269 @@
+{
+    "ui": {
+        "pagination": {
+            "prev": "Prev",
+            "next": "Next",
+            "pageOf": "Pagina {{current}} din {{total}} · ({{pageSize}} pe pagină)"
+        }
+    },
+    "nav": {
+        "home": "Home",
+        "becomeMember": "Devino membru",
+        "admin": "Admin",
+        "adminArea": "Zona Admin"
+    },
+    "hero": {
+        "tagline": "Night Club • Doar pentru membri",
+        "title": "Bun venit la Utopia.",
+        "description": "Un club privat unde luminile, muzica și designul futurist se întâlnesc. Acces rezervat membrilor, experiențe ieșite din cotidian.",
+        "cta": "Devino membru",
+        "scheduleDays": "Vineri / Sâmbătă",
+        "scheduleTime": "23:30 – Late"
+    },
+    "about": {
+        "title": "Despre Utopia",
+        "paragraph": "Utopia este un club privat situat în inima orașului. Un mediu exclusivist, atent construit în fiecare detaliu, unde sunetele electronice, instalațiile de lumină și mixologia de nivel înalt se îmbină pentru a crea o experiență unică.",
+        "card1Title": "Atmosferă futuristă",
+        "card1Text": "Lumi neon, lasere și o scenografie digitală care transformă ringul de dans într-un spațiu virtual.",
+        "card2Title": "Muzică selectată",
+        "card2Text": "DJ rezidenți și invitați internaționali, cu sound-uri house, techno, electronice și influențe moderne.",
+        "card3Title": "Acces rezervat",
+        "card3Text": "Intrare doar pentru membri și însoțitorii înregistrați. Completează cererea de înscriere online în doar câteva minute."
+    },
+    "contact": {
+        "badge": "Contact • Utopia",
+        "title": "Contactează-ne",
+        "description": "Pentru informații despre mese, evenimente private sau parteneriate, completează formularul. Îți vom răspunde cât mai curând.",
+        "emailLabel": "Email",
+        "emailAddress": "info@utopia-nightclub.it",
+        "socialTagline": "Urmărește Utopia",
+        "socialLine1": "Line-up, evenimente speciale",
+        "socialLine2": "Story-uri și actualizări în timp real.",
+        "formNameLabel": "Nume",
+        "formNamePlaceholder": "Numele tău",
+        "formEmailLabel": "Email",
+        "formEmailPlaceholder": "name@email.com",
+        "formPhoneLabel": "Telefon (opțional)",
+        "formPhonePlaceholder": "Număr pentru a te contacta",
+        "formMessageLabel": "Mesaj",
+        "formMessagePlaceholder": "Scrie-ne pentru informații despre mese, evenimente sau membership...",
+        "formError": "A apărut o eroare, te rugăm să încerci din nou mai târziu.",
+        "formSuccess": "Mesaj trimis cu succes. Îți vom răspunde cât mai curând.",
+        "submitIdle": "Trimite",
+        "submitSending": "Se trimite..."
+    },
+    "footer": {
+        "home": "Home",
+        "becomeMember": "Devino membru",
+        "copyright": "© {{year}} Utopia Night Club",
+        "rights": "Toate drepturile rezervate.",
+        "developedWith": "Dezvoltat cu",
+        "by": "de"
+    },
+    "admin": {
+        "dashboard": {
+            "badge": "Utopia · Admin",
+            "subtitle": "Gestionezi membrii, contactele și campaniile.",
+            "membersTabTitle": "Jurnal membri",
+            "membersTabSubtitle": "Date și documente",
+            "contactsTabTitle": "Jurnal contacte",
+            "contactsTabSubtitle": "Cereri din site",
+            "campaignTabTitle": "Campanie nouă",
+            "campaignTabSubtitle": "Emailuri & SMS către membri",
+            "exportMembersXmlFull": "Export membri XML",
+            "exportMembersXmlShort": "Export XML",
+            "logout": "Ieșire din zona admin",
+            "xmlError": "Eroare la generarea XML",
+            "xmlUnexpectedError": "Eroare neașteptată"
+        },
+        "login": {
+            "title": "Admin",
+            "subtitle": "Acces rezervat personalului Utopia.",
+            "emailLabel": "Email",
+            "emailPlaceholder": "admin@utopia.club",
+            "passwordLabel": "Parolă",
+            "passwordPlaceholder": "••••••••••••",
+            "errorGeneric": "Eroare la autentificare",
+            "submitting": "Autentificare...",
+            "submit": "Intră în zona admin"
+        },
+        "membersPanel": {
+            "headerTitle": "Membri înscriși",
+            "headerSubtitle": "Lista înscrierilor din formularul de admitere membru.",
+            "debugNotice": "Debug activ: au fost adăugați membri fake în memorie (nu în baza de date).",
+            "searchPlaceholder": "Caută după nume, email, oraș...",
+            "filterAllCities": "Toate orașele",
+            "shownCounter": "Afișați {{filtered}} / {{total}}",
+            "table": {
+                "date": "Data",
+                "name": "Nume",
+                "email": "Email",
+                "city": "Oraș",
+                "marketing": "Marketing",
+                "card": "Fișă"
+            },
+            "marketingYes": "Da",
+            "marketingNo": "Nu",
+            "openCard": "Deschide fișa",
+            "noResults": "Niciun membru găsit cu filtrele curente.",
+            "loading": "Se încarcă membrii...",
+            "error": "Eroare la încărcarea membrilor.",
+            "modal": {
+                "title": "Fișă membru",
+                "name": "Nume complet",
+                "email": "Email",
+                "phone": "Telefon mobil",
+                "city": "Oraș",
+                "birthPlace": "Locul nașterii",
+                "birthDate": "Data nașterii",
+                "fiscalCode": "Cod fiscal",
+                "privacy": "Confidențialitate",
+                "marketing": "Marketing",
+                "insertedAt": "Înscris la",
+                "notes": "Note",
+                "documents": "Documente încărcate",
+                "docFront": "Document față",
+                "docBack": "Document verso",
+                "notAvailable": "Indisponibil",
+                "source": "Source",
+                "close": "Închide"
+            }
+        },
+        "contactsPanel": {
+            "headerTitle": "Mesaje de contact",
+            "headerSubtitle": "Toate mesajele trimise din formularul de contact de pe site.",
+            "exportCsv": "Exportă Excel",
+            "total": "Total: {{count}}",
+            "loading": "Se încarcă mesajele...",
+            "errorLoad": "Eroare la încărcarea mesajelor de contact.",
+            "errorExport": "Eroare în timpul exportului mesajelor.",
+            "noMessages": "Nu a fost primit niciun mesaj.",
+            "noMessagesFiltered": "Niciun mesaj găsit.",
+            "noMessagesToExport": "Nu există mesaje de exportat.",
+            "table": {
+                "date": "Data",
+                "name": "Nume",
+                "email": "Email",
+                "phone": "Telefon",
+                "actions": "Acțiuni"
+            },
+            "details": "Detalii",
+            "modal": {
+                "title": "Detaliu mesaj",
+                "id": "ID",
+                "name": "Nume",
+                "email": "Email",
+                "phone": "Telefon",
+                "sentAt": "Trimis la",
+                "message": "Mesaj",
+                "close": "Închide",
+                "replyEmail": "Răspunde prin email",
+                "replySubject": "Re: contact din site-ul Utopia",
+                "replyBody": "Bună {{name}},\n\nîți răspundem la mesajul pe care ni l-ai trimis din formularul de contact.\n\n---\n\nMesaj original:\n{{message}}\n\n---\n\nEchipa Utopia"
+            }
+        },
+        "campaign": {
+            "headerTitle": "Campanie nouă de eveniment",
+            "headerSubtitle": "Trimite emailuri și/sau SMS tuturor membrilor care au dat consimțământul pentru marketing, pentru a promova o dată sau un eveniment special.",
+            "recipientsHelp": "Destinatarii sunt citiți automat din tabela members.",
+            "form": {
+                "titleLabel": "Titlu eveniment / campanie",
+                "titlePlaceholder": "Utopia Night · Special Guest...",
+                "dateLabel": "Data evenimentului",
+                "emailLabel": "Conținut email",
+                "emailPlaceholder": "Bună {{namePlaceholder}},\n\nvineri te așteptăm la Utopia pentru o nouă seară...",
+                "emailHint": "Poți folosi placeholder-e precum {{name}} sau {{eventDate}} care vor fi înlocuite pe server.",
+                "smsLabel": "Text SMS",
+                "smsPlaceholder": "Vineri Utopia Night, acces rezervat membrilor. Prezintă cardul la intrare.",
+                "smsHint": "Recomandat maxim 300 de caractere pentru a evita SMS-uri multiple.",
+                "channelsLabel": "Canale de trimitere",
+                "channelEmail": "Email",
+                "channelSms": "SMS"
+            },
+            "status": {
+                "error": "Eroare la trimiterea campaniei",
+                "unexpected": "Eroare neașteptată",
+                "success": "Campanie trimisă cu succes",
+                "successRecipients": "· Destinatari marketing: {{count}}"
+            },
+            "submit": {
+                "sending": "Se trimite...",
+                "idle": "Trimite campania"
+            },
+            "history": {
+                "title": "Istoric campanii",
+                "subtitle": "Cele mai recente campanii trimise și statusul lor.",
+                "loading": "Se încarcă istoricul campaniilor...",
+                "noCampaigns": "Nicio campanie înregistrată.",
+                "table": {
+                    "date": "Data",
+                    "title": "Titlu",
+                    "eventDate": "Eveniment",
+                    "status": "Status"
+                }
+            },
+            "logs": {
+                "title": "Log-uri recente de trimitere",
+                "loading": "Se încarcă log-urile...",
+                "noLogs": "Niciun log recent.",
+                "table": {
+                    "ts": "Ts",
+                    "campaign": "Campanie",
+                    "channel": "Canal",
+                    "status": "Status"
+                }
+            }
+        }
+    },
+    "membership": {
+        "badge": "Membership • Doar membri",
+        "title": "Devino <strong>Membru Utopia</strong>",
+        "description": "Completează cererea online pentru a solicita cardul de membru. Cererea trebuie trimisă cu cel puțin 24 de ore înainte de intrarea în club.",
+        "stepBadge": "Pasul 1 / 1",
+        "stepLabel": "Înregistrare membru",
+        "needTitle": "De ce ai nevoie",
+        "needItem1": "Date personale corecte și actualizate",
+        "needItem2": "Fotografie față / verso a unui act de identitate valabil",
+        "needItem3": "Acceptarea statutului Utopia / ACSI și a politicii de confidențialitate",
+        "formHeaderBadge": "Cerere de înscriere",
+        "formHeaderSubtitle": "Datele tale vor fi folosite doar în scop asociativ.",
+        "formHeaderChip": "Cu 24h înainte",
+        "sectionPersonal": "Date personale",
+        "labelName": "Prenume",
+        "labelSurname": "Nume",
+        "labelBirthPlace": "Locul nașterii",
+        "labelBirthDate": "Data nașterii",
+        "placeholderName": "Prenume",
+        "placeholderSurname": "Nume",
+        "placeholderBirthPlace": "Orașul nașterii",
+        "sectionContacts": "Contacte",
+        "labelFiscalCode": "Cod fiscal",
+        "labelEmail": "Email",
+        "labelPhone": "Telefon mobil",
+        "labelCity": "Oraș de reședință",
+        "placeholderFiscalCode": "Cod fiscal",
+        "placeholderEmail": "Email",
+        "placeholderPhone": "Număr de telefon",
+        "placeholderCity": "Oraș",
+        "sectionDocument": "Act de identitate",
+        "docFrontTitle": "Față",
+        "docFrontSubtitle": "Încarcă sau fotografiază fața documentului",
+        "docBackTitle": "Verso",
+        "docBackSubtitle": "Încarcă sau fotografiază verso-ul documentului",
+        "sectionNotes": "Note suplimentare (opțional)",
+        "notesPlaceholder": "Orice solicitări sau informații suplimentare…",
+        "sectionConsents": "Consimțăminte",
+        "consentPrivacy": "Declar că am citit și accept <link>politica de confidențialitate a datelor</link>.",
+        "consentStatute": "Aprob <link>statutul Utopia și statutul național ACSI</link>.",
+        "consentMarketing": "Autorizez utilizarea datelor mele de contact pentru comunicări despre evenimentele și activitățile clubului (newsletter/SMS).",
+        "errorMissingDocs": "Te rugăm să încarci atât fața, cât și verso-ul documentului.",
+        "errorGeneric": "A apărut o eroare, încearcă din nou mai târziu.",
+        "submitLoading": "Se trimite...",
+        "submitIdle": "Trimite cererea de înscriere",
+        "successInline": "Cererea a fost trimisă cu succes.",
+        "alertSuccessTitle": "Cerere trimisă",
+        "alertSuccessText": "Cererea ta de înscriere a fost înregistrată cu succes.",
+        "uploadErrorPrefix": "Eroare la încărcarea documentului",
+        "apiBaseMissing": "API_BASE nu este configurat (VITE_ADMIN_API_URL lipsește din .env-ul frontend-ului)."
+    }
+}

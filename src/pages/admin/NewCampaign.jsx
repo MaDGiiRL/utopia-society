@@ -13,14 +13,16 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { supabase } from "../../lib/supabaseClient";
+import { useTranslation } from "react-i18next";
 
 const API_BASE = import.meta.env.VITE_ADMIN_API_URL || "";
 
-// paginazione tabelle storico
 const PAGE_SIZE_CAMPAIGNS = 5;
 const PAGE_SIZE_LOGS = 5;
 
 export default function NewCampaign() {
+  const { t } = useTranslation();
+
   const [loading, setLoading] = useState(false);
   const [ok, setOk] = useState(false);
   const [error, setError] = useState("");
@@ -32,7 +34,6 @@ export default function NewCampaign() {
   const [historyLoading, setHistoryLoading] = useState(true);
   const [historyError, setHistoryError] = useState("");
 
-  // pagine per le tabelle di storico
   const [campaignPage, setCampaignPage] = useState(1);
   const [logPage, setLogPage] = useState(1);
 
@@ -41,7 +42,6 @@ export default function NewCampaign() {
       setHistoryLoading(true);
       setHistoryError("");
 
-      // ultime 20 campagne
       const { data: campData, error: campErr } = await supabase
         .from("campaigns")
         .select("*")
@@ -50,7 +50,6 @@ export default function NewCampaign() {
 
       if (campErr) throw campErr;
 
-      // ultimi 80 log
       const { data: logData, error: logErr } = await supabase
         .from("campaign_logs")
         .select("*")
@@ -63,7 +62,7 @@ export default function NewCampaign() {
       setLogs(logData || []);
     } catch (err) {
       console.error("Errore caricamento storico campagne:", err);
-      setHistoryError("Errore nel caricamento dello storico campagne.");
+      setHistoryError(t("admin.campaign.history.errorLoad"));
       setCampaigns([]);
       setLogs([]);
     } finally {
@@ -73,9 +72,8 @@ export default function NewCampaign() {
 
   useEffect(() => {
     loadHistory();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // reset pagina quando cambia la lunghezza dati
   useEffect(() => {
     setCampaignPage(1);
   }, [campaigns.length]);
@@ -131,21 +129,32 @@ export default function NewCampaign() {
       const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
-        throw new Error(data.message || "Errore nell'invio campagna");
+        throw new Error(data.message || t("admin.campaign.state.errorGeneric"));
       }
 
       setOk(true);
       setRecipientsCount(data.recipients ?? null);
       e.target.reset();
 
-      // ricarica lo storico
       loadHistory();
     } catch (err) {
       console.error(err);
-      setError(err.message || "Errore imprevisto");
+      setError(err.message || t("admin.campaign.state.errorGeneric"));
     } finally {
       setLoading(false);
     }
+  };
+
+  const statusLabel = (status) => {
+    if (status === "sent") return t("admin.campaign.status.sent");
+    if (status === "sending") return t("admin.campaign.status.sending");
+    return t("admin.campaign.status.other");
+  };
+
+  const logStatusLabel = (status) => {
+    if (status === "sent") return t("admin.campaign.logs.status.sent");
+    if (status === "error") return t("admin.campaign.logs.status.error");
+    return status;
   };
 
   return (
@@ -158,19 +167,17 @@ export default function NewCampaign() {
           </div>
           <div>
             <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-100">
-              Nuova campagna evento
+              {t("admin.campaign.headerTitle")}
             </h2>
             <p className="mt-1 text-[11px] text-slate-400">
-              Invia email e/o SMS a tutti i soci che hanno dato consenso
-              marketing per promuovere una data o un evento speciale.
+              {t("admin.campaign.headerSubtitle")}
             </p>
           </div>
         </div>
 
         <div className="flex flex-col items-end gap-1 text-[11px]">
           <p className="text-[10px] text-slate-500">
-            I destinatari vengono letti automaticamente dalla tabella{" "}
-            <span className="font-mono text-[10px]">members</span>.
+            {t("admin.campaign.headerNote", { table: "members" })}
           </p>
         </div>
       </div>
@@ -182,12 +189,12 @@ export default function NewCampaign() {
           <div className="space-y-1.5">
             <label className="flex items-center gap-1 text-[11px] font-medium uppercase tracking-[0.16em] text-slate-300">
               <Sparkles className="h-3 w-3 text-cyan-300" />
-              Titolo evento / campagna
+              {t("admin.campaign.form.titleLabel")}
             </label>
             <input
               name="title"
               required
-              placeholder="Utopia Night · Special Guest..."
+              placeholder={t("admin.campaign.form.titlePlaceholder")}
               className="w-full rounded-xl border border-white/10 bg-slate-950/80 px-3 py-2 text-sm text-slate-100 outline-none ring-0 focus:border-cyan-400/80"
             />
           </div>
@@ -195,7 +202,7 @@ export default function NewCampaign() {
           <div className="space-y-1.5">
             <label className="flex items-center gap-1 text-[11px] font-medium uppercase tracking-[0.16em] text-slate-300">
               <CalendarDays className="h-3 w-3 text-fuchsia-300" />
-              Data evento
+              {t("admin.campaign.form.dateLabel")}
             </label>
             <input
               type="date"
@@ -209,27 +216,22 @@ export default function NewCampaign() {
         <div className="space-y-1.5">
           <label className="flex items-center gap-1 text-[11px] font-medium uppercase tracking-[0.16em] text-slate-300">
             <Mail className="h-3 w-3 text-cyan-300" />
-            Corpo email
+            {t("admin.campaign.form.emailLabel")}
           </label>
           <textarea
             name="message_email"
             rows={6}
-            placeholder={`Ciao {{ nome }},\n\nvenerdì ti aspettiamo a Utopia per una nuova serata...`}
+            placeholder={t("admin.campaign.form.emailPlaceholder")}
             className="w-full rounded-xl border border-white/10 bg-slate-950/80 px-3 py-2 text-sm text-slate-100 outline-none ring-0 focus:border-cyan-400/80"
           />
           <p className="mt-1 flex items-center gap-2 text-[11px] text-slate-500">
             <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-slate-800 text-[9px] text-slate-200">
               ?
             </span>
-            Puoi usare placeholder tipo{" "}
-            <code className="rounded bg-slate-900/80 px-1 py-[1px] text-[10px] text-cyan-300">
-              {"{{ nome }}"}
-            </code>{" "}
-            o{" "}
-            <code className="rounded bg-slate-900/80 px-1 py-[1px] text-[10px] text-cyan-300">
-              {"{{ data_evento }}"}
-            </code>{" "}
-            che verranno sostituiti lato server.
+            {t("admin.campaign.form.emailHint", {
+              namePlaceholder: "{{ nome }}",
+              datePlaceholder: "{{ data_evento }}",
+            })}
           </p>
         </div>
 
@@ -237,24 +239,24 @@ export default function NewCampaign() {
         <div className="space-y-1.5">
           <label className="flex items-center gap-1 text-[11px] font-medium uppercase tracking-[0.16em] text-slate-300">
             <MessageCircle className="h-3 w-3 text-emerald-300" />
-            Testo SMS
+            {t("admin.campaign.form.smsLabel")}
           </label>
           <textarea
             name="message_sms"
             rows={3}
             maxLength={300}
-            placeholder="Venerdì Utopia Night, ingresso riservato ai soci. Presenta la tessera all’ingresso."
+            placeholder={t("admin.campaign.form.smsPlaceholder")}
             className="w-full rounded-xl border border-white/10 bg-slate-950/80 px-3 py-2 text-sm text-slate-100 outline-none ring-0 focus:border-cyan-400/80"
           />
           <div className="flex justify-between text-[11px] text-slate-500">
-            <span>Consigliati max 300 caratteri per evitare SMS multipli.</span>
+            <span>{t("admin.campaign.form.smsHint")}</span>
           </div>
         </div>
 
         {/* Canali */}
         <div className="flex flex-wrap items-center gap-4 rounded-2xl border border-white/10 bg-slate-950/70 px-3 py-3 text-xs">
           <span className="text-[10px] uppercase tracking-[0.18em] text-slate-400">
-            Canali di invio
+            {t("admin.campaign.form.channelsLabel")}
           </span>
 
           <div className="flex flex-wrap gap-4">
@@ -267,7 +269,7 @@ export default function NewCampaign() {
               />
               <span className="inline-flex items-center gap-1 uppercase tracking-[0.16em] text-slate-200">
                 <Mail className="h-3 w-3 text-cyan-300" />
-                Email
+                {t("admin.campaign.form.channelEmail")}
               </span>
             </label>
 
@@ -279,7 +281,7 @@ export default function NewCampaign() {
               />
               <span className="inline-flex items-center gap-1 uppercase tracking-[0.16em] text-slate-200">
                 <MessageCircle className="h-3 w-3 text-emerald-300" />
-                SMS
+                {t("admin.campaign.form.channelSms")}
               </span>
             </label>
           </div>
@@ -293,10 +295,12 @@ export default function NewCampaign() {
         )}
         {ok && (
           <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-200">
-            Campagna inviata correttamente
+            {t("admin.campaign.state.success")}
             {recipientsCount != null && (
               <span className="ml-1 text-emerald-300/90">
-                · Destinatari marketing: {recipientsCount}
+                {t("admin.campaign.state.successRecipients", {
+                  count: recipientsCount,
+                })}
               </span>
             )}
           </div>
@@ -314,12 +318,12 @@ export default function NewCampaign() {
             {loading ? (
               <>
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                <span>Invio in corso...</span>
+                <span>{t("admin.campaign.submit.sending")}</span>
               </>
             ) : (
               <>
                 <Send className="h-3.5 w-3.5" />
-                <span>Invia campagna</span>
+                <span>{t("admin.campaign.submit.send")}</span>
               </>
             )}
           </button>
@@ -335,10 +339,10 @@ export default function NewCampaign() {
             </div>
             <div>
               <h3 className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-200">
-                Storico campagne
+                {t("admin.campaign.history.title")}
               </h3>
               <p className="text-[10px] text-slate-500">
-                Ultime campagne inviate con relativo stato.
+                {t("admin.campaign.history.subtitle")}
               </p>
             </div>
           </div>
@@ -357,10 +361,18 @@ export default function NewCampaign() {
               <table className="min-w-full text-[11px]">
                 <thead className="bg-slate-900/80 uppercase tracking-[0.16em] text-slate-400">
                   <tr>
-                    <th className="px-3 py-2 text-left">Data</th>
-                    <th className="px-3 py-2 text-left">Titolo</th>
-                    <th className="px-3 py-2 text-left">Evento</th>
-                    <th className="px-3 py-2 text-left">Stato</th>
+                    <th className="px-3 py-2 text-left">
+                      {t("admin.campaign.history.table.date")}
+                    </th>
+                    <th className="px-3 py-2 text-left">
+                      {t("admin.campaign.history.table.title")}
+                    </th>
+                    <th className="px-3 py-2 text-left">
+                      {t("admin.campaign.history.table.eventDate")}
+                    </th>
+                    <th className="px-3 py-2 text-left">
+                      {t("admin.campaign.history.table.status")}
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -370,7 +382,7 @@ export default function NewCampaign() {
                         colSpan={4}
                         className="px-3 py-4 text-center text-xs text-slate-400"
                       >
-                        Carico storico campagne...
+                        {t("admin.campaign.history.loading")}
                       </td>
                     </tr>
                   ) : pagedCampaigns.length ? (
@@ -400,7 +412,7 @@ export default function NewCampaign() {
                                 : "bg-slate-700/40 text-slate-200 border border-slate-500/40"
                             }`}
                           >
-                            {c.status || "N/A"}
+                            {statusLabel(c.status)}
                           </span>
                         </td>
                       </tr>
@@ -411,7 +423,7 @@ export default function NewCampaign() {
                         colSpan={4}
                         className="px-3 py-4 text-center text-xs text-slate-500"
                       >
-                        Nessuna campagna registrata.
+                        {t("admin.campaign.history.empty")}
                       </td>
                     </tr>
                   )}
@@ -423,10 +435,11 @@ export default function NewCampaign() {
             {!historyLoading && campaigns.length > PAGE_SIZE_CAMPAIGNS && (
               <div className="flex items-center justify-between gap-3 border-t border-white/10 px-3 py-2 text-[10px] text-slate-300">
                 <span>
-                  Pagina {campaignPage} di {totalCampaignPages} ·{" "}
-                  <span className="text-slate-500">
-                    ({PAGE_SIZE_CAMPAIGNS} per pagina)
-                  </span>
+                  {t("ui.pagination.pageOf", {
+                    current: campaignPage,
+                    total: totalCampaignPages,
+                    pageSize: PAGE_SIZE_CAMPAIGNS,
+                  })}
                 </span>
                 <div className="flex items-center gap-1">
                   <button
@@ -440,7 +453,7 @@ export default function NewCampaign() {
                     }`}
                   >
                     <ChevronLeft className="h-3 w-3" />
-                    Prev
+                    {t("ui.pagination.prev")}
                   </button>
                   <button
                     type="button"
@@ -456,7 +469,7 @@ export default function NewCampaign() {
                         : "border-slate-500/60 text-slate-100 hover:bg-slate-800"
                     }`}
                   >
-                    Next
+                    {t("ui.pagination.next")}
                     <ChevronRight className="h-3 w-3" />
                   </button>
                 </div>
@@ -468,17 +481,25 @@ export default function NewCampaign() {
           <div className="flex flex-col max-h-64 rounded-xl border border-white/5 bg-slate-950/70">
             <div className="flex items-center gap-2 px-3 pt-2 text-[10px] uppercase tracking-[0.16em] text-slate-400">
               <ListOrdered className="h-3 w-3" />
-              Log invii recenti
+              {t("admin.campaign.logs.title")}
             </div>
 
             <div className="flex-1 overflow-auto">
               <table className="min-w-full text-[11px]">
                 <thead className="bg-slate-900/80 uppercase tracking-[0.16em] text-slate-400">
                   <tr>
-                    <th className="px-3 py-2 text-left">Ts</th>
-                    <th className="px-3 py-2 text-left">Campagna</th>
-                    <th className="px-3 py-2 text-left">Canale</th>
-                    <th className="px-3 py-2 text-left">Stato</th>
+                    <th className="px-3 py-2 text-left">
+                      {t("admin.campaign.logs.table.ts")}
+                    </th>
+                    <th className="px-3 py-2 text-left">
+                      {t("admin.campaign.logs.table.campaign")}
+                    </th>
+                    <th className="px-3 py-2 text-left">
+                      {t("admin.campaign.logs.table.channel")}
+                    </th>
+                    <th className="px-3 py-2 text-left">
+                      {t("admin.campaign.logs.table.status")}
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -488,7 +509,7 @@ export default function NewCampaign() {
                         colSpan={4}
                         className="px-3 py-3 text-center text-xs text-slate-400"
                       >
-                        Carico log...
+                        {t("admin.campaign.logs.loading")}
                       </td>
                     </tr>
                   ) : pagedLogs.length ? (
@@ -518,7 +539,7 @@ export default function NewCampaign() {
                                 : "bg-rose-500/15 text-rose-300"
                             }`}
                           >
-                            {l.status}
+                            {logStatusLabel(l.status)}
                           </span>
                         </td>
                       </tr>
@@ -529,7 +550,7 @@ export default function NewCampaign() {
                         colSpan={4}
                         className="px-3 py-3 text-center text-xs text-slate-500"
                       >
-                        Nessun log recente.
+                        {t("admin.campaign.logs.empty")}
                       </td>
                     </tr>
                   )}
@@ -541,10 +562,11 @@ export default function NewCampaign() {
             {!historyLoading && logs.length > PAGE_SIZE_LOGS && (
               <div className="flex items-center justify-between gap-3 border-t border-white/10 px-3 py-2 text-[10px] text-slate-300">
                 <span>
-                  Pagina {logPage} di {totalLogPages} ·{" "}
-                  <span className="text-slate-500">
-                    ({PAGE_SIZE_LOGS} per pagina)
-                  </span>
+                  {t("ui.pagination.pageOf", {
+                    current: logPage,
+                    total: totalLogPages,
+                    pageSize: PAGE_SIZE_LOGS,
+                  })}
                 </span>
                 <div className="flex items-center gap-1">
                   <button
@@ -558,7 +580,7 @@ export default function NewCampaign() {
                     }`}
                   >
                     <ChevronLeft className="h-3 w-3" />
-                    Prev
+                    {t("ui.pagination.prev")}
                   </button>
                   <button
                     type="button"
@@ -572,7 +594,7 @@ export default function NewCampaign() {
                         : "border-slate-500/60 text-slate-100 hover:bg-slate-800"
                     }`}
                   >
-                    Next
+                    {t("ui.pagination.next")}
                     <ChevronRight className="h-3 w-3" />
                   </button>
                 </div>

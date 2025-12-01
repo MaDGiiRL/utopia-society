@@ -1,0 +1,269 @@
+{
+    "ui": {
+        "pagination": {
+            "prev": "Prev",
+            "next": "Next",
+            "pageOf": "Pagina {{current}} di {{total}} · ({{pageSize}} per pagina)"
+        }
+    },
+    "nav": {
+        "home": "Home",
+        "becomeMember": "Diventa socio",
+        "admin": "Admin",
+        "adminArea": "Area Admin"
+    },
+    "hero": {
+        "tagline": "Night Club • Members Only",
+        "title": "Benvenuto in Utopia.",
+        "description": "Un club privato dove luci, musica e design futuristico si incontrano. Accesso riservato ai soci, esperienze fuori dal quotidiano.",
+        "cta": "Diventa socio",
+        "scheduleDays": "Friday / Saturday",
+        "scheduleTime": "23:30 – Late"
+    },
+    "about": {
+        "title": "About Utopia",
+        "paragraph": "Utopia è un club privato situato nel cuore della città. Un ambiente esclusivo, curato in ogni dettaglio, dove suoni elettronici, installazioni luminose e mixology di alto livello si fondono per creare un’esperienza unica.",
+        "card1Title": "Atmosfera futuristica",
+        "card1Text": "Luci al neon, laser e una scenografia digitale che trasforma la pista in un dancefloor virtuale.",
+        "card2Title": "Musica selezionata",
+        "card2Text": "DJ resident e guest internazionali con sonorità house, techno, elettronica e contaminazioni moderne.",
+        "card3Title": "Accesso riservato",
+        "card3Text": "Ingresso solo per soci e accompagnatori registrati. Compila la domanda di ammissione online in pochi minuti."
+    },
+    "contact": {
+        "badge": "Contact • Utopia",
+        "title": "Contattaci",
+        "description": "Per info su tavoli, eventi privati o partnership compila il form. Ti risponderemo il prima possibile.",
+        "emailLabel": "Email",
+        "emailAddress": "info@utopia-nightclub.it",
+        "socialTagline": "Follow Utopia",
+        "socialLine1": "Lineup, eventi speciali",
+        "socialLine2": "Story e aggiornamenti in tempo reale.",
+        "formNameLabel": "Nome",
+        "formNamePlaceholder": "Il tuo nome",
+        "formEmailLabel": "Email",
+        "formEmailPlaceholder": "name@email.com",
+        "formPhoneLabel": "Telefono (opzionale)",
+        "formPhonePlaceholder": "Numero per ricontatto",
+        "formMessageLabel": "Messaggio",
+        "formMessagePlaceholder": "Scrivici per info su tavoli, eventi o membership...",
+        "formError": "Si è verificato un errore, riprova più tardi.",
+        "formSuccess": "Messaggio inviato correttamente. Ti risponderemo al più presto.",
+        "submitIdle": "Invia",
+        "submitSending": "Invio in corso..."
+    },
+    "footer": {
+        "home": "Home",
+        "becomeMember": "Diventa socio",
+        "copyright": "© {{year}} Utopia Night Club",
+        "rights": "Tutti i diritti riservati.",
+        "developedWith": "Developed with",
+        "by": "by"
+    },
+    "admin": {
+        "dashboard": {
+            "badge": "Utopia · Admin",
+            "subtitle": "Gestisci soci, contatti e campagne.",
+            "membersTabTitle": "Log soci",
+            "membersTabSubtitle": "Anagrafica e documenti",
+            "contactsTabTitle": "Log contatti",
+            "contactsTabSubtitle": "Richieste dal sito",
+            "campaignTabTitle": "Nuova campagna",
+            "campaignTabSubtitle": "Email & SMS ai soci",
+            "exportMembersXmlFull": "Export soci XML",
+            "exportMembersXmlShort": "Export XML",
+            "logout": "Esci dall'area admin",
+            "xmlError": "Errore durante la generazione XML",
+            "xmlUnexpectedError": "Errore imprevisto"
+        },
+        "login": {
+            "title": "Admin",
+            "subtitle": "Accesso riservato allo staff Utopia.",
+            "emailLabel": "Email",
+            "emailPlaceholder": "admin@utopia.club",
+            "passwordLabel": "Password",
+            "passwordPlaceholder": "••••••••••••",
+            "errorGeneric": "Errore di login",
+            "submitting": "Accesso in corso...",
+            "submit": "Entra nell'area admin"
+        },
+        "membersPanel": {
+            "headerTitle": "Soci iscritti",
+            "headerSubtitle": "Elenco degli invii dal form di ammissione socio.",
+            "debugNotice": "Debug attivo: sono stati aggiunti soci fake in memoria (non nel database).",
+            "searchPlaceholder": "Cerca per nome, email, città...",
+            "filterAllCities": "Tutte le città",
+            "shownCounter": "Mostrati {{filtered}} / {{total}}",
+            "table": {
+                "date": "Data",
+                "name": "Nome",
+                "email": "Email",
+                "city": "Città",
+                "marketing": "Marketing",
+                "card": "Scheda"
+            },
+            "marketingYes": "Sì",
+            "marketingNo": "No",
+            "openCard": "Apri scheda",
+            "noResults": "Nessun socio trovato con i filtri correnti.",
+            "loading": "Carico soci...",
+            "error": "Errore nel caricamento dei soci.",
+            "modal": {
+                "title": "Scheda socio",
+                "name": "Nome completo",
+                "email": "Email",
+                "phone": "Cellulare",
+                "city": "Città",
+                "birthPlace": "Nato/a a",
+                "birthDate": "Data di nascita",
+                "fiscalCode": "Codice fiscale",
+                "privacy": "Privacy",
+                "marketing": "Marketing",
+                "insertedAt": "Inserito il",
+                "notes": "Note",
+                "documents": "Documenti caricati",
+                "docFront": "Documento fronte",
+                "docBack": "Documento retro",
+                "notAvailable": "Non disponibile",
+                "source": "Source",
+                "close": "Chiudi"
+            }
+        },
+        "contactsPanel": {
+            "headerTitle": "Messaggi di contatto",
+            "headerSubtitle": "Tutti gli invii dal form contatti del sito.",
+            "exportCsv": "Esporta Excel",
+            "total": "Totale: {{count}}",
+            "loading": "Carico messaggi...",
+            "errorLoad": "Errore nel caricamento dei messaggi di contatto.",
+            "errorExport": "Errore durante l'esportazione dei messaggi.",
+            "noMessages": "Nessun messaggio ricevuto.",
+            "noMessagesFiltered": "Nessun messaggio trovato.",
+            "noMessagesToExport": "Non ci sono messaggi da esportare.",
+            "table": {
+                "date": "Data",
+                "name": "Nome",
+                "email": "Email",
+                "phone": "Telefono",
+                "actions": "Azioni"
+            },
+            "details": "Dettagli",
+            "modal": {
+                "title": "Dettaglio messaggio",
+                "id": "ID",
+                "name": "Nome",
+                "email": "Email",
+                "phone": "Telefono",
+                "sentAt": "Inviato il",
+                "message": "Messaggio",
+                "close": "Chiudi",
+                "replyEmail": "Rispondi via email",
+                "replySubject": "Re: contatto da sito Utopia",
+                "replyBody": "Ciao {{name}},\n\nti rispondiamo al messaggio che ci hai inviato dal form contatti.\n\n---\n\nMessaggio originale:\n{{message}}\n\n---\n\nTeam Utopia"
+            }
+        },
+        "campaign": {
+            "headerTitle": "Nuova campagna evento",
+            "headerSubtitle": "Invia email e/o SMS a tutti i soci che hanno dato consenso marketing per promuovere una data o un evento speciale.",
+            "recipientsHelp": "I destinatari vengono letti automaticamente dalla tabella members.",
+            "form": {
+                "titleLabel": "Titolo evento / campagna",
+                "titlePlaceholder": "Utopia Night · Special Guest...",
+                "dateLabel": "Data evento",
+                "emailLabel": "Corpo email",
+                "emailPlaceholder": "Ciao {{namePlaceholder}},\n\nvenerdì ti aspettiamo a Utopia per una nuova serata...",
+                "emailHint": "Puoi usare placeholder come {{name}} o {{eventDate}} che verranno sostituiti lato server.",
+                "smsLabel": "Testo SMS",
+                "smsPlaceholder": "Venerdì Utopia Night, ingresso riservato ai soci. Presenta la tessera all’ingresso.",
+                "smsHint": "Consigliati max 300 caratteri per evitare SMS multipli.",
+                "channelsLabel": "Canali di invio",
+                "channelEmail": "Email",
+                "channelSms": "SMS"
+            },
+            "status": {
+                "error": "Errore nell'invio campagna",
+                "unexpected": "Errore imprevisto",
+                "success": "Campagna inviata correttamente",
+                "successRecipients": "· Destinatari marketing: {{count}}"
+            },
+            "submit": {
+                "sending": "Invio in corso...",
+                "idle": "Invia campagna"
+            },
+            "history": {
+                "title": "Storico campagne",
+                "subtitle": "Ultime campagne inviate con relativo stato.",
+                "loading": "Carico storico campagne...",
+                "noCampaigns": "Nessuna campagna registrata.",
+                "table": {
+                    "date": "Data",
+                    "title": "Titolo",
+                    "eventDate": "Evento",
+                    "status": "Stato"
+                }
+            },
+            "logs": {
+                "title": "Log invii recenti",
+                "loading": "Carico log...",
+                "noLogs": "Nessun log recente.",
+                "table": {
+                    "ts": "Ts",
+                    "campaign": "Campagna",
+                    "channel": "Canale",
+                    "status": "Stato"
+                }
+            }
+        }
+    },
+    "membership": {
+        "badge": "Membership • Accesso riservato",
+        "title": "Diventa <strong>Socio Utopia</strong>",
+        "description": "Compila la domanda online per richiedere la tessera socio. La richiesta deve essere inviata almeno 24 ore prima dell'ingresso in struttura.",
+        "stepBadge": "Step 1 / 1",
+        "stepLabel": "Registrazione socio",
+        "needTitle": "Cosa ti serve",
+        "needItem1": "Dati anagrafici corretti e aggiornati",
+        "needItem2": "Foto fronte / retro di un documento valido",
+        "needItem3": "Accettazione privacy e statuto Utopia / ACSI",
+        "formHeaderBadge": "Domanda di ammissione",
+        "formHeaderSubtitle": "I tuoi dati saranno utilizzati solo ai fini associativi.",
+        "formHeaderChip": "24h prima",
+        "sectionPersonal": "Dati anagrafici",
+        "labelName": "Nome",
+        "labelSurname": "Cognome",
+        "labelBirthPlace": "Nato/a a",
+        "labelBirthDate": "Data di nascita",
+        "placeholderName": "Nome",
+        "placeholderSurname": "Cognome",
+        "placeholderBirthPlace": "Luogo di nascita",
+        "sectionContacts": "Contatti",
+        "labelFiscalCode": "Codice fiscale",
+        "labelEmail": "Email",
+        "labelPhone": "Cellulare",
+        "labelCity": "Città di residenza",
+        "placeholderFiscalCode": "Codice fiscale",
+        "placeholderEmail": "Email",
+        "placeholderPhone": "Numero cellulare",
+        "placeholderCity": "Città",
+        "sectionDocument": "Documento di identità",
+        "docFrontTitle": "Fronte",
+        "docFrontSubtitle": "Carica o scatta la foto del fronte del documento",
+        "docBackTitle": "Retro",
+        "docBackSubtitle": "Carica o scatta la foto del retro del documento",
+        "sectionNotes": "Note aggiuntive (opzionale)",
+        "notesPlaceholder": "Eventuali richieste o informazioni aggiuntive…",
+        "sectionConsents": "Consensi",
+        "consentPrivacy": "Dichiaro di aver preso visione e di accettare la <link>privacy dei dati</link>.",
+        "consentStatute": "Approvo lo <link>statuto Utopia e statuto ACSI nazionale</link>.",
+        "consentMarketing": "Autorizzo l'utilizzo dei miei contatti per comunicazioni riguardanti eventi e attività del club (newsletter/SMS).",
+        "errorMissingDocs": "Carica sia il fronte che il retro del documento.",
+        "errorGeneric": "Si è verificato un errore, riprova più tardi.",
+        "submitLoading": "Invio in corso...",
+        "submitIdle": "Invia domanda di ammissione",
+        "successInline": "Domanda inviata correttamente.",
+        "alertSuccessTitle": "Domanda inviata",
+        "alertSuccessText": "La tua richiesta di ammissione è stata registrata correttamente.",
+        "uploadErrorPrefix": "Errore upload documento",
+        "apiBaseMissing": "API_BASE non configurato (VITE_ADMIN_API_URL mancante in .env del frontend)."
+    }
+}
