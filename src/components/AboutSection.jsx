@@ -30,7 +30,7 @@ function AboutSection() {
       id="about"
       className="relative overflow-hidden py-20 m-5 min-h-[90vh]"
     >
-      <div className="relative mx-auto max-w-5xl px-4">
+      <div className="relative mx-auto max-w-5xl px-2">
         <motion.h2
           initial={{
             opacity: 0,
@@ -49,7 +49,7 @@ function AboutSection() {
             ease: [0.25, 0.1, 0.25, 1],
           }}
           viewport={{ once: true, amount: 0.4 }}
-          className="text-center font-semibold uppercase text-5xl md:text-6xl lg:text-7xl tracking-[0.2em] leading-tight"
+          className="text-center font-semibold uppercase text-4xl md:text-5xl lg:text-6xl tracking-[0.1em] leading-tight"
         >
           {t("about.title", "About")}{" "}
           <span className="bg-linear-to-r from-cyan-300 to-fuchsia-400 bg-clip-text text-transparent drop-shadow-[0_0_12px_rgba(236,72,153,0.45)]">

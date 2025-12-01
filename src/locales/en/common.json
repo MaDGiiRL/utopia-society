@@ -53,9 +53,16 @@
         "submitSending": "Sending..."
     },
     "footer": {
+        "tagline": "Your club in Padua for nights out, events and great music.",
+        "linksTitle": "Navigation",
         "home": "Home",
+        "gallery": "Gallery",
         "becomeMember": "Become a member",
-        "copyright": "© {{year}} Utopia ASDC",
+        "bookingNumberLabel": "Bookings phone:",
+        "addressLine1": "Via Dei Colli 19 — Padua",
+        "vatLine": "VAT ID 05393390280",
+        "followUs": "Follow us",
+        "copyright": "© {{year}} Utopia Society",
         "rights": "All rights reserved.",
         "developedWith": "Developed with",
         "by": "by"
@@ -283,5 +290,45 @@
         "alertSuccessText": "Your membership request has been registered successfully.",
         "uploadErrorPrefix": "Document upload error",
         "apiBaseMissing": "API_BASE not configured (VITE_ADMIN_API_URL missing in frontend .env)."
+    },
+    "gallery": {
+        "header": {
+            "label": "Utopia Gallery",
+            "title": "Full Event Gallery",
+            "description": "All photos from Utopia events in a single view. Images are updated by replacing the files inside each event folder.",
+            "events": "Events: {{count}}",
+            "photos": "Total photos: {{count}}"
+        },
+        "filters": {
+            "filterLabel": "Filter",
+            "sortLabel": "Sort",
+            "all": "All",
+            "guest": "Guest",
+            "resident": "Resident",
+            "live": "Live",
+            "sortAz": "Name A → Z",
+            "sortZa": "Name Z → A",
+            "summary": "{{events}} events · {{photos}} photos"
+        },
+        "eventsSection": {
+            "sectionLabel": "Utopia Events",
+            "sectionTitle": "Night highlights",
+            "sectionSubtitle": "A selection of shots from Utopia nights. Events can be updated or replaced over time.",
+            "filterLabel": "Filter",
+            "sortLabel": "Sort",
+            "filterAllEvents": "All events",
+            "filterGuestNights": "Guest nights",
+            "filterResidents": "Residents",
+            "filterLive": "Live",
+            "chipsLabel": "Events",
+            "chipsCount": "{{count}} {{count, plural, one {event} other {events}}}",
+            "galleryLabel": "Gallery",
+            "gallerySubtitle": "{{title}} · {{count}} shots"
+        },
+        "pagination": {
+            "photosRange": "Photos {{from}} – {{to}} of {{total}}",
+            "prev": "Prev",
+            "next": "Next"
+        }
     }
 }

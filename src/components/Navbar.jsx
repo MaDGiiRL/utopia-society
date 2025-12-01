@@ -65,6 +65,18 @@ function Navbar() {
             {t("nav.home")}
           </NavLink>
 
+          {/* 👇 NUOVO LINK GALLERY */}
+          <NavLink
+            to="/gallery"
+            className={({ isActive }) =>
+              `${navLinkClasses} ${
+                isActive ? "text-cyan-300" : "text-slate-200"
+              }`
+            }
+          >
+            {t("nav.gallery", "Gallery")}
+          </NavLink>
+
           <NavLink
             to="/ammissione-socio"
             className={({ isActive }) =>
@@ -176,6 +188,11 @@ function Navbar() {
             <div className="flex flex-col gap-2 text-xs uppercase tracking-wide text-slate-100">
               <NavLink to="/" onClick={closeMenu} className="py-2">
                 {t("nav.home")}
+              </NavLink>
+
+              {/* 👇 NUOVO LINK GALLERY MOBILE */}
+              <NavLink to="/gallery" onClick={closeMenu} className="py-2">
+                {t("nav.gallery", "Gallery")}
               </NavLink>
 
               <NavLink

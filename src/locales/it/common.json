@@ -53,11 +53,18 @@
         "submitSending": "Invio in corso..."
     },
     "footer": {
+        "tagline": "Il tuo club a Padova per serate, eventi e buona musica.",
+        "linksTitle": "Navigazione",
         "home": "Home",
+        "gallery": "Gallery",
         "becomeMember": "Diventa socio",
-        "copyright": "© {{year}} Utopia ASDC",
+        "bookingNumberLabel": "Numero prenotazioni:",
+        "addressLine1": "Via Dei Colli 19 — Padova",
+        "vatLine": "Partita IVA 05393390280",
+        "followUs": "Seguici",
+        "copyright": "© {{year}} Utopia Society",
         "rights": "Tutti i diritti riservati.",
-        "developedWith": "Developed with",
+        "developedWith": "Sviluppato con",
         "by": "da"
     },
     "admin": {
@@ -283,5 +290,45 @@
         "alertSuccessText": "La tua richiesta di ammissione è stata registrata correttamente.",
         "uploadErrorPrefix": "Errore upload documento",
         "apiBaseMissing": "API_BASE non configurato (VITE_ADMIN_API_URL mancante in .env del frontend)."
+    },
+    "gallery": {
+        "header": {
+            "label": "Utopia Gallery",
+            "title": "Full Event Gallery",
+            "description": "Tutte le foto degli eventi Utopia in un'unica view. Le immagini vengono aggiornate sostituendo i file nelle cartelle degli eventi.",
+            "events": "Eventi: {{count}}",
+            "photos": "Foto totali: {{count}}"
+        },
+        "filters": {
+            "filterLabel": "Filtra",
+            "sortLabel": "Ordina",
+            "all": "Tutti",
+            "guest": "Guest",
+            "resident": "Resident",
+            "live": "Live",
+            "sortAz": "Nome A → Z",
+            "sortZa": "Nome Z → A",
+            "summary": "{{events}} eventi · {{photos}} foto"
+        },
+        "eventsSection": {
+            "sectionLabel": "Utopia Events",
+            "sectionTitle": "Highlights delle serate",
+            "sectionSubtitle": "Una selezione di scatti dalle notti Utopia. Eventi aggiornabili e sostituibili nel tempo.",
+            "filterLabel": "Filter",
+            "sortLabel": "Sort",
+            "filterAllEvents": "All events",
+            "filterGuestNights": "Guest nights",
+            "filterResidents": "Residents",
+            "filterLive": "Live",
+            "chipsLabel": "Eventi",
+            "chipsCount": "{{count}} {{count, plural, one {evento} other {eventi}}}",
+            "galleryLabel": "Gallery",
+            "gallerySubtitle": "{{title}} · {{count}} shots"
+        },
+        "pagination": {
+            "photosRange": "Foto {{from}} – {{to}} di {{total}}",
+            "prev": "Prev",
+            "next": "Next"
+        }
     }
 }

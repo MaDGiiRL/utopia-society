@@ -6,6 +6,7 @@ import MembershipForm from "../pages/MembershipForm";
 import AdminRoute from "../components/AdminRoute";
 import AdminDashboard from "../pages/admin/AdminDashboard";
 import AdminLogin from "../pages/admin/AdminLogin";
+import GalleryPage from "../pages/Gallery";
 
 export default function Routing() {
   return (
@@ -13,6 +14,7 @@ export default function Routing() {
       <Route element={<Layout />}>
         <Route path="/" element={<Home />} />
         <Route path="/ammissione-socio" element={<MembershipForm />} />
+        <Route path="/gallery" element={<GalleryPage />} />
 
         {/* admin */}
         <Route path="/admin/login" element={<AdminLogin />} />

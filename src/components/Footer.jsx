@@ -13,7 +13,7 @@ const Footer = () => {
       <div className="relative mx-auto max-w-6xl px-4">
         {/* Top: 3 colonne */}
         <div className="grid gap-8 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,1fr)] items-start">
-          {/* Colonna 1: logo + testo + numero prenotazioni */}
+          {/* Colonna 1 */}
           <motion.div
             initial={{ opacity: 0, y: 15 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -28,14 +28,11 @@ const Footer = () => {
             </Link>
 
             <p className="text-[0.75rem] text-slate-400 max-w-xs">
-              {t("footer.tagline", {
-                defaultValue:
-                  "Il tuo club a Padova per serate, eventi e buona musica.",
-              })}
+              {t("footer.tagline")}
             </p>
 
             <p className="text-[0.75rem] text-slate-300">
-              Numero prenotazioni:{" "}
+              {t("footer.bookingNumberLabel")}{" "}
               <a
                 href="tel:+393206703297"
                 className="text-cyan-300 hover:text-cyan-200 transition"
@@ -45,7 +42,7 @@ const Footer = () => {
             </p>
           </motion.div>
 
-          {/* Colonna 2: link rapidi + dati legali */}
+          {/* Colonna 2: link rapidi */}
           <motion.div
             initial={{ opacity: 0, y: 15 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -53,7 +50,7 @@ const Footer = () => {
             className="space-y-3 text-[0.8rem]"
           >
             <h3 className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
-              {t("footer.linksTitle", { defaultValue: "Navigazione" })}
+              {t("footer.linksTitle")}
             </h3>
 
             <div className="flex flex-col gap-1 text-slate-400">
@@ -65,6 +62,13 @@ const Footer = () => {
               </Link>
 
               <Link
+                to="/gallery"
+                className="hover:text-cyan-300 transition text-xs uppercase tracking-wide"
+              >
+                {t("footer.gallery")}
+              </Link>
+
+              <Link
                 to="/ammissione-socio"
                 className="hover:text-cyan-300 transition text-xs uppercase tracking-wide"
               >
@@ -73,8 +77,8 @@ const Footer = () => {
             </div>
 
             <div className="pt-3 text-[0.7rem] leading-relaxed text-slate-500">
-              <p>Via Dei Colli 19 — Padova</p>
-              <p>Partita IVA 05393390280</p>
+              <p>{t("footer.addressLine1")}</p>
+              <p>{t("footer.vatLine")}</p>
             </div>
           </motion.div>
 
@@ -86,7 +90,7 @@ const Footer = () => {
             className="space-y-3 text-[0.8rem] md:text-right"
           >
             <h3 className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
-              {t("footer.followUs", { defaultValue: "Seguici" })}
+              {t("footer.followUs")}
             </h3>
 
             <div className="flex md:justify-end gap-4">
@@ -123,7 +127,7 @@ const Footer = () => {
         {/* Divider */}
         <div className="mt-6 border-t border-white/10" />
 
-        {/* Bottom bar compatta */}
+        {/* Bottom bar */}
         <motion.div
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}

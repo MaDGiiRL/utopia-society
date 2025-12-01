@@ -2,6 +2,7 @@ import ScrollScene3D from "../components/ScrollScene3D";
 import HeroSection from "../components/HeroSection";
 import AboutSection from "../components/AboutSection";
 import ContactSection from "../components/ContactSection";
+import EventsGallery from "../components/EventsGallery";
 
 function Home() {
   return (
@@ -13,6 +14,7 @@ function Home() {
       <div className="relative z-10">
         <HeroSection />
         <AboutSection />
+        <EventsGallery />
         <ContactSection />
       </div>
     </div>

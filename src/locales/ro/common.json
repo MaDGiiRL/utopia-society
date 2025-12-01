@@ -53,12 +53,19 @@
         "submitSending": "Se trimite..."
     },
     "footer": {
-        "home": "Home",
+        "tagline": "Clubul tău din Padova pentru seri, evenimente și muzică bună.",
+        "linksTitle": "Navigare",
+        "home": "Acasă",
+        "gallery": "Galerie",
         "becomeMember": "Devino membru",
-        "copyright": "© {{year}} Utopia ASDC",
+        "bookingNumberLabel": "Număr rezervări:",
+        "addressLine1": "Via Dei Colli 19 — Padova",
+        "vatLine": "Cod Fiscal 05393390280",
+        "followUs": "Urmărește-ne",
         "rights": "Toate drepturile rezervate.",
-        "developedWith": "Developed with",
-        "by": "de"
+        "developedWith": "Dezvoltat cu",
+        "by": "de",
+        "copyright": "© {{year}} Utopia Society"
     },
     "admin": {
         "dashboard": {
@@ -283,5 +290,45 @@
         "alertSuccessText": "Cererea ta de înscriere a fost înregistrată cu succes.",
         "uploadErrorPrefix": "Eroare la încărcarea documentului",
         "apiBaseMissing": "API_BASE nu este configurat (VITE_ADMIN_API_URL lipsește din .env-ul frontend-ului)."
+    },
+    "gallery": {
+        "header": {
+            "label": "Utopia Gallery",
+            "title": "Full Event Gallery",
+            "description": "Toate fotografiile evenimentelor Utopia într-o singură pagină. Imaginile se actualizează înlocuind fișierele din folderele fiecărui eveniment.",
+            "events": "Evenimente: {{count}}",
+            "photos": "Fotografii totale: {{count}}"
+        },
+        "filters": {
+            "filterLabel": "Filtru",
+            "sortLabel": "Sortare",
+            "all": "Toate",
+            "guest": "Guest",
+            "resident": "Resident",
+            "live": "Live",
+            "sortAz": "Nume A → Z",
+            "sortZa": "Nume Z → A",
+            "summary": "{{events}} evenimente · {{photos}} fotografii"
+        },
+        "eventsSection": {
+            "sectionLabel": "Utopia Events",
+            "sectionTitle": "Highlights ale serilor",
+            "sectionSubtitle": "O selecție de cadre din nopțile Utopia. Evenimente ușor de actualizat și înlocuit în timp.",
+            "filterLabel": "Filtru",
+            "sortLabel": "Sortare",
+            "filterAllEvents": "Toate evenimentele",
+            "filterGuestNights": "Guest nights",
+            "filterResidents": "Residents",
+            "filterLive": "Live",
+            "chipsLabel": "Evenimente",
+            "chipsCount": "{{count}} {{count, plural, one {eveniment} other {evenimente}}}",
+            "galleryLabel": "Gallery",
+            "gallerySubtitle": "{{title}} · {{count}} cadre"
+        },
+        "pagination": {
+            "photosRange": "Fotografii {{from}} – {{to}} din {{total}}",
+            "prev": "Înapoi",
+            "next": "Înainte"
+        }
     }
 }
