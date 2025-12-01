@@ -63,7 +63,7 @@ export default function ScrollScene3D() {
 
     // === GRUPPI lungo Y: hero / about / membership / contact ===
     const heroGroup = new THREE.Group();
-    heroGroup.position.set(0, 2.2, 0);
+    heroGroup.position.set(0, 3, 0); // PIÙ IN ALTO
     scene.add(heroGroup);
 
     const aboutGroup = new THREE.Group();
@@ -71,40 +71,35 @@ export default function ScrollScene3D() {
     scene.add(aboutGroup);
 
     const membershipGroup = new THREE.Group();
-    membershipGroup.position.set(0, -2.3, 0);
+    membershipGroup.position.set(0, -3, 0);
     scene.add(membershipGroup);
 
     const contactGroup = new THREE.Group();
-    contactGroup.position.set(0, -4.5, 0);
+    contactGroup.position.set(0, -5, 0);
     scene.add(contactGroup);
 
-    // --- HERO: anello & particelle ---
-    const heroTorusGeom = new THREE.TorusGeometry(2.3, 0.12, 32, 200);
-    const heroTorusMat = new THREE.MeshStandardMaterial({
-      color: 0x38bdf8,
-      emissive: 0x0f172a,
+    // --- HERO: LOGO 3D AL POSTO DEL CERCHIO ---
+    const textureLoader = new THREE.TextureLoader();
+    const logoTexture = textureLoader.load("/img/logo-nobg.png");
+
+    const logoGeom = new THREE.PlaneGeometry(8, 8); // PIÙ GRANDE
+    const logoMat = new THREE.MeshStandardMaterial({
+      map: logoTexture,
+      transparent: true,
+      alphaTest: 0.1,
       metalness: 0.9,
       roughness: 0.25,
-      transparent: true,
-      opacity: 0.9,
+      emissive: new THREE.Color(0x0f172a),
+      emissiveIntensity: 0.9,
+      side: THREE.DoubleSide,
     });
-    const heroTorus = new THREE.Mesh(heroTorusGeom, heroTorusMat);
-    heroGroup.add(heroTorus);
 
-    const innerGeom = new THREE.TorusGeometry(1.4, 0.08, 32, 160);
-    const innerMat = new THREE.MeshStandardMaterial({
-      color: 0xec4899,
-      emissive: 0x1e1030,
-      metalness: 0.9,
-      roughness: 0.18,
-      transparent: true,
-      opacity: 0.95,
-    });
-    const innerRing = new THREE.Mesh(innerGeom, innerMat);
-    innerRing.rotation.x = Math.PI / 3;
-    heroGroup.add(innerRing);
+    const logoMesh = new THREE.Mesh(logoGeom, logoMat);
+    logoMesh.position.set(0, -3.1, 0);
+    // LEGGERMENTE PIÙ IN ALTO NEL GRUPPO
+    heroGroup.add(logoMesh);
 
-    // particelle intorno al hero
+    // particelle intorno all'hero
     const heroParticlesCount = 120;
     const heroPositions = new Float32Array(heroParticlesCount * 3);
     for (let i = 0; i < heroParticlesCount; i++) {
@@ -438,20 +433,34 @@ export default function ScrollScene3D() {
       );
       camera.lookAt(0, camY, 0);
 
-      // hero
-      heroTorus.rotation.x = Math.sin(t * 0.6) * (0.25 + smoothedMid * 0.25);
-      heroTorus.rotation.y = t * (0.25 + 0.4 * smoothedBass);
-      innerRing.rotation.y = -t * (0.45 + 0.5 * smoothedBass);
-      innerRing.rotation.z = Math.sin(t * 0.5) * (0.18 + smoothedMid * 0.2);
+      // === HERO: ANIMAZIONE LOGO 3D ===
+      if (logoMesh) {
+        // rotazione "vinile"
+        logoMesh.rotation.y = t * (0.25 + 0.4 * smoothedBass);
+        // leggero tilt
+        logoMesh.rotation.x =
+          Math.sin(t * 0.6) * (0.25 + smoothedMid * 0.25) + beatPulse * 0.2;
 
-      const heroPulse = 1.0 + 0.15 * smoothedBass + 0.2 * beatPulse;
-      heroGroup.scale.set(heroPulse, heroPulse, heroPulse);
+        // leggero floating su Y
+        logoMesh.position.y =
+          0.7 +
+          Math.sin(t * 0.8) *
+            (0.15 + smoothedMid * 0.25) *
+            (1 + beatPulse * 0.4);
+
+        const heroPulse = 1.0 + 0.15 * smoothedBass + 0.25 * beatPulse;
+        heroGroup.scale.set(heroPulse, heroPulse, heroPulse);
+
+        // glow un po' più forte sui beat
+        logoMat.emissiveIntensity = 0.7 + smoothedBass * 1.1 + beatPulse * 1.2;
+      }
 
       heroParticles.rotation.y = t * 0.1;
       heroParticlesMat.opacity = 0.4 + 0.4 * smoothedMid + 0.2 * beatPulse;
 
       // about
       grid.rotation.x = Math.PI / 2 + Math.sin(t * 0.35) * 0.08;
+      // @ts-ignore
       grid.material.opacity = 0.3 + 0.3 * smoothedMid + 0.2 * beatPulse;
 
       lasers.forEach(({ mesh, offset }, idx) => {
@@ -540,13 +549,14 @@ export default function ScrollScene3D() {
       window.removeEventListener("resize", handleResize);
       renderer.dispose();
 
-      heroTorusGeom.dispose();
-      heroTorusMat.dispose();
-      innerGeom.dispose();
-      innerMat.dispose();
+      // --- HERO cleanup ---
+      logoGeom.dispose();
+      logoMat.dispose();
+      logoTexture.dispose();
       heroParticlesGeom.dispose();
       heroParticlesMat.dispose();
 
+      // --- ABOUT cleanup ---
       laserGeom.dispose();
       lasers.forEach(({ mesh }) => {
         mesh.geometry?.dispose?.();
@@ -554,13 +564,16 @@ export default function ScrollScene3D() {
       });
 
       grid.geometry?.dispose?.();
+      // @ts-ignore
       grid.material?.dispose?.();
 
+      // --- MEMBERSHIP cleanup ---
       blobGeom.dispose();
       blobMaterial.dispose();
       memParticlesGeom.dispose();
       memParticlesMat.dispose();
 
+      // --- CONTACT cleanup ---
       planeGeom.dispose();
       planeMat.dispose();
       barGeom.dispose();
