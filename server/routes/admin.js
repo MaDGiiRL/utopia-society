@@ -10,10 +10,12 @@ import {
   sendSmsToMember,
   normalizeItalianPhone,
 } from "../services/notifications.js";
+import { safeDecrypt } from "../services/crypto.js";
+import { createMemberFromForm } from "../services/members.js"; // 👈 AGGIUNTO
 
 const router = Router();
 const JWT_SECRET = process.env.JWT_SECRET || "dev_secret_change_me";
-const isProd = process.env.NODE_ENV === "production"; // 👈 AGGIUNTO
+const isProd = process.env.NODE_ENV === "production";
 
 // multer per leggere file dal form-data
 const upload = multer({ storage: multer.memoryStorage() });
@@ -93,16 +95,14 @@ router.post("/login", async (req, res) => {
       return res.status(401).json({ message: "Credenziali non valide" });
     }
 
-    const token = jwt.sign(
-      { sub: admin.id, email: admin.email },
-      JWT_SECRET,
-      { expiresIn: "7d" }
-    );
+    const token = jwt.sign({ sub: admin.id, email: admin.email }, JWT_SECRET, {
+      expiresIn: "7d",
+    });
 
     res.cookie("admin_token", token, {
       httpOnly: true,
-      secure: isProd,                 // 👈 true in produzione (HTTPS)
-      sameSite: isProd ? "none" : "lax", // 👈 per cookie cross-site in prod
+      secure: isProd,
+      sameSite: isProd ? "none" : "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -159,7 +159,7 @@ router.post("/upload-document", upload.single("file"), async (req, res) => {
 
     // upload nel bucket privato
     const { error: uploadErr } = await supabaseAdmin.storage
-      .from("documents") // assicurati che il bucket si chiami esattamente "documents"
+      .from("documents")
       .upload(path, file.buffer, {
         contentType: file.mimetype,
         upsert: false,
@@ -204,8 +204,31 @@ router.post("/upload-document", upload.single("file"), async (req, res) => {
 });
 
 /**
+ * POST /api/admin/members
+ * Endpoint usato dal form pubblico di membership
+ * (NESSUN adminAuth, ma potresti aggiungere rate-limit / captcha)
+ */
+router.post("/members", async (req, res) => {
+  try {
+    const member = await createMemberFromForm(req.body);
+    return res.status(201).json({ ok: true, member });
+  } catch (err) {
+    console.error("POST /api/admin/members error", err);
+    const status = err.statusCode || 500;
+    return res.status(status).json({
+      ok: false,
+      message: err.message || "Errore creazione membro",
+    });
+  }
+});
+
+/**
  * GET /api/admin/members.xml
  * Export soci (con tutti i campi + URL documenti) in XML
+ *
+ * Usa campi cifrati se presenti:
+ *   - phone_enc        -> <phone>
+ *   - fiscal_code_enc  -> <fiscal_code>
  */
 router.get("/members.xml", adminAuthMiddleware, async (req, res) => {
   try {
@@ -223,22 +246,32 @@ router.get("/members.xml", adminAuthMiddleware, async (req, res) => {
     let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<members>\n`;
 
     for (const m of rows) {
+      const phonePlain = m.phone_enc
+        ? safeDecrypt(m.phone_enc, m.phone ?? "")
+        : m.phone ?? "";
+
+      const fiscalPlain = m.fiscal_code_enc
+        ? safeDecrypt(m.fiscal_code_enc, m.fiscal_code ?? "")
+        : m.fiscal_code ?? "";
+
       xml += `  <member>\n`;
       xml += `    <id>${m.id}</id>\n`;
       xml += `    <created_at>${m.created_at}</created_at>\n`;
       xml += `    <full_name>${m.full_name ?? ""}</full_name>\n`;
       xml += `    <email>${m.email ?? ""}</email>\n`;
-      xml += `    <phone>${m.phone ?? ""}</phone>\n`;
+      xml += `    <phone>${phonePlain}</phone>\n`;
       xml += `    <date_of_birth>${m.date_of_birth ?? ""}</date_of_birth>\n`;
       xml += `    <birth_place>${m.birth_place ?? ""}</birth_place>\n`;
-      xml += `    <fiscal_code>${m.fiscal_code ?? ""}</fiscal_code>\n`;
+      xml += `    <fiscal_code>${fiscalPlain}</fiscal_code>\n`;
       xml += `    <city>${m.city ?? ""}</city>\n`;
       xml += `    <accept_privacy>${m.accept_privacy}</accept_privacy>\n`;
       xml += `    <accept_marketing>${m.accept_marketing}</accept_marketing>\n`;
       xml += `    <note>${m.note ?? ""}</note>\n`;
       xml += `    <source>${m.source ?? ""}</source>\n`;
-      xml += `    <document_front_url>${m.document_front_url ?? ""}</document_front_url>\n`;
-      xml += `    <document_back_url>${m.document_back_url ?? ""}</document_back_url>\n`;
+      xml += `    <document_front_url>${m.document_front_url ?? ""
+        }</document_front_url>\n`;
+      xml += `    <document_back_url>${m.document_back_url ?? ""
+        }</document_back_url>\n`;
       xml += `  </member>\n`;
     }
 
@@ -297,6 +330,8 @@ function renderSmsTemplate({ member, title, event_date, message_sms }) {
 /**
  * POST /api/admin/send-campaign
  * Invio reale + log
+ *
+ * campaign_logs.status deve essere 'sent' o 'failed'
  */
 router.post("/send-campaign", adminAuthMiddleware, async (req, res) => {
   try {
@@ -361,14 +396,18 @@ router.post("/send-campaign", adminAuthMiddleware, async (req, res) => {
           campaign_id: campaign.id,
           member_id: m.id,
           channel: "email",
-          status: result.ok ? "sent" : "error",
+          status: result.ok ? "sent" : "failed",
           error: result.ok ? null : result.reason,
         });
       }
 
       // SMS
-      if (channels?.sms && m.phone && message_sms) {
-        const normalized = normalizeItalianPhone(m.phone);
+      if (channels?.sms && message_sms && (m.phone || m.phone_enc)) {
+        const rawPhone = m.phone_enc
+          ? safeDecrypt(m.phone_enc, m.phone ?? "")
+          : m.phone ?? "";
+
+        const normalized = normalizeItalianPhone(rawPhone);
         if (normalized) {
           const result = await sendSmsToMember({
             to: normalized,
@@ -381,10 +420,10 @@ router.post("/send-campaign", adminAuthMiddleware, async (req, res) => {
           });
 
           logs.push({
-            campaign_id: campaign.id, // (fix rispetto al codice che avevi)
+            campaign_id: campaign.id,
             member_id: m.id,
             channel: "sms",
-            status: result.ok ? "sent" : "error",
+            status: result.ok ? "sent" : "failed",
             error: result.ok ? null : result.reason,
           });
         }
@@ -418,5 +457,4 @@ router.post("/send-campaign", adminAuthMiddleware, async (req, res) => {
   }
 });
 
-// 👇 QUESTA è la riga fondamentale
 export default router;

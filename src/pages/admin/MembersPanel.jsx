@@ -231,13 +231,6 @@ export default function MembersPanel() {
             ))}
           </select>
 
-          <span className="rounded-full bg-slate-900/80 px-3 py-1 text-center text-[10px] uppercase tracking-[0.18em] text-slate-300">
-            {t("admin.membersPanel.countShown", {
-              shown: filteredMembers.length,
-              total: members.length,
-            })}
-          </span>
-
           {/* bottone debug se vuoi riattivarlo
           <button
             type="button"
