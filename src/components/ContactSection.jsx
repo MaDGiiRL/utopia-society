@@ -1,8 +1,14 @@
+// src/components/ContactSection.jsx
+
 import { useRef, useState } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useTranslation } from "react-i18next";
+
+// UI
 import ContactInfo from "./contact/ContactInfo";
 import ContactForm from "./contact/ContactForm";
+
+// API
 import { sendContactMessage } from "../api/admin";
 
 function ContactSection() {
@@ -22,32 +28,38 @@ function ContactSection() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     setSending(true);
     setOk(false);
     setError("");
 
-    const form = new FormData(e.currentTarget);
+    const formEl = e.currentTarget; // 👈 salvo il form
+    const form = new FormData(formEl);
 
     const payload = {
-      name: form.get("name")?.toString().trim() || "",
-      email: form.get("email")?.toString().trim() || "",
-      phone: form.get("phone")?.toString().trim() || "",
-      message: form.get("message")?.toString().trim() || "",
+      name: String(form.get("name") || "").trim(),
+      email: String(form.get("email") || "").trim(),
+      phone: String(form.get("phone") || "").trim(),
+      message: String(form.get("message") || "").trim(),
       source_page: "contact_section",
     };
 
     try {
-      // 👇 unica chiamata al backend utopia-core
       const data = await sendContactMessage(payload);
 
       if (!data.ok) {
-        throw new Error(data.message || "Errore invio messaggio");
+        console.error("/api/admin/contact response error:", data);
+        throw new Error(data.message || "Form submission error");
       }
 
       setOk(true);
-      e.currentTarget.reset();
+
+      // 👇 Reset sicuro del form
+      if (formEl && typeof formEl.reset === "function") {
+        formEl.reset();
+      }
     } catch (err) {
-      console.error("Errore invio messaggio:", err);
+      console.error("Submission error:", err);
       setError(t("contact.formError"));
     } finally {
       setSending(false);
@@ -66,6 +78,7 @@ function ContactSection() {
           className="grid gap-10 md:grid-cols-[1.1fr_minmax(0,1fr)] items-start"
         >
           <ContactInfo />
+
           <ContactForm
             sending={sending}
             ok={ok}
