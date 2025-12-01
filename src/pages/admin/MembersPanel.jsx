@@ -365,7 +365,7 @@ function Row({ label, value }) {
   return (
     <div className="flex gap-2 text-[11px]">
       <div className="w-32 shrink-0 text-slate-400">{label}</div>
-      <div className="flex-1 text-slate-100 break-words">{value || "—"}</div>
+      <div className="flex-1 text-slate-100 break-word">{value || "—"}</div>
     </div>
   );
 }

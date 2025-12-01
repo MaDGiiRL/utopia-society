@@ -20,7 +20,7 @@ const Footer = () => {
             className="flex items-center gap-2"
           >
             <Link to="/" className="flex items-center gap-2 group">
-              <span className="h-8 w-8 rounded-full bg-gradient-to-tr from-fuchsia-500 via-cyan-400 to-blue-500 shadow-[0_0_18px_rgba(56,189,248,0.8)] group-hover:scale-105 transition" />
+              <span className="h-8 w-8 rounded-full bg-linear-to-tr from-fuchsia-500 via-cyan-400 to-blue-500 shadow-[0_0_18px_rgba(56,189,248,0.8)] group-hover:scale-105 transition" />
               <span className="text-lg font-semibold tracking-[0.25em] uppercase text-slate-100 group-hover:text-cyan-300 transition">
                 Utopia
               </span>

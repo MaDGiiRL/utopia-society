@@ -162,7 +162,7 @@ export default function NewCampaign() {
       {/* HEADER CON ICONE */}
       <div className="flex flex-wrap items-start justify-between gap-3 border-b border-white/10 pb-3">
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-400/70 via-fuchsia-500/60 to-emerald-400/70 text-slate-950 shadow-[0_0_25px_rgba(56,189,248,0.7)]">
+          <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-linear-to-br from-cyan-400/70 via-fuchsia-500/60 to-emerald-400/70 text-slate-950 shadow-[0_0_25px_rgba(56,189,248,0.7)]">
             <Send className="h-4 w-4" />
           </div>
           <div>
@@ -311,7 +311,7 @@ export default function NewCampaign() {
           <button
             type="submit"
             disabled={loading}
-            className={`inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-cyan-400 to-fuchsia-500 px-5 py-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-black shadow-[0_0_24px_rgba(56,189,248,0.8)] hover:brightness-110 transition ${
+            className={`inline-flex items-center gap-2 rounded-full bg-linear-to-r from-cyan-400 to-fuchsia-500 px-5 py-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-black shadow-[0_0_24px_rgba(56,189,248,0.8)] hover:brightness-110 transition ${
               loading ? "opacity-60 cursor-not-allowed" : ""
             }`}
           >
@@ -404,7 +404,7 @@ export default function NewCampaign() {
                         </td>
                         <td className="px-3 py-2">
                           <span
-                            className={`inline-flex rounded-full px-2 py-[2px] text-[10px] uppercase tracking-[0.16em] ${
+                            className={`inline-flex rounded-full px-2 py-0.5 text-[10px] uppercase tracking-[0.16em] ${
                               c.status === "sent"
                                 ? "bg-emerald-500/15 text-emerald-300 border border-emerald-500/40"
                                 : c.status === "sending"
@@ -527,13 +527,13 @@ export default function NewCampaign() {
                           {l.campaign_id}
                         </td>
                         <td className="px-3 py-2">
-                          <span className="rounded-full bg-slate-800/80 px-2 py-[1px] text-[10px] uppercase tracking-[0.16em] text-slate-100">
+                          <span className="rounded-full bg-slate-800/80 px-2 py-px text-[10px] uppercase tracking-[0.16em] text-slate-100">
                             {l.channel}
                           </span>
                         </td>
                         <td className="px-3 py-2">
                           <span
-                            className={`inline-flex rounded-full px-2 py-[2px] text-[10px] uppercase tracking-[0.16em] ${
+                            className={`inline-flex rounded-full px-2 py-0.5 text-[10px] uppercase tracking-[0.16em] ${
                               l.status === "sent"
                                 ? "bg-emerald-500/15 text-emerald-300"
                                 : "bg-rose-500/15 text-rose-300"
