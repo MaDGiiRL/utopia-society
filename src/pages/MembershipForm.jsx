@@ -11,7 +11,7 @@ import MembershipNotesSection from "../components/membership/MembershipNotesSect
 import MembershipConsentsSection from "../components/membership/MembershipConsentsSection";
 import MembershipMessages from "../components/membership/MembershipMessages";
 import MembershipSubmitRow from "../components/membership/MembershipSubmitRow";
-import SignatureModal from "../components/membership/SignatureModal";
+// import SignatureModal from "../components/membership/SignatureModal"; // se riattivi firma
 
 // Base URL backend
 const API_BASE =
@@ -225,7 +225,7 @@ function MembershipForm() {
     }
 
     try {
-      // 1) upload documenti al backend
+      // 1) upload documenti al backend (come vecchio upload, ma su Supabase)
       const frontResult = await uploadDocumento(fileFront, "front");
       const backResult = await uploadDocumento(fileBack, "back");
 
@@ -246,7 +246,7 @@ function MembershipForm() {
         document_back_url: backResult.url,
       };
 
-      // 3) chiamata al backend → qui scatta la CIFRATURA
+      // 3) chiamata al backend → qui salva + manda mail a tessere.utopia
       const res = await fetch(`${API_BASE}/api/admin/members`, {
         method: "POST",
         headers: {
@@ -471,8 +471,8 @@ function MembershipForm() {
             />
           </motion.form>
 
-          {/* MODALE FIRMA (opzionale) */}
-          {/* 
+          {/* MODALE FIRMA (opzionale, se vuoi replicare 1:1 il vecchio canvas di firma) */}
+          {/*
           <SignatureModal
             isOpen={isModalOpen}
             canvasRef={canvasRef}
