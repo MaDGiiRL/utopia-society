@@ -26,3 +26,5 @@ wiki
 *.njsproj
 *.sln
 *.sw?
+.npmrc
+.env

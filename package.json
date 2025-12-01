@@ -11,7 +11,7 @@
     "start": "node server/index.js"
   },
   "dependencies": {
-    "@madgiirl/utopia-core": "^1.0.1",
+    "@madgiirl/utopia-core": "^1.0.4",
     "@supabase/supabase-js": "^2.86.0",
     "@tailwindcss/vite": "^4.1.17",
     "@vercel/analytics": "^1.5.0",
