@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import ContactInfo from "./contact/ContactInfo";
@@ -8,6 +8,7 @@ import { sendContactMessage } from "../api/admin";
 function ContactSection() {
   const { t } = useTranslation();
   const sectionRef = useRef(null);
+
   const { scrollYProgress } = useScroll({
     target: sectionRef,
     offset: ["start end", "end start"],
@@ -28,36 +29,25 @@ function ContactSection() {
     const form = new FormData(e.currentTarget);
 
     const payload = {
-      name: (form.get("name") || "").toString().trim(),
-      email: (form.get("email") || "").toString().trim(),
-      phone: (form.get("phone") || "").toString().trim(),
-      message: (form.get("message") || "").toString().trim(),
+      name: form.get("name")?.toString().trim() || "",
+      email: form.get("email")?.toString().trim() || "",
+      phone: form.get("phone")?.toString().trim() || "",
+      message: form.get("message")?.toString().trim() || "",
       source_page: "contact_section",
     };
 
     try {
-      const res = await fetch("/api/contact", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
-
+      // 👇 unica chiamata al backend utopia-core
       const data = await sendContactMessage(payload);
-      if (!data.ok) {
-        throw new Error(data.message || "Errore invio messaggio");
-      }
 
-      if (!res.ok || data.ok === false) {
-        console.error("Errore /api/contact:", data);
+      if (!data.ok) {
         throw new Error(data.message || "Errore invio messaggio");
       }
 
       setOk(true);
       e.currentTarget.reset();
     } catch (err) {
-      console.error(err);
+      console.error("Errore invio messaggio:", err);
       setError(t("contact.formError"));
     } finally {
       setSending(false);

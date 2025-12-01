@@ -31,7 +31,7 @@ export async function fetchContactMessages() {
   return res.data;
 }
 
-// 👇 LA FUNZIONE CHE TI SERVE
+// 👇 usata dal ContactSection
 export async function sendContactMessage(payload) {
   const res = await api.post("/api/admin/contact", payload);
   return res.data;
