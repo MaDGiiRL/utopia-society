@@ -4,7 +4,7 @@
 
 ### 1.1 Registrare un nuovo admin
 ```bash
-curl -X POST http://localhost:4000/api/admin/register   -H "Content-Type: application/json"   -d '{"email":"LA_TUA_MAIL","password":"SuperPassword123"}'
+curl -X POST https://utopia-society.vercel.app/admin/api/admin/register   -H "Content-Type: application/json"   -d '{"email":"vidotto.sofia1999@gmail.com","password":"SuperPassword123"}'
 ```
 
 ### 1.2 Login Admin
