@@ -1,3 +1,0 @@
-# Deployment
-
-Guida deploy Vercel + Node backend...

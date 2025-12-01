@@ -14,6 +14,7 @@ dist-ssr
 .env
 .env.local
 db-arch.sql
+wiki
 
 # Editor directories and files
 .vscode/*
