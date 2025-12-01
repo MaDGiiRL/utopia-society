@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { supabase } from "../../lib/supabaseClient";
+import React, { useMemo, useState } from "react";
+import { History, ListOrdered, ChevronLeft, ChevronRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import CampaignHeader from "../../components/admin/campaign/CampaignHeader";
 import CampaignForm from "../../components/admin/campaign/CampaignForm";
