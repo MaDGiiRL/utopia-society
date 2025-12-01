@@ -90,17 +90,22 @@
         "membersPanel": {
             "headerTitle": "Membri înscriși",
             "headerSubtitle": "Lista înscrierilor din formularul de admitere membru.",
+            "title": "Membri înscriși",
+            "subtitle": "Lista înscrierilor din formularul de admitere membru.",
             "debugNotice": "Debug activ: au fost adăugați membri fake în memorie (nu în baza de date).",
             "searchPlaceholder": "Caută după nume, email, oraș...",
             "filterAllCities": "Toate orașele",
+            "allCities": "Toate orașele",
             "shownCounter": "Afișați {{filtered}} / {{total}}",
+            "countShown": "Afișați {{filtered}} / {{total}}",
             "table": {
                 "date": "Data",
                 "name": "Nume",
                 "email": "Email",
                 "city": "Oraș",
                 "marketing": "Marketing",
-                "card": "Fișă"
+                "card": "Fișă",
+                "details": "Detalii"
             },
             "marketingYes": "Da",
             "marketingNo": "Nu",
@@ -111,6 +116,7 @@
             "modal": {
                 "title": "Fișă membru",
                 "name": "Nume complet",
+                "fullName": "Nume complet",
                 "email": "Email",
                 "phone": "Telefon mobil",
                 "city": "Oraș",
@@ -118,6 +124,7 @@
                 "birthDate": "Data nașterii",
                 "fiscalCode": "Cod fiscal",
                 "privacy": "Confidențialitate",
+                "privacyAccepted": "Confidențialitate acceptată",
                 "marketing": "Marketing",
                 "insertedAt": "Înscris la",
                 "notes": "Note",
@@ -132,7 +139,10 @@
         "contactsPanel": {
             "headerTitle": "Mesaje de contact",
             "headerSubtitle": "Toate mesajele trimise din formularul de contact de pe site.",
+            "title": "Mesaje de contact",
+            "subtitle": "Toate mesajele trimise din formularul de contact de pe site.",
             "exportCsv": "Exportă Excel",
+            "exportExcel": "Exportă Excel",
             "total": "Total: {{count}}",
             "loading": "Se încarcă mesajele...",
             "errorLoad": "Eroare la încărcarea mesajelor de contact.",
@@ -145,7 +155,8 @@
                 "name": "Nume",
                 "email": "Email",
                 "phone": "Telefon",
-                "actions": "Acțiuni"
+                "actions": "Acțiuni",
+                "details": "Detalii"
             },
             "details": "Detalii",
             "modal": {
@@ -158,6 +169,7 @@
                 "message": "Mesaj",
                 "close": "Închide",
                 "replyEmail": "Răspunde prin email",
+                "reply": "Răspunde prin email",
                 "replySubject": "Re: contact din site-ul Utopia",
                 "replyBody": "Bună {{name}},\n\nîți răspundem la mesajul pe care ni l-ai trimis din formularul de contact.\n\n---\n\nMesaj original:\n{{message}}\n\n---\n\nEchipa Utopia"
             }
@@ -166,6 +178,7 @@
             "headerTitle": "Campanie nouă de eveniment",
             "headerSubtitle": "Trimite emailuri și/sau SMS tuturor membrilor care au dat consimțământul pentru marketing, pentru a promova o dată sau un eveniment special.",
             "recipientsHelp": "Destinatarii sunt citiți automat din tabela members.",
+            "headerNote": "Destinatarii sunt citiți automat din tabela members.",
             "form": {
                 "titleLabel": "Titlu eveniment / campanie",
                 "titlePlaceholder": "Utopia Night · Special Guest...",
@@ -184,11 +197,13 @@
                 "error": "Eroare la trimiterea campaniei",
                 "unexpected": "Eroare neașteptată",
                 "success": "Campanie trimisă cu succes",
-                "successRecipients": "· Destinatari marketing: {{count}}"
+                "successRecipients": "· Destinatari marketing: {{count}}",
+                "sent": "Trimisă"
             },
             "submit": {
                 "sending": "Se trimite...",
-                "idle": "Trimite campania"
+                "idle": "Trimite campania",
+                "send": "Trimite campania"
             },
             "history": {
                 "title": "Istoric campanii",
@@ -211,6 +226,9 @@
                     "campaign": "Campanie",
                     "channel": "Canal",
                     "status": "Status"
+                },
+                "status": {
+                    "sent": "Trimis"
                 }
             }
         }

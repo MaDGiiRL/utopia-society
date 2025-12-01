@@ -90,17 +90,22 @@
         "membersPanel": {
             "headerTitle": "Registered members",
             "headerSubtitle": "List of submissions from the membership application form.",
+            "title": "Registered members",
+            "subtitle": "List of submissions from the membership application form.",
             "debugNotice": "Debug active: fake members have been added in memory (not in the database).",
             "searchPlaceholder": "Search by name, email, city...",
             "filterAllCities": "All cities",
+            "allCities": "All cities",
             "shownCounter": "Showing {{filtered}} / {{total}}",
+            "countShown": "Showing {{filtered}} / {{total}}",
             "table": {
                 "date": "Date",
                 "name": "Name",
                 "email": "Email",
                 "city": "City",
                 "marketing": "Marketing",
-                "card": "Profile"
+                "card": "Profile",
+                "details": "Details"
             },
             "marketingYes": "Yes",
             "marketingNo": "No",
@@ -111,6 +116,7 @@
             "modal": {
                 "title": "Member profile",
                 "name": "Full name",
+                "fullName": "Full name",
                 "email": "Email",
                 "phone": "Mobile",
                 "city": "City",
@@ -118,6 +124,7 @@
                 "birthDate": "Date of birth",
                 "fiscalCode": "Tax code",
                 "privacy": "Privacy",
+                "privacyAccepted": "Privacy accepted",
                 "marketing": "Marketing",
                 "insertedAt": "Inserted on",
                 "notes": "Notes",
@@ -132,7 +139,10 @@
         "contactsPanel": {
             "headerTitle": "Contact messages",
             "headerSubtitle": "All submissions from the website contact form.",
+            "title": "Contact messages",
+            "subtitle": "All submissions from the website contact form.",
             "exportCsv": "Export Excel",
+            "exportExcel": "Export Excel",
             "total": "Total: {{count}}",
             "loading": "Loading messages...",
             "errorLoad": "Error while loading contact messages.",
@@ -145,7 +155,8 @@
                 "name": "Name",
                 "email": "Email",
                 "phone": "Phone",
-                "actions": "Actions"
+                "actions": "Actions",
+                "details": "Details"
             },
             "details": "Details",
             "modal": {
@@ -158,6 +169,7 @@
                 "message": "Message",
                 "close": "Close",
                 "replyEmail": "Reply via email",
+                "reply": "Reply via email",
                 "replySubject": "Re: contact from Utopia website",
                 "replyBody": "Hi {{name}},\n\nwe are replying to the message you sent us from the contact form.\n\n---\n\nOriginal message:\n{{message}}\n\n---\n\nUtopia Team"
             }
@@ -166,6 +178,7 @@
             "headerTitle": "New event campaign",
             "headerSubtitle": "Send emails and/or SMS to all members who gave marketing consent, to promote a date or special event.",
             "recipientsHelp": "Recipients are automatically read from the members table.",
+            "headerNote": "Recipients are automatically read from the members table.",
             "form": {
                 "titleLabel": "Event / campaign title",
                 "titlePlaceholder": "Utopia Night · Special Guest...",
@@ -184,11 +197,13 @@
                 "error": "Error while sending campaign",
                 "unexpected": "Unexpected error",
                 "success": "Campaign sent successfully",
-                "successRecipients": "· Marketing recipients: {{count}}"
+                "successRecipients": "· Marketing recipients: {{count}}",
+                "sent": "Sent"
             },
             "submit": {
                 "sending": "Sending...",
-                "idle": "Send campaign"
+                "idle": "Send campaign",
+                "send": "Send campaign"
             },
             "history": {
                 "title": "Campaign history",
@@ -211,6 +226,9 @@
                     "campaign": "Campaign",
                     "channel": "Channel",
                     "status": "Status"
+                },
+                "status": {
+                    "sent": "Sent"
                 }
             }
         }
