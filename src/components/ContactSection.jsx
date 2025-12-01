@@ -3,7 +3,7 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import ContactInfo from "./contact/ContactInfo";
 import ContactForm from "./contact/ContactForm";
-import { sendContactMessage } from "../../api/admin";
+import { sendContactMessage } from "../api/admin";
 
 function ContactSection() {
   const { t } = useTranslation();
