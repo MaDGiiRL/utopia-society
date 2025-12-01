@@ -16,26 +16,23 @@ export async function adminLogout() {
   return res.data;
 }
 
-/**
- * Lista soci (dati decriptati) per la tab admin
- */
 export async function fetchMembers() {
   const res = await api.get("/api/admin/members");
-  return res.data; // { ok: true, members: [...] }
+  return res.data;
 }
 
-/**
- * Dettaglio singolo socio (scheda)
- */
 export async function fetchMemberById(id) {
   const res = await api.get(`/api/admin/members/${id}`);
-  return res.data; // { ok: true, member: {...} }
+  return res.data;
 }
 
-/**
- * Lista messaggi contatti (dati decriptati)
- */
 export async function fetchContactMessages() {
   const res = await api.get("/api/admin/contact-messages");
-  return res.data; // { ok: true, messages: [...] }
+  return res.data;
+}
+
+// 👇 LA FUNZIONE CHE TI SERVE
+export async function sendContactMessage(payload) {
+  const res = await api.post("/api/admin/contact", payload);
+  return res.data;
 }

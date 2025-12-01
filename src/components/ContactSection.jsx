@@ -1,9 +1,9 @@
-
 import { useEffect, useRef, useState } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import ContactInfo from "./contact/ContactInfo";
 import ContactForm from "./contact/ContactForm";
+import { sendContactMessage } from "../../api/admin";
 
 function ContactSection() {
   const { t } = useTranslation();
@@ -44,7 +44,10 @@ function ContactSection() {
         body: JSON.stringify(payload),
       });
 
-      const data = await res.json().catch(() => ({}));
+      const data = await sendContactMessage(payload);
+      if (!data.ok) {
+        throw new Error(data.message || "Errore invio messaggio");
+      }
 
       if (!res.ok || data.ok === false) {
         console.error("Errore /api/contact:", data);
