@@ -4,7 +4,6 @@ import { motion } from "framer-motion";
 import Swal from "sweetalert2";
 import { useTranslation, Trans } from "react-i18next";
 import ScrollScene3D from "../components/ScrollScene3D";
-import { supabase } from "../lib/supabaseClient";
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 24 },
@@ -243,14 +242,31 @@ function MembershipForm() {
         document_back_url: backResult.url,
       };
 
-      const { error: insertError } = await supabase
-        .from("members")
-        .insert(payload);
+      if (!API_BASE) {
+        throw new Error(t("membership.apiBaseMissing"));
+      }
 
-      if (insertError) {
-        console.error(insertError);
-        setError(t("membership.errorGeneric"));
-        return;
+      const res = await fetch(`${API_BASE}/api/admin/members`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const raw = await res.text();
+      let data = {};
+      try {
+        data = JSON.parse(raw);
+      } catch {
+        // non è JSON
+      }
+
+      if (!res.ok || !data.ok) {
+        console.error("Create member failed", {
+          status: res.status,
+          raw,
+          data,
+        });
+        throw new Error(data.message || t("membership.errorGeneric"));
       }
 
       setOk(true);
@@ -320,7 +336,6 @@ function MembershipForm() {
               viewport={{ once: true, amount: 0.5 }}
               className="text-3xl md:text-4xl lg:text-5xl font-semibold tracking-[0.18em] uppercase"
             >
-              {/* gestione <strong> nel testo con Trans */}
               <Trans
                 i18nKey="membership.title"
                 components={{
@@ -710,7 +725,48 @@ function MembershipForm() {
           {/* 
           {isModalOpen && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
-              ...
+              <div className="w-full max-w-md rounded-3xl border border-white/10 bg-slate-950/95 p-6 shadow-xl">
+                <h2 className="mb-3 text-sm font-semibold uppercase tracking-[0.18em] text-slate-200">
+                  Firma domanda
+                </h2>
+                <p className="mb-3 text-xs text-slate-400">
+                  Firma all'interno del riquadro. Usa il mouse o il dito (su
+                  dispositivi touch).
+                </p>
+                <div className="mb-4 rounded-2xl border border-white/20 bg-slate-900/80 p-2">
+                  <canvas
+                    ref={canvasRef}
+                    width={400}
+                    height={200}
+                    className="h-40 w-full rounded-xl bg-slate-900"
+                  />
+                </div>
+                <div className="flex items-center justify-between gap-3 text-xs">
+                  <button
+                    type="button"
+                    onClick={clearSignature}
+                    className="rounded-full border border-slate-500/60 px-3 py-2 text-[0.7rem] uppercase tracking-[0.18em] text-slate-200 hover:border-cyan-400 hover:text-cyan-200"
+                  >
+                    Cancella
+                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setIsModalOpen(false)}
+                      className="rounded-full border border-slate-500/60 px-3 py-2 text-[0.7rem] uppercase tracking-[0.18em] text-slate-200 hover:border-rose-400 hover:text-rose-200"
+                    >
+                      Annulla
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleConfirmSignature}
+                      className="rounded-full bg-linear-to-r from-cyan-400 to-fuchsia-500 px-3 py-2 text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-black"
+                    >
+                      Conferma firma
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           )} 
           */}

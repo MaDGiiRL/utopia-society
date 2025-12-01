@@ -11,7 +11,7 @@ import {
   normalizeItalianPhone,
 } from "../services/notifications.js";
 import { safeDecrypt } from "../services/crypto.js";
-import { createMemberFromForm } from "../services/members.js"; // 👈 AGGIUNTO
+import { createMemberFromForm } from "../services/members.js";
 
 const router = Router();
 const JWT_SECRET = process.env.JWT_SECRET || "dev_secret_change_me";
@@ -209,6 +209,11 @@ router.post("/upload-document", upload.single("file"), async (req, res) => {
  * (NESSUN adminAuth, ma potresti aggiungere rate-limit / captcha)
  */
 router.post("/members", async (req, res) => {
+  console.log(">>> HIT POST /api/admin/members", {
+    date: new Date().toISOString(),
+    body: req.body,
+  });
+
   try {
     const member = await createMemberFromForm(req.body);
     return res.status(201).json({ ok: true, member });
@@ -219,6 +224,102 @@ router.post("/members", async (req, res) => {
       ok: false,
       message: err.message || "Errore creazione membro",
     });
+  }
+});
+
+/**
+ * Helper: mappare un membro con campi decriptati per l'admin
+ */
+function mapMemberRowDecrypted(m) {
+  if (!m) return null;
+
+  const phonePlain = m.phone_enc
+    ? safeDecrypt(m.phone_enc, m.phone ?? "")
+    : m.phone ?? "";
+
+  const fiscalPlain = m.fiscal_code_enc
+    ? safeDecrypt(m.fiscal_code_enc, m.fiscal_code ?? "")
+    : m.fiscal_code ?? "";
+
+  return {
+    id: m.id,
+    created_at: m.created_at,
+    full_name: m.full_name,
+    email: m.email,
+    phone: phonePlain,
+    date_of_birth: m.date_of_birth,
+    birth_place: m.birth_place,
+    fiscal_code: fiscalPlain,
+    city: m.city,
+    accept_privacy: m.accept_privacy,
+    accept_marketing: m.accept_marketing,
+    note: m.note,
+    source: m.source,
+    document_front_url: m.document_front_url,
+    document_back_url: m.document_back_url,
+  };
+}
+
+/**
+ * GET /api/admin/members
+ * Lista soci per la tab admin (dati decriptati)
+ */
+router.get("/members", adminAuthMiddleware, async (req, res) => {
+  try {
+    const { data, error } = await supabaseAdmin
+      .from("members")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("[GET /api/admin/members] error", error);
+      return res
+        .status(500)
+        .json({ ok: false, message: "Errore lettura membri" });
+    }
+
+    const members = (data || []).map(mapMemberRowDecrypted);
+
+    return res.json({ ok: true, members });
+  } catch (err) {
+    console.error("[GET /api/admin/members] unexpected", err);
+    return res.status(500).json({ ok: false, message: "Errore imprevisto" });
+  }
+});
+
+/**
+ * GET /api/admin/members/:id
+ * Dettaglio singolo socio (scheda) con dati decriptati
+ */
+router.get("/members/:id", adminAuthMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const { data, error } = await supabaseAdmin
+      .from("members")
+      .select("*")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (error) {
+      console.error("[GET /api/admin/members/:id] error", error);
+      return res
+        .status(500)
+        .json({ ok: false, message: "Errore lettura membro" });
+    }
+
+    if (!data) {
+      return res
+        .status(404)
+        .json({ ok: false, message: "Membro non trovato" });
+    }
+
+    const member = mapMemberRowDecrypted(data);
+
+    return res.json({ ok: true, member });
+  } catch (err) {
+    console.error("[GET /api/admin/members/:id] unexpected", err);
+    return res.status(500).json({ ok: false, message: "Errore imprevisto" });
   }
 });
 
@@ -288,7 +389,6 @@ router.get("/members.xml", adminAuthMiddleware, async (req, res) => {
 /**
  * Helper template email & SMS
  */
-
 function renderEmailTemplate({ member, title, event_date, message_email }) {
   const nome = member.full_name || "Socio";
   let body = message_email || "";

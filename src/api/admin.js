@@ -15,3 +15,19 @@ export async function adminLogout() {
   const res = await api.post("/api/admin/logout");
   return res.data;
 }
+
+/**
+ * Lista soci (dati decriptati) per la tab admin
+ */
+export async function fetchMembers() {
+  const res = await api.get("/api/admin/members");
+  return res.data; // { ok: true, members: [...] }
+}
+
+/**
+ * Dettaglio singolo socio (scheda)
+ */
+export async function fetchMemberById(id) {
+  const res = await api.get(`/api/admin/members/${id}`);
+  return res.data; // { ok: true, member: {...} }
+}

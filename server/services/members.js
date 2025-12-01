@@ -36,6 +36,7 @@ function normalizeFormPayload(body = {}) {
 /**
  * Crea un nuovo membro partendo dai dati del form pubblico.
  * Cifra phone e fiscal_code nelle colonne *_enc.
+ * NON salva più i dati in chiaro nelle colonne phone / fiscal_code.
  */
 export async function createMemberFromForm(rawBody) {
     const {
@@ -72,8 +73,11 @@ export async function createMemberFromForm(rawBody) {
     const insertPayload = {
         full_name: fullName,
         email,
-        phone: phonePlain, // tieni il valore in chiaro (opzionale)
+
+        // 🔐 NON salviamo più il valore in chiaro
+        phone: null,
         phone_enc: phonePlain ? encrypt(phonePlain) : null,
+
         date_of_birth: dateOfBirth || null,
         city: city || null,
         accept_privacy: !!acceptPrivacy,
@@ -81,8 +85,11 @@ export async function createMemberFromForm(rawBody) {
         note: note || null,
         source: source || "membership_form",
         birth_place: birthPlace || null,
-        fiscal_code: fiscalPlain,
+
+        // 🔐 anche il CF solo cifrato
+        fiscal_code: null,
         fiscal_code_enc: fiscalPlain ? encrypt(fiscalPlain) : null,
+
         document_front_url: documentFrontUrl || null,
         document_back_url: documentBackUrl || null,
     };
@@ -100,7 +107,7 @@ export async function createMemberFromForm(rawBody) {
         throw err;
     }
 
-    // ritorno già un oggetto "pulito" per il frontend se serve
+    // ritorno già un oggetto "pulito" (decifrato) per il frontend se serve
     return {
         id: data.id,
         created_at: data.created_at,
