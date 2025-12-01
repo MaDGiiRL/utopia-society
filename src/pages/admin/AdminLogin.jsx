@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router";
 import { Lock, Mail } from "lucide-react";
+import { adminLogin } from "../../api/admin"; // 👈 usa il client API
 
 export default function AdminLogin() {
   const navigate = useNavigate();
@@ -23,23 +24,17 @@ export default function AdminLogin() {
     setError("");
 
     try {
-      const res = await fetch("/api/admin/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include", // IMPORTANTE per cookie
-        body: JSON.stringify({ email, password }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.message || "Credenziali non valide");
-      }
+      // 👇 chiama il backend giusto (baseURL = VITE_ADMIN_API_URL)
+      await adminLogin({ email, password });
 
       // login ok -> AdminRoute chiamerà /api/admin/me e ti farà entrare
       navigate(from, { replace: true });
     } catch (err) {
       console.error(err);
-      setError(err.message || "Errore di login");
+      // se axios risponde con 4xx/5xx:
+      const msg =
+        err.response?.data?.message || err.message || "Errore di login";
+      setError(msg);
     } finally {
       setLoading(false);
     }
