@@ -36,6 +36,7 @@ function normalizeFormPayload(body = {}) {
 /**
  * Crea un nuovo membro partendo dai dati del form pubblico.
  * Cifra email, phone e fiscal_code nelle colonne *_enc.
+ * Le colonne in chiaro (email, phone, fiscal_code) NON vengono popolante.
  */
 export async function createMemberFromForm(rawBody) {
     const {
@@ -66,19 +67,19 @@ export async function createMemberFromForm(rawBody) {
         throw err;
     }
 
-    const phonePlain = phone || null;
-    const fiscalPlain = fiscalCode || null;
-    const emailPlain = email || null;
+    const emailPlain = email.trim();
+    const phonePlain = phone?.trim() || "";
+    const fiscalPlain = fiscalCode?.trim() || "";
 
     const insertPayload = {
         full_name: fullName,
 
-        // valori in chiaro (opzionali, ma li teniamo per ricerca / fallback)
-        email: emailPlain,
-        phone: phonePlain,
-        fiscal_code: fiscalPlain,
+        // ❌ NON teniamo più i valori in chiaro
+        email: null,
+        phone: null,
+        fiscal_code: null,
 
-        // valori cifrati
+        // ✅ valori cifrati
         email_enc: emailPlain ? encrypt(emailPlain) : null,
         phone_enc: phonePlain ? encrypt(phonePlain) : null,
         fiscal_code_enc: fiscalPlain ? encrypt(fiscalPlain) : null,
@@ -113,6 +114,7 @@ export async function createMemberFromForm(rawBody) {
 
 /**
  * Helper: mappa una row del DB in un oggetto pulito con campi decriptati.
+ * Usa *_enc se presenti, altrimenti cade sui campi in chiaro (per i vecchi record).
  */
 export function mapMemberRowDecrypted(m) {
     if (!m) return null;
