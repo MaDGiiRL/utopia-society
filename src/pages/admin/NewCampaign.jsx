@@ -1,4 +1,5 @@
-// src/pages/admin/NewCampaign.jsximport { useEffect, useState } from "react";
+
+import React, { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import { useTranslation } from "react-i18next";
 import CampaignHeader from "../../components/admin/campaign/CampaignHeader";
