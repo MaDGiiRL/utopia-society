@@ -10,196 +10,138 @@ L’intero progetto utilizza **React + Vite** per il frontend e un **backend Nod
 ## 🚀 Tech Stack
 
 ### Frontend
-
 - ⚛️ **React 19**
 - ⚡ **Vite 7**
-- 🎨 **Tailwind CSS 4** — stile dark futuristico neon
-- 🎞️ **Framer Motion** — animazioni e micro–interazioni
-- 🔔 **SweetAlert2** — popup di conferma / errore eleganti
-- 🔗 **React Router 7** — gestione delle pagine
-- 🧩 **Lucide React Icons** & `react-icons`
-- 🎛 **Three.js** — scena 3D sincronizzata allo scroll e alla musica
-- 🎵 **Global Audio Player** — player fisso che controlla la colonna sonora del sito
-- 📡 **Supabase JS Client** — invio di form e salvataggio dati
+- 🎨 **Tailwind CSS 4**
+- 🎞️ **Framer Motion**
+- 🔔 **SweetAlert2**
+- 🔗 **React Router 7**
+- 🧩 **Lucide Icons**
+- 🎛 **Three.js**
+- 🎵 **Global Audio Player**
+- 📡 **Supabase JS Client**
 
 ### Backend
-
-- 🟩 **Node.js + Express 5**
-- 🔐 **JWT** — autenticazione admin
-- 🔑 **bcryptjs** — hashing password admin
-- 🧾 **multer** — upload di documenti (fronte/retro)
-- 🌩️ **Supabase Storage / DB** — storage privato documenti + tabelle `members` e `contact_messages`
-- ✉️ **Resend** — invio email automatiche (es. conferme)
-- 📱 **Twilio** — canale SMS / two-factor / recovery code
+- 🟩 **Node + Express 5**
+- 🔐 **JWT Authentication**
+- 🔑 **bcryptjs**
+- 🧾 **multer** upload
+- 🌩️ **Supabase Storage & DB**
+- ✉️ **Resend**
+- 📱 **Twilio**
 - 🍪 **cookie-parser**
-- 🔒 **CORS** configurato per ambiente dev/prod
+- 🔒 **CORS** dinamico dev/prod
 
-Avvio locale tipico:
+Avvio locale:
 
 ```bash
-# frontend
-npm run dev
-
-# backend
-node server/index.js
+npm run dev    # frontend
+node server/index.js   # backend
 ```
+
+---
+
+## ☁️ Deploy & Hosting
+
+L’infrastruttura di Utopia è completamente deployata e funzionante in ambiente cloud:
+
+### 🌐 **Frontend**
+- **Vercel**
+- Deployment continuo collegato a GitHub
+- Variabili ambiente gestite tramite pannello Vercel (`VITE_*`)
+
+### 🖥️ **Backend**
+- **Render.com**  
+- Deploy automatico da GitHub branch `main`
+- Variabili ambiente protette nel pannello Render  
+- Runtime Node.js  
+- Porta gestita automaticamente da Render (binding su `$PORT`)
+- CORS configurato per comunicare correttamente con Vercel  
+- Cookie JWT configurati correttamente (`secure`, `sameSite=none`, `HttpOnly`)
+
+### 📦 Supabase
+- Database Postgres gestito
+- Bucket Storage privato per i documenti
+- API REST + Client JS
+
+### ✉️ Email + SMS Providers
+- **Resend**  
+- **Twilio**
+
+Utopia risulta quindi distribuita su un’architettura moderna separata **frontend / backend**, con:
+
+- Backend → `https://utopia-society.onrender.com`
+- Frontend → `https://utopia-society.vercel.app`
+
+Il tutto comunicante tramite HTTPS, cookie sicuri e CORS configurato correttamente.
 
 ---
 
 ## ✨ Funzionalità Utente
 
 ### 🌀 Landing Page Futuristica
-
-Composta da:
-
-- **Navbar** fissa con logo, link alle sezioni e social (`Navbar.jsx`)
-- **HeroSection** con titolo animato, CTA “Diventa socio” e card con logo flottante
-- **ScrollScene3D** (Three.js) che crea uno sfondo 3D animato, sincronizzato con lo scroll
-- **AboutSection** con card 3D tilt–effect e descrizione del club
-- **ContactSection** con:
-  - Box social 3D (`SocialBox3D`)
-  - Form contatti collegato a Supabase (`contact_messages`)
+- Navbar animata
+- HeroSection con CTA
+- ScrollScene3D sincronizzata alla musica
+- AboutSection con tilt 3D
+- ContactSection collegata a Supabase
 
 ### 🎧 Audio Player Globale
+- Player fisso con controlli
+- Sincronizzazione con la scena 3D
 
-- Componente `ClubAudioPlayer` ancorato in basso a sinistra
-- Utilizza un `<audio id="club-audio">` globale
-- Playlist locale con brani demo (`/audio/track_*.mp3`)
-- Controlli:
-  - Play / Pause
-  - Traccia successiva / precedente
-  - Seekbar con tempo corrente / durata
-- Il player alimenta anche la scena 3D (`ScrollScene3D`) che reagisce ai bassi / medi della traccia
-
-### 📝 Form di Ammissione a Socio
-
-Pagina `/ammissione-socio` (`MembershipForm.jsx`):
-
-- Dati anagrafici completi (nome, cognome, nascita, CF, città, contatti)
-- Upload **fronte** e **retro** del documento con:
-  - Cattura da fotocamera (mobile) o upload da file
-  - Anteprima live e nome file
-- Upload dei file verso il backend tramite endpoint:
-  - `POST /api/admin/upload-document` → salva su Supabase Storage (bucket privato) e restituisce URL firmato
-- Salvataggio record in Supabase tabella `members`
-- Consensi:
-  - Privacy
-  - Statuto Utopia + ACSI
-  - Marketing (newsletter/SMS) opzionale
-- Notifiche:
-  - SweetAlert2 di successo
-  - Messaggi di errore in-page
+### 📝 Form Ammissione Socio
+- Upload documento fronte/retro
+- URL firmati da Supabase Storage
+- Salvataggio su tabella `members`
 
 ---
 
 ## 🧑‍💼 Admin Area
 
-### Login & Protezione Route
+### Login & Protezione
+- Login con JWT in cookie HttpOnly
+- Rotte protette tramite `AdminRoute`
 
-- Login su `/admin/login`
-- Rotte protette tramite componente `AdminRoute`:
-  - Verifica autenticazione chiamando `GET /api/admin/me` (con cookie)
-  - Se non autenticato → redirect a `/admin/login`
+### Dashboard
+- Gestione soci
+- Log contatti
+- Sistema campagne email/SMS
 
-### Admin Dashboard (`/admin`)
-
-Entry point: `AdminDashboard.jsx`  
-Tab principali:
-
-1. **Log Soci (Members)**
-   - Visualizza richieste di ammissione salvate in Supabase
-   - Accesso a dati anagrafici e link ai documenti (fronte/retro)
-   - Filtri / ricerca (implementati in `MembersPanel`)
-
-2. **Log Contatti**
-   - Elenco dei messaggi inviati dal form della pagina Contatti
-   - Lettura rapida con dettagli (nome, email, telefono, messaggio)
-   - Implementato in `ContactMessagesPanel`
-
-3. **Nuova Campagna**
-   - Componente `NewCampaign`
-   - Gestione bozza di campagne (email / SMS) verso soci
-   - Integra servizi esterni: **Resend** per email, **Twilio** per SMS (a livello backend)
-
-### Export Anagrafiche Soci in XML
-
-- Pulsante “Export soci XML”
-- Chiama `GET /api/admin/members.xml` (con credenziali)
-- Genera e scarica file `utopia_soci_YYYY-MM-DD.xml` lato client
+### Export Soci XML
+`GET /api/admin/members.xml`
 
 ### Logout
-
-- Pulsante “Esci dall’area admin”
-- Effettua `POST /api/admin/logout`
-- Svuota cookie e fa redirect a `/admin/login`
+`POST /api/admin/logout`
 
 ---
 
-## 🌐 Struttura di Routing
+## 🧱 Architettura Dati (Supabase)
 
-- `/` → `Home.jsx`
-  - `Navbar`, `ScrollScene3D`, `HeroSection`, `AboutSection`, `ContactSection`, `Footer`
-- `/ammissione-socio` → `MembershipForm.jsx`
-- `/admin/login` → pagina login admin
-- `/admin` → `AdminRoute` + `AdminDashboard.jsx` (tab Members / Contacts / Campaign)
+### Tabella `members`
+Campi anagrafici, documenti, consensi.
 
----
+### Tabella `contact_messages`
+Messaggi dal form contatti.
 
-## 🧱 Architettura Dati
-
-### Supabase
-
-- **Tabella `members`**
-  - `full_name`
-  - `email`
-  - `phone`
-  - `city`
-  - `date_of_birth`
-  - `birth_place`
-  - `fiscal_code`
-  - `note`
-  - `accept_privacy`
-  - `accept_marketing`
-  - `source`
-  - `document_front_url`
-  - `document_back_url`
-  - timestamp automatico
-
-- **Tabella `contact_messages`**
-  - `name`
-  - `email`
-  - `phone`
-  - `message`
-  - timestamp automatico
-
-- **Storage (bucket privato)**
-  - Folder giornaliero `YYYY-MM-DD/…`
-  - File per fronte e retro documento, con path generato da backend
-  - URL firmati usati solo in area admin
+### Storage
+Bucket privato per documenti.
 
 ---
 
-## 🔐 Sicurezza & Note Operative
-
-- Password admin hashate con **bcryptjs**
-- Autenticazione via **JWT** salvato in cookie HttpOnly
-- Admin route protette dal middleware backend e da `AdminRoute` sul frontend
-- Upload documenti:
-  - Gestiti da **multer** sul backend
-  - Salvati su Supabase Storage con permessi ristretti
-- Twilio usato per inviare SMS o gestire recovery / 2FA  
-  Recovery code di esempio (ambiente demo): `5W7RG34JVZXQXPFLNUG2GMD6`
+## 🔐 Sicurezza
+- Password hashate con bcrypt
+- JWT HttpOnly
+- CORS rigido
+- Upload protetti
 
 ---
 
 ## 🧑‍💻 Developer
-
 Realizzato con ❤️ da **MaDGiiRL**  
-🔗 [LinkedIn](https://www.linkedin.com/in/sofia-vidotto-junior-developer/)
+🔗 https://www.linkedin.com/in/sofia-vidotto-junior-developer/
 
 ---
 
 ## 📄 Licenza
-
-Questo template **NON** è libero per uso didattico, portfolio o prototipazione.  
-È un progetto privato, sviluppato per scopi professionali.
+Questo template è un progetto privato non destinato a uso pubblico.

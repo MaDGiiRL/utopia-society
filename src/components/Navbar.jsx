@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { NavLink, Link } from "react-router";
 import { motion } from "framer-motion";
-import { Instagram, Facebook, Menu, X } from "lucide-react";
+import { Instagram, Facebook, Menu, X, Lock } from "lucide-react"; // 👈 aggiunto Lock
 
 const navLinkClasses =
   "relative px-3 py-1 text-sm font-medium tracking-wide uppercase transition hover:text-cyan-300";
@@ -14,7 +14,7 @@ function Navbar() {
   return (
     <header className="fixed inset-x-0 top-0 z-50 bg-black/70 backdrop-blur border-b border-white/10">
       <nav className="relative mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-        {/* LOGO - CLICCABILE */}
+        {/* LOGO */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -35,7 +35,6 @@ function Navbar() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
         >
-          {/* Nav Links */}
           <NavLink
             to="/"
             className={({ isActive }) =>
@@ -57,6 +56,16 @@ function Navbar() {
           >
             Diventa socio
           </NavLink>
+
+          {/* Admin small link — DESKTOP */}
+          <Link
+            to="/admin/login"
+            className="ml-2 flex items-center gap-1 text-[10px] text-white/40 hover:text-cyan-300 transition"
+            title="Pannello amministrazione"
+          >
+            <Lock className="h-3 w-3" />
+            Admin
+          </Link>
 
           {/* Social Icons */}
           <div className="ml-3 flex items-center gap-3 pl-3 border-l border-white/10">
@@ -124,7 +133,17 @@ function Navbar() {
                 Diventa socio
               </NavLink>
 
-              <div className="mt-2 flex items-center gap-4 border-t border-white/10 pt-3">
+              {/* Admin small link — MOBILE */}
+              <Link
+                to="/admin/login"
+                onClick={closeMenu}
+                className="mt-3 flex items-center gap-1 text-[11px] text-white/40 hover:text-cyan-300 transition"
+              >
+                <Lock className="h-3.5 w-3.5" />
+                Area Admin
+              </Link>
+
+              <div className="mt-3 flex items-center gap-4 border-t border-white/10 pt-3">
                 <a
                   href="https://www.instagram.com/utopia.society.pd"
                   target="_blank"
