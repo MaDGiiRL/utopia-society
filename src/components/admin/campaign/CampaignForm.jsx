@@ -1,3 +1,4 @@
+// src/components/admin/campaign/CampaignForm.jsx
 import {
   Send,
   Mail,
@@ -5,8 +6,12 @@ import {
   CalendarDays,
   Sparkles,
   Loader2,
+  Image as ImageIcon,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useState } from "react";
+
+const API_BASE = import.meta.env.VITE_ADMIN_API_URL || "";
 
 export default function CampaignForm({
   onSubmit,
@@ -17,8 +22,52 @@ export default function CampaignForm({
 }) {
   const { t } = useTranslation();
 
+  const [heroImageUrl, setHeroImageUrl] = useState("");
+  const [heroUploading, setHeroUploading] = useState(false);
+  const [heroError, setHeroError] = useState("");
+
+  const handleHeroChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setHeroError("");
+    setHeroUploading(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch(`${API_BASE}/api/admin/upload-campaign-image`, {
+        method: "POST",
+        body: formData,
+        credentials: "include",
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok || !data.ok) {
+        throw new Error(data.message || "Errore upload immagine campagna");
+      }
+
+      setHeroImageUrl(data.url);
+    } catch (err) {
+      console.error("Errore upload immagine campagna:", err);
+      setHeroError(
+        err.message || "Errore durante l'upload dell'immagine campagna"
+      );
+      setHeroImageUrl("");
+    } finally {
+      setHeroUploading(false);
+    }
+  };
+
   return (
     <form onSubmit={onSubmit} className="space-y-5">
+      {/* se c'è URL immagine lo passiamo al parent via input nascosto */}
+      {heroImageUrl && (
+        <input type="hidden" name="hero_image_url" value={heroImageUrl} />
+      )}
+
       {/* Dati evento */}
       <div className="grid gap-4 md:grid-cols-[2fr_1.1fr]">
         <div className="space-y-1.5">
@@ -45,24 +94,50 @@ export default function CampaignForm({
             className="w-full rounded-xl border border-white/10 bg-slate-950/80 px-3 py-2 text-sm text-slate-100 outline-none ring-0 focus:border-cyan-400/80"
           />
         </div>
+      </div>
 
-        <div className="space-y-1.5">
-          <label className="flex items-center gap-1 text-[11px] font-medium uppercase tracking-[0.16em] text-slate-300">
-            <Sparkles className="h-3 w-3 text-cyan-300" />
-            {t("admin.campaign.form.heroImageLabel", "Immagine email (hero)")}
-          </label>
+      {/* Immagine hero */}
+      <div className="space-y-1.5">
+        <label className="flex items-center gap-1 text-[11px] font-medium uppercase tracking-[0.16em] text-slate-300">
+          <ImageIcon className="h-3 w-3 text-amber-300" />
+          Immagine hero newsletter
+        </label>
+
+        <div className="flex flex-col gap-2 rounded-2xl border border-dashed border-white/15 bg-slate-950/80 p-3">
           <input
             type="file"
-            name="hero_image"
             accept="image/*"
-            className="block w-full text-xs text-slate-300 file:mr-3 file:rounded-lg file:border-0 file:bg-cyan-500/10 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:uppercase file:tracking-[0.16em] file:text-cyan-200 hover:file:bg-cyan-500/20"
+            onChange={handleHeroChange}
+            className="text-[11px] text-slate-200 file:mr-3 file:rounded-full file:border-0 file:bg-cyan-400 file:px-3 file:py-1 file:text-[10px] file:font-semibold file:uppercase file:tracking-[0.16em] file:text-black file:hover:brightness-110"
           />
-          <p className="mt-1 text-[11px] text-slate-500">
-            {t(
-              "admin.campaign.form.heroImageHint",
-              "Opzionale. Verrà mostrata sotto al titolo della mail."
+          <div className="flex items-center justify-between text-[11px] text-slate-500">
+            <span>
+              Puoi caricare un'immagine che apparirà sotto al titolo della
+              newsletter.
+            </span>
+            {heroUploading && (
+              <span className="inline-flex items-center gap-1 text-cyan-300">
+                <Loader2 className="h-3 w-3 animate-spin" />
+                Upload...
+              </span>
             )}
-          </p>
+          </div>
+
+          {heroError && (
+            <div className="rounded-lg border border-rose-500/40 bg-rose-500/10 px-2 py-1 text-[11px] text-rose-200">
+              {heroError}
+            </div>
+          )}
+
+          {heroImageUrl && (
+            <div className="mt-2 overflow-hidden rounded-xl border border-white/10 bg-slate-900/80">
+              <img
+                src={heroImageUrl}
+                alt="Anteprima immagine campagna"
+                className="block max-h-48 w-full object-cover"
+              />
+            </div>
+          )}
         </div>
       </div>
 

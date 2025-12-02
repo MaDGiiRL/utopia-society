@@ -200,12 +200,19 @@
                 "channelEmail": "Email",
                 "channelSms": "SMS"
             },
+            "state": {
+                "success": "Campaign sent successfully",
+                "successRecipients": "· Marketing recipients: {{count}}",
+                "errorGeneric": "Error while sending campaign"
+            },
             "status": {
                 "error": "Error while sending campaign",
                 "unexpected": "Unexpected error",
                 "success": "Campaign sent successfully",
                 "successRecipients": "· Marketing recipients: {{count}}",
-                "sent": "Sent"
+                "sent": "Sent",
+                "sending": "Sending...",
+                "other": "Other"
             },
             "submit": {
                 "sending": "Sending...",
@@ -217,6 +224,8 @@
                 "subtitle": "Latest campaigns sent with their status.",
                 "loading": "Loading campaign history...",
                 "noCampaigns": "No campaigns recorded.",
+                "empty": "No campaigns recorded.",
+                "errorLoad": "Error while loading campaign history.",
                 "table": {
                     "date": "Date",
                     "title": "Title",
@@ -228,6 +237,7 @@
                 "title": "Recent send logs",
                 "loading": "Loading logs...",
                 "noLogs": "No recent logs.",
+                "empty": "No recent logs.",
                 "table": {
                     "ts": "Ts",
                     "campaign": "Campaign",
@@ -235,7 +245,8 @@
                     "status": "Status"
                 },
                 "status": {
-                    "sent": "Sent"
+                    "sent": "Sent",
+                    "error": "Error"
                 }
             }
         }

@@ -1,3 +1,4 @@
+// src/pages/admin/NewCampaign.jsx
 import React, { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import { useTranslation } from "react-i18next";
@@ -67,49 +68,20 @@ export default function NewCampaign() {
 
     const form = new FormData(e.target);
 
-    let heroImageUrl = null;
+    const payload = {
+      title: form.get("title"),
+      event_date: form.get("event_date"),
+      message_email: form.get("message_email"),
+      message_sms: form.get("message_sms"),
+      channels: {
+        email: form.get("send_email") === "on",
+        sms: form.get("send_sms") === "on",
+      },
+      // 🔹 nuovo: URL immagine hero (stringa, NON base64)
+      hero_image_url: form.get("hero_image_url") || null,
+    };
 
     try {
-      // 1) se c'è un file, lo inviamo all'endpoint di upload
-      const heroFile = form.get("hero_image");
-      if (heroFile && heroFile.size > 0) {
-        const uploadForm = new FormData();
-        uploadForm.append("file", heroFile);
-
-        const uploadRes = await fetch(
-          `${API_BASE}/api/admin/upload-campaign-image`,
-          {
-            method: "POST",
-            credentials: "include",
-            body: uploadForm,
-          }
-        );
-
-        const uploadData = await uploadRes.json().catch(() => ({}));
-
-        if (!uploadRes.ok || !uploadData.ok) {
-          throw new Error(
-            uploadData.message ||
-              "Errore upload immagine. Riprova con un file più leggero."
-          );
-        }
-
-        heroImageUrl = uploadData.url; // 👈 URL pubblico da Supabase
-      }
-
-      // 2) ora inviamo la campagna con l'URL (stringa piccola)
-      const payload = {
-        title: form.get("title"),
-        event_date: form.get("event_date"),
-        message_email: form.get("message_email"),
-        message_sms: form.get("message_sms"),
-        hero_image_url: heroImageUrl,
-        channels: {
-          email: form.get("send_email") === "on",
-          sms: form.get("send_sms") === "on",
-        },
-      };
-
       const res = await fetch(`${API_BASE}/api/admin/send-campaign`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -126,6 +98,8 @@ export default function NewCampaign() {
       setOk(true);
       setRecipientsCount(data.recipients ?? null);
       e.target.reset();
+
+      // ricarica storico
       loadHistory();
     } catch (err) {
       console.error(err);
@@ -134,42 +108,6 @@ export default function NewCampaign() {
       setLoading(false);
     }
   };
-
-  // Legge un File immagine, lo ridimensiona e lo comprime in JPEG base64
-  async function readAndCompressImage(file) {
-    const MAX_WIDTH = 1000; // larghezza massima hero
-    const QUALITY = 0.7; // qualità JPEG (0–1)
-
-    // 1) leggi il file come dataURL
-    const dataUrl = await new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = (err) => reject(err);
-      reader.readAsDataURL(file);
-    });
-
-    // 2) crea un'immagine per poter usare <canvas>
-    const img = await new Promise((resolve, reject) => {
-      const image = new Image();
-      image.onload = () => resolve(image);
-      image.onerror = (err) => reject(err);
-      image.src = dataUrl;
-    });
-
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
-
-    const scale = img.width > MAX_WIDTH ? MAX_WIDTH / img.width : 1;
-    canvas.width = img.width * scale;
-    canvas.height = img.height * scale;
-
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-    // 3) esporta come JPEG compresso
-    const compressedDataUrl = canvas.toDataURL("image/jpeg", QUALITY);
-
-    return compressedDataUrl;
-  }
 
   return (
     <div className="space-y-6">

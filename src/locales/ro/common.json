@@ -182,30 +182,37 @@
             }
         },
         "campaign": {
-            "headerTitle": "Campanie nouă de eveniment",
-            "headerSubtitle": "Trimite emailuri și/sau SMS tuturor membrilor care au dat consimțământul pentru marketing, pentru a promova o dată sau un eveniment special.",
-            "recipientsHelp": "Destinatarii sunt citiți automat din tabela members.",
-            "headerNote": "Destinatarii sunt citiți automat din tabela members.",
+            "headerTitle": "Campanie nouă pentru eveniment",
+            "headerSubtitle": "Trimite emailuri și/sau SMS tuturor membrilor care au dat acordul de marketing, pentru a promova o dată sau un eveniment special.",
+            "recipientsHelp": "Destinatarii sunt citiți automat din tabelul de membri.",
+            "headerNote": "Destinatarii sunt citiți automat din tabelul de membri.",
             "form": {
                 "titleLabel": "Titlu eveniment / campanie",
                 "titlePlaceholder": "Utopia Night · Special Guest...",
                 "dateLabel": "Data evenimentului",
                 "emailLabel": "Conținut email",
-                "emailPlaceholder": "Bună {{namePlaceholder}},\n\nvineri te așteptăm la Utopia pentru o nouă seară...",
-                "emailHint": "Poți folosi placeholder-e precum {{name}} sau {{eventDate}} care vor fi înlocuite pe server.",
-                "smsLabel": "Text SMS",
+                "emailPlaceholder": "Salut {{namePlaceholder}},\n\nvineri te așteptăm la Utopia pentru o nouă seară...",
+                "emailHint": "Poți folosi placeholder-e precum {{name}} sau {{eventDate}}, care vor fi înlocuite pe server.",
+                "smsLabel": "Mesaj SMS",
                 "smsPlaceholder": "Vineri Utopia Night, acces rezervat membrilor. Prezintă cardul la intrare.",
-                "smsHint": "Recomandat maxim 300 de caractere pentru a evita SMS-uri multiple.",
+                "smsHint": "Recomandăm max 300 caractere pentru a evita SMS-uri multiple.",
                 "channelsLabel": "Canale de trimitere",
                 "channelEmail": "Email",
                 "channelSms": "SMS"
+            },
+            "state": {
+                "success": "Campanie trimisă cu succes",
+                "successRecipients": "· Destinatari marketing: {{count}}",
+                "errorGeneric": "Eroare la trimiterea campaniei"
             },
             "status": {
                 "error": "Eroare la trimiterea campaniei",
                 "unexpected": "Eroare neașteptată",
                 "success": "Campanie trimisă cu succes",
                 "successRecipients": "· Destinatari marketing: {{count}}",
-                "sent": "Trimisă"
+                "sent": "Trimis",
+                "sending": "Se trimite...",
+                "other": "Altele"
             },
             "submit": {
                 "sending": "Se trimite...",
@@ -214,9 +221,11 @@
             },
             "history": {
                 "title": "Istoric campanii",
-                "subtitle": "Cele mai recente campanii trimise și statusul lor.",
+                "subtitle": "Ultimele campanii trimise și statusul lor.",
                 "loading": "Se încarcă istoricul campaniilor...",
-                "noCampaigns": "Nicio campanie înregistrată.",
+                "noCampaigns": "Nu există campanii înregistrate.",
+                "empty": "Nu există campanii înregistrate.",
+                "errorLoad": "Eroare la încărcarea istoricului campaniilor.",
                 "table": {
                     "date": "Data",
                     "title": "Titlu",
@@ -225,17 +234,19 @@
                 }
             },
             "logs": {
-                "title": "Log-uri recente de trimitere",
-                "loading": "Se încarcă log-urile...",
-                "noLogs": "Niciun log recent.",
+                "title": "Loguri de trimitere recente",
+                "loading": "Se încarcă logurile...",
+                "noLogs": "Nu există loguri recente.",
+                "empty": "Nu există loguri recente.",
                 "table": {
-                    "ts": "Ts",
+                    "ts": "Data/ora",
                     "campaign": "Campanie",
                     "channel": "Canal",
                     "status": "Status"
                 },
                 "status": {
-                    "sent": "Trimis"
+                    "sent": "Trimis",
+                    "error": "Eroare"
                 }
             }
         }

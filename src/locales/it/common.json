@@ -183,29 +183,36 @@
         },
         "campaign": {
             "headerTitle": "Nuova campagna evento",
-            "headerSubtitle": "Invia email e/o SMS a tutti i soci che hanno dato consenso marketing per promuovere una data o un evento speciale.",
-            "recipientsHelp": "I destinatari vengono letti automaticamente dalla tabella members.",
-            "headerNote": "I destinatari vengono letti automaticamente dalla tabella members.",
+            "headerSubtitle": "Invia email e/o SMS a tutti i soci che hanno dato il consenso marketing, per promuovere una data o un evento speciale.",
+            "recipientsHelp": "I destinatari vengono letti automaticamente dall'elenco soci.",
+            "headerNote": "I destinatari vengono letti automaticamente dall'elenco soci.",
             "form": {
                 "titleLabel": "Titolo evento / campagna",
                 "titlePlaceholder": "Utopia Night · Special Guest...",
                 "dateLabel": "Data evento",
-                "emailLabel": "Corpo email",
-                "emailPlaceholder": "Ciao {{namePlaceholder}},\n\nvenerdì ti aspettiamo a Utopia per una nuova serata...",
+                "emailLabel": "Testo email",
+                "emailPlaceholder": "Ciao {{namePlaceholder}},\n\nquesto venerdì ti aspettiamo a Utopia per una nuova serata...",
                 "emailHint": "Puoi usare placeholder come {{name}} o {{eventDate}} che verranno sostituiti lato server.",
                 "smsLabel": "Testo SMS",
-                "smsPlaceholder": "Venerdì Utopia Night, ingresso riservato ai soci. Presenta la tessera all’ingresso.",
-                "smsHint": "Consigliati max 300 caratteri per evitare SMS multipli.",
+                "smsPlaceholder": "Venerdì Utopia Night, ingresso riservato ai soci. Mostra la tessera all'ingresso.",
+                "smsHint": "Consigliamo max 300 caratteri per evitare SMS multipli.",
                 "channelsLabel": "Canali di invio",
                 "channelEmail": "Email",
                 "channelSms": "SMS"
             },
+            "state": {
+                "success": "Campagna inviata correttamente",
+                "successRecipients": "· Destinatari marketing: {{count}}",
+                "errorGeneric": "Errore durante l'invio della campagna"
+            },
             "status": {
-                "error": "Errore nell'invio campagna",
+                "error": "Errore durante l'invio della campagna",
                 "unexpected": "Errore imprevisto",
                 "success": "Campagna inviata correttamente",
                 "successRecipients": "· Destinatari marketing: {{count}}",
-                "sent": "Inviata"
+                "sent": "Inviata",
+                "sending": "Invio in corso...",
+                "other": "Altro"
             },
             "submit": {
                 "sending": "Invio in corso...",
@@ -214,9 +221,11 @@
             },
             "history": {
                 "title": "Storico campagne",
-                "subtitle": "Ultime campagne inviate con relativo stato.",
-                "loading": "Carico storico campagne...",
+                "subtitle": "Ultime campagne inviate con il relativo stato.",
+                "loading": "Caricamento storico campagne...",
                 "noCampaigns": "Nessuna campagna registrata.",
+                "empty": "Nessuna campagna registrata.",
+                "errorLoad": "Errore durante il caricamento dello storico campagne.",
                 "table": {
                     "date": "Data",
                     "title": "Titolo",
@@ -226,16 +235,18 @@
             },
             "logs": {
                 "title": "Log invii recenti",
-                "loading": "Carico log...",
+                "loading": "Caricamento log...",
                 "noLogs": "Nessun log recente.",
+                "empty": "Nessun log recente.",
                 "table": {
-                    "ts": "Ts",
+                    "ts": "Data/ora",
                     "campaign": "Campagna",
                     "channel": "Canale",
                     "status": "Stato"
                 },
                 "status": {
-                    "sent": "Inviato"
+                    "sent": "Inviato",
+                    "error": "Errore"
                 }
             }
         }
