@@ -67,38 +67,43 @@ export default function NewCampaign() {
 
     const form = new FormData(e.target);
 
-    const heroFile = form.get("hero_image");
-    let heroImageDataUrl = null;
+    let heroImageUrl = null;
 
     try {
+      // 1) se c'è un file, lo inviamo all'endpoint di upload
+      const heroFile = form.get("hero_image");
       if (heroFile && heroFile.size > 0) {
-        // 🔹 comprime e ridimensiona l'immagine
-        const compressed = await readAndCompressImage(heroFile);
+        const uploadForm = new FormData();
+        uploadForm.append("file", heroFile);
 
-        // 🔹 opzionale: blocca se ancora troppo grande
-        const approxBytes = compressed.length; // 1 char ~ 1 byte
-        const MAX_BYTES = 700_000; // ~700KB
+        const uploadRes = await fetch(
+          `${API_BASE}/api/admin/upload-campaign-image`,
+          {
+            method: "POST",
+            credentials: "include",
+            body: uploadForm,
+          }
+        );
 
-        if (approxBytes > MAX_BYTES) {
-          setLoading(false);
-          setError(
-            t(
-              "admin.campaign.form.heroImageTooLarge",
-              "L'immagine è troppo grande anche dopo la compressione. Usa un file più leggero (max ~700KB)."
-            )
+        const uploadData = await uploadRes.json().catch(() => ({}));
+
+        if (!uploadRes.ok || !uploadData.ok) {
+          throw new Error(
+            uploadData.message ||
+              "Errore upload immagine. Riprova con un file più leggero."
           );
-          return;
         }
 
-        heroImageDataUrl = compressed;
+        heroImageUrl = uploadData.url; // 👈 URL pubblico da Supabase
       }
 
+      // 2) ora inviamo la campagna con l'URL (stringa piccola)
       const payload = {
         title: form.get("title"),
         event_date: form.get("event_date"),
         message_email: form.get("message_email"),
         message_sms: form.get("message_sms"),
-        hero_image_data_url: heroImageDataUrl, // 👈 ora è molto più piccolo
+        hero_image_url: heroImageUrl,
         channels: {
           email: form.get("send_email") === "on",
           sms: form.get("send_sms") === "on",
