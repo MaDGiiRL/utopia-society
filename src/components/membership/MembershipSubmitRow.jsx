@@ -5,6 +5,8 @@ export default function MembershipSubmitRow({
   loading,
   submitLabel,
   submitLoadingLabel,
+  onOpenSignature, // ✅ nuovo prop
+  signatureLabel, // ✅ testo bottone firma
 }) {
   return (
     <div className="pt-2 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -27,10 +29,15 @@ export default function MembershipSubmitRow({
         </span>
       </motion.button>
 
-      {/*
-      // Qui eventualmente puoi riattivare il bottone firma digitale,
-      // usando il componente SignatureModal che trovi in membership/SignatureModal.jsx
-      */}
+      {onOpenSignature && (
+        <button
+          type="button"
+          onClick={onOpenSignature}
+          className="text-[0.7rem] uppercase tracking-[0.18em] text-slate-300 hover:text-cyan-300 underline decoration-dotted"
+        >
+          {signatureLabel || "Firma digitalmente"}
+        </button>
+      )}
     </div>
   );
 }

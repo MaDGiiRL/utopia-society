@@ -27,12 +27,7 @@ export default function HeroLogoCard({ style }) {
         {/* Glow di sfondo */}
         <div className="h-full w-full rounded-3xl bg-[radial-gradient(circle_at_20%_20%,rgba(236,72,153,0.65),transparent_55%),radial-gradient(circle_at_80%_80%,rgba(56,189,248,0.6),transparent_55%)]" />
 
-        <span className="absolute bottom-5 left-6 text-xs font-medium tracking-[0.2em] uppercase text-slate-200">
-          {t("hero.scheduleDays")}
-        </span>
-        <span className="absolute bottom-5 right-8 text-xs text-cyan-200">
-          {t("hero.scheduleTime")}
-        </span>
+
       </div>
     </motion.div>
   );

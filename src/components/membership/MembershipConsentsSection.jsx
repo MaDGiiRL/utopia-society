@@ -1,4 +1,4 @@
-import { Trans, useTranslation } from "react-i18next";
+import { useTranslation } from "react-i18next";
 
 export default function MembershipConsentsSection() {
   const { t } = useTranslation();
@@ -20,19 +20,16 @@ export default function MembershipConsentsSection() {
             className="mt-0.5 h-4 w-4 rounded border-slate-500 bg-slate-900 text-cyan-400 focus:ring-cyan-400"
           />
           <span>
-            <Trans
-              i18nKey="membership.consentPrivacy"
-              components={{
-                link: (
-                  <a
-                    href="/pdf/privacy.pdf"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-cyan-300 underline"
-                  />
-                ),
-              }}
-            />
+            {t("membership.consentPrivacyPrefix")}
+            <a
+              href="/pdf/privacy.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-cyan-300 underline"
+            >
+              {t("membership.consentPrivacyLink")}
+            </a>
+            .
           </span>
         </label>
 
@@ -46,19 +43,16 @@ export default function MembershipConsentsSection() {
             className="mt-0.5 h-4 w-4 rounded border-slate-500 bg-slate-900 text-cyan-400 focus:ring-cyan-400"
           />
           <span>
-            <Trans
-              i18nKey="membership.consentStatute"
-              components={{
-                link: (
-                  <a
-                    href="/pdf/statuto.pdf"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-cyan-300 underline"
-                  />
-                ),
-              }}
-            />
+            {t("membership.consentStatutePrefix")}
+            <a
+              href="/pdf/statuto.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-cyan-300 underline"
+            >
+              {t("membership.consentStatuteLink")}
+            </a>
+            .
           </span>
         </label>
 

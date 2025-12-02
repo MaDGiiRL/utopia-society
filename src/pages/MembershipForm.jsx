@@ -11,7 +11,7 @@ import MembershipNotesSection from "../components/membership/MembershipNotesSect
 import MembershipConsentsSection from "../components/membership/MembershipConsentsSection";
 import MembershipMessages from "../components/membership/MembershipMessages";
 import MembershipSubmitRow from "../components/membership/MembershipSubmitRow";
-// import SignatureModal from "../components/membership/SignatureModal"; // se riattivi firma
+import SignatureModal from "../components/membership/SignatureModal"; // ✅ riattivata
 
 // Base URL backend
 const API_BASE =
@@ -32,6 +32,7 @@ function MembershipForm() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [hasSigned, setHasSigned] = useState(false);
+  const [signatureDataUrl, setSignatureDataUrl] = useState(null); // ✅ qui salviamo la firma
 
   const [loading, setLoading] = useState(false);
   const [ok, setOk] = useState(false);
@@ -42,7 +43,7 @@ function MembershipForm() {
   const [frontName, setFrontName] = useState("");
   const [backName, setBackName] = useState("");
 
-  // Firma (se la riattivi)
+  // Setup eventi di disegno quando la modale è aperta
   useEffect(() => {
     if (!isModalOpen) return;
     const canvas = canvasRef.current;
@@ -122,6 +123,7 @@ function MembershipForm() {
     const ctx = canvas.getContext("2d");
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     setHasSigned(false);
+    setSignatureDataUrl(null); // ✅ reset anche del dataURL
   };
 
   const handleConfirmSignature = async () => {
@@ -136,6 +138,14 @@ function MembershipForm() {
       });
       return;
     }
+
+    const canvas = canvasRef.current;
+    if (canvas) {
+      // ✅ salviamo la firma come dataURL PNG
+      const dataUrl = canvas.toDataURL("image/png");
+      setSignatureDataUrl(dataUrl);
+    }
+
     setIsModalOpen(false);
   };
 
@@ -225,7 +235,7 @@ function MembershipForm() {
     }
 
     try {
-      // 1) upload documenti al backend (come vecchio upload, ma su Supabase)
+      // 1) upload documenti al backend (Supabase)
       const frontResult = await uploadDocumento(fileFront, "front");
       const backResult = await uploadDocumento(fileBack, "back");
 
@@ -244,9 +254,11 @@ function MembershipForm() {
         source: "membership_form",
         document_front_url: frontResult.url,
         document_back_url: backResult.url,
+        // ✅ firma in base64 → sarà usata dal backend per disegnare sul PDF
+        signature_data_url: signatureDataUrl || null,
       };
 
-      // 3) chiamata al backend → qui salva + manda mail a tessere.utopia
+      // 3) chiamata al backend → salva + manda mail a tessere.utopia
       const res = await fetch(`${API_BASE}/api/admin/members`, {
         method: "POST",
         headers: {
@@ -290,6 +302,12 @@ function MembershipForm() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const openSignatureModal = () => {
+    clearSignature(); // canvas pulito ogni volta
+    setSignatureDataUrl(null);
+    setIsModalOpen(true);
   };
 
   return (
@@ -468,11 +486,15 @@ function MembershipForm() {
               loading={loading}
               submitLabel={t("membership.submitIdle")}
               submitLoadingLabel={t("membership.submitLoading")}
+              onOpenSignature={openSignatureModal}
+              signatureLabel={t(
+                "membership.signatureCta",
+                "Firma digitalmente la domanda"
+              )}
             />
           </motion.form>
 
-          {/* MODALE FIRMA (opzionale, se vuoi replicare 1:1 il vecchio canvas di firma) */}
-          {/*
+          {/* MODALE FIRMA */}
           <SignatureModal
             isOpen={isModalOpen}
             canvasRef={canvasRef}
@@ -480,7 +502,6 @@ function MembershipForm() {
             onClose={() => setIsModalOpen(false)}
             onConfirm={handleConfirmSignature}
           />
-          */}
         </div>
       </section>
     </div>
