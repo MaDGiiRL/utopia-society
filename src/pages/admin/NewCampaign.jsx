@@ -67,34 +67,44 @@ export default function NewCampaign() {
 
     const form = new FormData(e.target);
 
-    // File immagine hero dal form
     const heroFile = form.get("hero_image");
-
     let heroImageDataUrl = null;
 
-    if (heroFile && heroFile.size > 0) {
-      // Converte il file in data URL (base64)
-      heroImageDataUrl = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result); // es. "data:image/png;base64,...."
-        reader.onerror = (err) => reject(err);
-        reader.readAsDataURL(heroFile);
-      });
-    }
-
-    const payload = {
-      title: form.get("title"),
-      event_date: form.get("event_date"),
-      message_email: form.get("message_email"),
-      message_sms: form.get("message_sms"),
-      hero_image_data_url: heroImageDataUrl, // 👈 nuovo campo
-      channels: {
-        email: form.get("send_email") === "on",
-        sms: form.get("send_sms") === "on",
-      },
-    };
-
     try {
+      if (heroFile && heroFile.size > 0) {
+        // 🔹 comprime e ridimensiona l'immagine
+        const compressed = await readAndCompressImage(heroFile);
+
+        // 🔹 opzionale: blocca se ancora troppo grande
+        const approxBytes = compressed.length; // 1 char ~ 1 byte
+        const MAX_BYTES = 700_000; // ~700KB
+
+        if (approxBytes > MAX_BYTES) {
+          setLoading(false);
+          setError(
+            t(
+              "admin.campaign.form.heroImageTooLarge",
+              "L'immagine è troppo grande anche dopo la compressione. Usa un file più leggero (max ~700KB)."
+            )
+          );
+          return;
+        }
+
+        heroImageDataUrl = compressed;
+      }
+
+      const payload = {
+        title: form.get("title"),
+        event_date: form.get("event_date"),
+        message_email: form.get("message_email"),
+        message_sms: form.get("message_sms"),
+        hero_image_data_url: heroImageDataUrl, // 👈 ora è molto più piccolo
+        channels: {
+          email: form.get("send_email") === "on",
+          sms: form.get("send_sms") === "on",
+        },
+      };
+
       const res = await fetch(`${API_BASE}/api/admin/send-campaign`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -111,7 +121,6 @@ export default function NewCampaign() {
       setOk(true);
       setRecipientsCount(data.recipients ?? null);
       e.target.reset();
-
       loadHistory();
     } catch (err) {
       console.error(err);
@@ -120,6 +129,42 @@ export default function NewCampaign() {
       setLoading(false);
     }
   };
+
+  // Legge un File immagine, lo ridimensiona e lo comprime in JPEG base64
+  async function readAndCompressImage(file) {
+    const MAX_WIDTH = 1000; // larghezza massima hero
+    const QUALITY = 0.7; // qualità JPEG (0–1)
+
+    // 1) leggi il file come dataURL
+    const dataUrl = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = (err) => reject(err);
+      reader.readAsDataURL(file);
+    });
+
+    // 2) crea un'immagine per poter usare <canvas>
+    const img = await new Promise((resolve, reject) => {
+      const image = new Image();
+      image.onload = () => resolve(image);
+      image.onerror = (err) => reject(err);
+      image.src = dataUrl;
+    });
+
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+
+    const scale = img.width > MAX_WIDTH ? MAX_WIDTH / img.width : 1;
+    canvas.width = img.width * scale;
+    canvas.height = img.height * scale;
+
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+    // 3) esporta come JPEG compresso
+    const compressedDataUrl = canvas.toDataURL("image/jpeg", QUALITY);
+
+    return compressedDataUrl;
+  }
 
   return (
     <div className="space-y-6">
