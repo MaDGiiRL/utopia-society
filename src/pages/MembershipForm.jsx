@@ -11,7 +11,7 @@ import MembershipNotesSection from "../components/membership/MembershipNotesSect
 import MembershipConsentsSection from "../components/membership/MembershipConsentsSection";
 import MembershipMessages from "../components/membership/MembershipMessages";
 import MembershipSubmitRow from "../components/membership/MembershipSubmitRow";
-import SignatureModal from "../components/membership/SignatureModal"; // ✅ riattivata
+import SignatureModal from "../components/membership/SignatureModal";
 
 // Base URL backend
 const API_BASE =
@@ -32,7 +32,7 @@ function MembershipForm() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [hasSigned, setHasSigned] = useState(false);
-  const [signatureDataUrl, setSignatureDataUrl] = useState(null); // ✅ qui salviamo la firma
+  const [signatureDataUrl, setSignatureDataUrl] = useState(null);
 
   const [loading, setLoading] = useState(false);
   const [ok, setOk] = useState(false);
@@ -43,7 +43,7 @@ function MembershipForm() {
   const [frontName, setFrontName] = useState("");
   const [backName, setBackName] = useState("");
 
-  // Setup eventi di disegno quando la modale è aperta
+  // Setup eventi di disegno quando la modale firma è aperta
   useEffect(() => {
     if (!isModalOpen) return;
     const canvas = canvasRef.current;
@@ -123,7 +123,7 @@ function MembershipForm() {
     const ctx = canvas.getContext("2d");
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     setHasSigned(false);
-    setSignatureDataUrl(null); // ✅ reset anche del dataURL
+    setSignatureDataUrl(null);
   };
 
   const handleConfirmSignature = async () => {
@@ -141,12 +141,16 @@ function MembershipForm() {
 
     const canvas = canvasRef.current;
     if (canvas) {
-      // ✅ salviamo la firma come dataURL PNG
       const dataUrl = canvas.toDataURL("image/png");
       setSignatureDataUrl(dataUrl);
     }
 
     setIsModalOpen(false);
+
+    // Dopo la conferma firma → invia il form
+    if (formRef.current) {
+      formRef.current.requestSubmit();
+    }
   };
 
   const handleFileChange = (e, setPreview, setName) => {
@@ -213,11 +217,27 @@ function MembershipForm() {
     };
   };
 
+  // Submit "vero" del form (chiamato da requestSubmit)
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
     setError("");
     setOk(false);
+
+    // ulteriore sicurezza: se manca la firma, blocca
+    if (!signatureDataUrl) {
+      await Swal.fire({
+        icon: "warning",
+        title: "Firma mancante",
+        text: "Per favore firma la domanda prima di inviare la richiesta.",
+        confirmButtonText: "Ok",
+        background: "#020617",
+        color: "#e5e7eb",
+      });
+      setIsModalOpen(true);
+      return;
+    }
+
+    setLoading(true);
 
     const formData = new FormData(e.target);
 
@@ -235,7 +255,7 @@ function MembershipForm() {
     }
 
     try {
-      // 1) upload documenti al backend (Supabase)
+      // 1) upload documenti
       const frontResult = await uploadDocumento(fileFront, "front");
       const backResult = await uploadDocumento(fileBack, "back");
 
@@ -254,11 +274,9 @@ function MembershipForm() {
         source: "membership_form",
         document_front_url: frontResult.url,
         document_back_url: backResult.url,
-        // ✅ firma in base64 → sarà usata dal backend per disegnare sul PDF
         signature_data_url: signatureDataUrl || null,
       };
 
-      // 3) chiamata al backend → salva + manda mail a tessere.utopia
       const res = await fetch(`${API_BASE}/api/admin/members`, {
         method: "POST",
         headers: {
@@ -274,7 +292,7 @@ function MembershipForm() {
         throw new Error(data?.message || t("membership.errorGeneric"));
       }
 
-      // 4) reset UI
+      // reset UI
       setOk(true);
       e.target.reset();
       clearSignature();
@@ -304,9 +322,27 @@ function MembershipForm() {
     }
   };
 
+  // Click sul bottone INVIA (gestiamo qui validazione + apertura modale)
+  const handleSubmitClick = () => {
+    const formEl = formRef.current;
+    if (!formEl) return;
+
+    // 1) Validazione HTML5
+    const isValid = formEl.reportValidity();
+    if (!isValid) return;
+
+    // 2) Se non c'è firma → apri modale
+    if (!signatureDataUrl) {
+      setIsModalOpen(true);
+      return;
+    }
+
+    // 3) Se la firma c'è già → submit diretto
+    formEl.requestSubmit();
+  };
+
   const openSignatureModal = () => {
-    clearSignature(); // canvas pulito ogni volta
-    setSignatureDataUrl(null);
+    clearSignature();
     setIsModalOpen(true);
   };
 
@@ -418,7 +454,7 @@ function MembershipForm() {
                     id="emailType"
                     name="emailType"
                     type="email"
-                    className="mt-1 w-full rounded-xl border border-white/10 bg-slate-950/70 px-3 py-2 text-sm outline-none focus:border-cyan-400"
+                    className="mt-1 w-full rounded-xl border border白/10 bg-slate-950/70 px-3 py-2 text-sm outline-none focus:border-cyan-400"
                     placeholder={t("membership.placeholderEmail")}
                     required
                   />
@@ -491,6 +527,7 @@ function MembershipForm() {
                 "membership.signatureCta",
                 "Firma digitalmente la domanda"
               )}
+              onSubmitClick={handleSubmitClick}
             />
           </motion.form>
 
