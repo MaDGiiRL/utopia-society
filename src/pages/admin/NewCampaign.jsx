@@ -67,11 +67,27 @@ export default function NewCampaign() {
 
     const form = new FormData(e.target);
 
+    // File immagine hero dal form
+    const heroFile = form.get("hero_image");
+
+    let heroImageDataUrl = null;
+
+    if (heroFile && heroFile.size > 0) {
+      // Converte il file in data URL (base64)
+      heroImageDataUrl = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result); // es. "data:image/png;base64,...."
+        reader.onerror = (err) => reject(err);
+        reader.readAsDataURL(heroFile);
+      });
+    }
+
     const payload = {
       title: form.get("title"),
       event_date: form.get("event_date"),
       message_email: form.get("message_email"),
       message_sms: form.get("message_sms"),
+      hero_image_data_url: heroImageDataUrl, // 👈 nuovo campo
       channels: {
         email: form.get("send_email") === "on",
         sms: form.get("send_sms") === "on",

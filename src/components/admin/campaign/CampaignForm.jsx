@@ -45,6 +45,25 @@ export default function CampaignForm({
             className="w-full rounded-xl border border-white/10 bg-slate-950/80 px-3 py-2 text-sm text-slate-100 outline-none ring-0 focus:border-cyan-400/80"
           />
         </div>
+
+        <div className="space-y-1.5">
+          <label className="flex items-center gap-1 text-[11px] font-medium uppercase tracking-[0.16em] text-slate-300">
+            <Sparkles className="h-3 w-3 text-cyan-300" />
+            {t("admin.campaign.form.heroImageLabel", "Immagine email (hero)")}
+          </label>
+          <input
+            type="file"
+            name="hero_image"
+            accept="image/*"
+            className="block w-full text-xs text-slate-300 file:mr-3 file:rounded-lg file:border-0 file:bg-cyan-500/10 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:uppercase file:tracking-[0.16em] file:text-cyan-200 hover:file:bg-cyan-500/20"
+          />
+          <p className="mt-1 text-[11px] text-slate-500">
+            {t(
+              "admin.campaign.form.heroImageHint",
+              "Opzionale. Verrà mostrata sotto al titolo della mail."
+            )}
+          </p>
+        </div>
       </div>
 
       {/* Testo email */}
