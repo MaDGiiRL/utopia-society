@@ -123,7 +123,7 @@ export default function AdminSidebar({
       {/* Export + logout */}
       <div className="flex flex-col gap-2 rounded-2xl border border-white/10 bg-slate-950/85 px-4 py-3 text-[11px] shadow-lg sm:flex-col sm:items-center sm:justify-between">
         {/* XML (completo) */}
-        <button
+        {/* <button
           type="button"
           onClick={onExportXml}
           disabled={xmlLoading}
@@ -138,7 +138,7 @@ export default function AdminSidebar({
           <span className="sm:hidden">
             {t("admin.dashboard.exportMembersXmlShort")}
           </span>
-        </button>
+        </button> */}
 
         {/* 🔹 XLSX ACSI */}
         <button
