@@ -74,34 +74,24 @@ export default function AdminDashboard() {
       });
 
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(
-          data.message ||
-            t("admin.dashboard.xlsxError", "Errore export ACSI (.xlsx)")
-        );
+        throw new Error("Errore download file ACSI");
       }
 
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
-      const today = new Date().toISOString().slice(0, 10);
-
       a.href = url;
-      a.download = `utopia_acsi_iscritti_${today}.xlsx`;
+
+      const today = new Date().toISOString().slice(0, 10);
+      a.download = `utopia_acsi_${today}.xlsx`;
+
       document.body.appendChild(a);
       a.click();
       a.remove();
       URL.revokeObjectURL(url);
     } catch (err) {
       console.error(err);
-      setXlsxError(
-        err instanceof Error
-          ? err.message
-          : t(
-              "admin.dashboard.xlsxUnexpectedError",
-              "Errore imprevisto export ACSI (.xlsx)"
-            )
-      );
+      setXlsxError(err.message || "Errore imprevisto");
     } finally {
       setXlsxLoading(false);
     }
