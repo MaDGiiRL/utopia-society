@@ -44,9 +44,6 @@ export default function MembersTable({
             <th className="px-3 py-2 font-medium text-slate-400">
               {t("admin.membersPanel.table.email")}
             </th>
-            <th className="px-3 py-2 font-medium text-slate-400">
-              {t("admin.membersPanel.table.city")}
-            </th>
             <th className="px-3 py-2 font-medium text-slate-400 text-right">
               {/* azioni */}
               {t("admin.membersPanel.table.card")}
