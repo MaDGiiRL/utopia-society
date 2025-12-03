@@ -1,10 +1,11 @@
+// src/components/admin/registry/MembersRegistrySection.jsx
 import React from "react";
 import { useTranslation } from "react-i18next";
 
 export default function MembersRegistrySection({
   registryLoading,
   registryError,
-  filteredRegistry,
+  filteredRegistry, // 🔹 già paginato dal panel
   registryFile,
   setRegistryFile,
   importingRegistry,
@@ -52,8 +53,11 @@ export default function MembersRegistrySection({
               onChange={(e) => setYearFilter(e.target.value)}
             >
               <option value="ALL">Tutti</option>
-              {/* opzionale: anni fissi */}
-              {/* <option value="2024">2024</option> */}
+              {["2026", "2025", "2024", "2023", "2022"].map((y) => (
+                <option key={y} value={y}>
+                  {y}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -130,7 +134,7 @@ export default function MembersRegistrySection({
         <div className="py-6 text-center text-xs text-rose-400">
           {registryError}
         </div>
-      ) : filteredRegistry.length === 0 ? (
+      ) : total === 0 ? (
         <div className="py-6 text-center text-xs text-slate-400">
           Nessun socio nello storico con i filtri selezionati.
         </div>
@@ -144,17 +148,14 @@ export default function MembersRegistrySection({
                 <th className="px-2 py-2">Stato</th>
                 <th className="px-2 py-2">Cognome</th>
                 <th className="px-2 py-2">Nome</th>
-                <th className="px-2 py-2">Email</th>
-                <th className="px-2 py-2">Cellulare</th>
-                <th className="px-2 py-2">Città / Club</th>
-                <th className="px-2 py-2">Tessera</th>
+                <th className="px-2 py-2 text-right">Azioni</th>
               </tr>
             </thead>
             <tbody>
               {filteredRegistry.length === 0 && (
                 <tr>
                   <td
-                    colSpan={8}
+                    colSpan={5}
                     className="px-2 py-4 text-center text-xs text-slate-400"
                   >
                     Nessun risultato.
@@ -163,54 +164,48 @@ export default function MembersRegistrySection({
               )}
 
               {filteredRegistry.length > 0 &&
-                filteredRegistry
-                  .slice((page - 1) * pageSize, page * pageSize)
-                  .map((entry) => (
-                    <tr
-                      key={
-                        entry.id ||
-                        `${entry.external_id}-${entry.card_number}-${entry.year}`
-                      }
-                      className="cursor-pointer border-b border-slate-800/60 hover:bg-slate-800/50"
-                      onClick={() => onOpenRegistryEntry(entry)}
-                    >
-                      <td className="px-2 py-1 align-middle text-[11px] text-slate-300">
-                        {entry.year ?? "-"}
-                      </td>
-                      <td className="px-2 py-1 align-middle text-[11px]">
-                        <span
-                          className={`inline-flex rounded-full px-2 py-[1px] text-[10px] uppercase tracking-[0.14em] ${
-                            (entry.status || "")
-                              .toString()
-                              .toLowerCase()
-                              .startsWith("attiv")
-                              ? "bg-emerald-500/10 text-emerald-300 border border-emerald-500/40"
-                              : "bg-slate-700/40 text-slate-200 border border-slate-600/60"
-                          }`}
-                        >
-                          {entry.status || "-"}
-                        </span>
-                      </td>
-                      <td className="px-2 py-1 align-middle text-[11px]">
-                        {entry.last_name || "-"}
-                      </td>
-                      <td className="px-2 py-1 align-middle text-[11px]">
-                        {entry.first_name || "-"}
-                      </td>
-                      <td className="px-2 py-1 align-middle text-[11px]">
-                        {entry.email || "-"}
-                      </td>
-                      <td className="px-2 py-1 align-middle text-[11px]">
-                        {entry.phone || "-"}
-                      </td>
-                      <td className="px-2 py-1 align-middle text-[11px]">
-                        {entry.club_name || entry.city || "-"}
-                      </td>
-                      <td className="px-2 py-1 align-middle text-[11px] text-slate-300">
-                        {entry.card_number || "-"}
-                      </td>
-                    </tr>
-                  ))}
+                filteredRegistry.map((entry) => (
+                  <tr
+                    key={
+                      entry.id ||
+                      `${entry.external_id}-${entry.card_number}-${entry.year}`
+                    }
+                    className="border-b border-slate-800/60 hover:bg-slate-800/50"
+                  >
+                    <td className="px-2 py-1 align-middle text-[11px] text-slate-300">
+                      {entry.year ?? "-"}
+                    </td>
+                    <td className="px-2 py-1 align-middle text-[11px]">
+                      <span
+                        className={`inline-flex rounded-full px-2 py-[1px] text-[10px] uppercase tracking-[0.14em] ${
+                          (entry.status || "")
+                            .toString()
+                            .toLowerCase()
+                            .startsWith("attiv")
+                            ? "bg-emerald-500/10 text-emerald-300 border border-emerald-500/40"
+                            : "bg-slate-700/40 text-slate-200 border border-slate-600/60"
+                        }`}
+                      >
+                        {entry.status || "-"}
+                      </span>
+                    </td>
+                    <td className="px-2 py-1 align-middle text-[11px]">
+                      {entry.last_name || "-"}
+                    </td>
+                    <td className="px-2 py-1 align-middle text-[11px]">
+                      {entry.first_name || "-"}
+                    </td>
+                    <td className="px-2 py-1 align-middle text-right">
+                      <button
+                        type="button"
+                        onClick={() => onOpenRegistryEntry(entry)}
+                        className="rounded-full border border-slate-500/70 bg-slate-800/60 px-3 py-1 text-[10px] uppercase tracking-[0.16em] text-slate-100 hover:bg-slate-700"
+                      >
+                        Dettagli
+                      </button>
+                    </td>
+                  </tr>
+                ))}
             </tbody>
           </table>
 

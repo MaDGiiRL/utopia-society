@@ -1,3 +1,4 @@
+// src/pages/admin/MembersPanel.jsx
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { fetchMembers, fetchMemberById } from "../../api/admin";
@@ -10,7 +11,8 @@ import MemberModal, {
 } from "../../components/admin/registry/MemberModal";
 
 const API_BASE = import.meta.env.VITE_ADMIN_API_URL || "";
-const REGISTRY_PAGE_SIZE = 50; // 👈 paginazione storico da 50
+const REGISTRY_PAGE_SIZE = 50;   // 🔹 paginazione storico
+const MEMBERS_PAGE_SIZE = 50;    // 🔹 paginazione prima tabella
 
 export default function MembersPanel() {
   const { t } = useTranslation();
@@ -22,6 +24,9 @@ export default function MembersPanel() {
   // filtro export per la PRIMA tabella (membri)
   const [membersExportFilter, setMembersExportFilter] =
     useState("non_exported");
+
+  // 🔹 pagina per la PRIMA tabella
+  const [membersPage, setMembersPage] = useState(1);
 
   // storico (members_registry)
   const [registryEntries, setRegistryEntries] = useState([]);
@@ -43,7 +48,7 @@ export default function MembersPanel() {
   // filtro stato SOLO per lo storico (ALL | ACTIVE)
   const [registryStatusFilter, setRegistryStatusFilter] = useState("ALL");
 
-  // modale socio
+  // modale socio "nuovo"
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState(null);
   const [loadingMember, setLoadingMember] = useState(false);
@@ -52,7 +57,10 @@ export default function MembersPanel() {
   const [registryModalOpen, setRegistryModalOpen] = useState(false);
   const [selectedRegistryEntry, setSelectedRegistryEntry] = useState(null);
 
-  // EXPORT XLSX
+  // 🔹 mostra/nascondi sezione storico
+  const [showRegistrySection, setShowRegistrySection] = useState(false);
+
+  // handler per il pulsante EXPORT
   const handleExportXlsx = () => {
     if (membersExportFilter !== "non_exported") return;
     const year = new Date().getFullYear();
@@ -74,6 +82,7 @@ export default function MembersPanel() {
             throw new Error(data.message || t("admin.membersPanel.error"));
           }
           setMembers(data.members || []);
+          setMembersPage(1); // reset pagina quando cambia il filtro
         }
       } catch (err) {
         console.error(err);
@@ -116,19 +125,7 @@ export default function MembersPanel() {
         }
 
         if (!cancelled) {
-          const entries = (data.entries || []).slice();
-
-          // 👇 ordina dallo YEAR più recente e poi dalla data di validità
-          entries.sort((a, b) => {
-            const ya = a.year ?? 0;
-            const yb = b.year ?? 0;
-            if (yb !== ya) return yb - ya;
-
-            const da = a.valid_from ? Date.parse(a.valid_from) : 0;
-            const db = b.valid_from ? Date.parse(b.valid_from) : 0;
-            return db - da;
-          });
-
+          const entries = data.entries || [];
           setRegistryEntries(entries);
         }
       } catch (err) {
@@ -149,7 +146,7 @@ export default function MembersPanel() {
     };
   }, [yearFilter, t]);
 
-  // Storico filtrato per anno + stato (per la tabella sotto)
+  // Storico filtrato per anno + stato, ordinato dall'ultimo anno
   const filteredRegistry = useMemo(() => {
     let result = registryEntries;
 
@@ -168,20 +165,22 @@ export default function MembersPanel() {
       );
     }
 
-    // 👇 mantieni comunque ordine "dall’ultimo anno"
-    result = result.slice().sort((a, b) => {
-      const ya = a.year ?? 0;
-      const yb = b.year ?? 0;
-      if (yb !== ya) return yb - ya;
-      const da = a.valid_from ? Date.parse(a.valid_from) : 0;
-      const db = b.valid_from ? Date.parse(b.valid_from) : 0;
-      return db - da;
-    });
+    // ordino per anno desc, poi per data valid_from desc
+    return result
+      .slice()
+      .sort((a, b) => {
+        const ay = a.year || 0;
+        const by = b.year || 0;
+        if (by !== ay) return by - ay;
 
-    return result;
+        const aDate = a.valid_from ? new Date(a.valid_from).getTime() : 0;
+        const bDate = b.valid_from ? new Date(b.valid_from).getTime() : 0;
+        return bDate - aDate;
+      });
   }, [registryEntries, yearFilter, registryStatusFilter]);
 
-  // Mappa gli entry "attivi" dello storico in "pseudo members" per la tabella sopra
+  // Mappa gli entry "attivi" dello storico in "pseudo members"
+  // che compaiono nella tabella SOPRA quando il filtro è "Solo esportati"
   const activeRegistryAsMembers = useMemo(() => {
     return registryEntries
       .filter((r) =>
@@ -199,20 +198,54 @@ export default function MembersPanel() {
           full_name: fullName || r.card_number || "Socio ACSI (storico attivo)",
           email: r.email || "",
           phone: r.phone || "",
-          city: r.club_name || "",
+          city: r.club_name || r.city || "",
           source: "members_registry",
           is_registry_active: true,
+          _registryEntry: r,
         };
       });
   }, [registryEntries]);
 
-  // Lista per la tabella MEMBRI
+  // Lista finale per la tabella MEMBRI
   const membersForTable = useMemo(() => {
     if (membersExportFilter !== "exported") return members;
-    return [...members, ...activeRegistryAsMembers];
+
+    const activeSorted = activeRegistryAsMembers.slice().sort((a, b) => {
+      const ay = a.created_at ? new Date(a.created_at).getTime() : 0;
+      const by = b.created_at ? new Date(b.created_at).getTime() : 0;
+      return by - ay;
+    });
+
+    // evito duplicati basandomi sull'email
+    const existingEmails = new Set(
+      members.map((m) => (m.email || "").toLowerCase())
+    );
+    const filteredActives = activeSorted.filter(
+      (r) => !existingEmails.has((r.email || "").toLowerCase())
+    );
+
+    return [...members, ...filteredActives];
   }, [members, membersExportFilter, activeRegistryAsMembers]);
 
-  // aggiusta pagina storico se fuori range
+  // 🔹 paginazione PRIMA tabella
+  const totalMembersPages = Math.max(
+    1,
+    Math.ceil(membersForTable.length / MEMBERS_PAGE_SIZE)
+  );
+
+  useEffect(() => {
+    if (membersPage > totalMembersPages) {
+      setMembersPage(totalMembersPages);
+    }
+  }, [membersPage, totalMembersPages]);
+
+  const paginatedMembers = useMemo(() => {
+    const start = (membersPage - 1) * MEMBERS_PAGE_SIZE;
+    const end = start + MEMBERS_PAGE_SIZE;
+    return membersForTable.slice(start, end);
+  }, [membersForTable, membersPage]);
+
+  // 🔹 paginazione SECONDA tabella (storico)
   useEffect(() => {
     const totalPages = Math.max(
       1,
@@ -258,6 +291,7 @@ export default function MembersPanel() {
       return;
     }
 
+    // anno da usare per la colonna "year" dello storico
     const yearForImportRaw =
       registryYear && registryYear.trim().length
         ? registryYear
@@ -315,15 +349,7 @@ export default function MembersPanel() {
         const refRes = await fetch(url, { credentials: "include" });
         const refData = await refRes.json().catch(() => ({}));
         if (refRes.ok && refData.ok) {
-          const entries = (refData.entries || []).slice();
-          entries.sort((a, b) => {
-            const ya = a.year ?? 0;
-            const yb = b.year ?? 0;
-            if (yb !== ya) return yb - ya;
-            const da = a.valid_from ? Date.parse(a.valid_from) : 0;
-            const db = b.valid_from ? Date.parse(b.valid_from) : 0;
-            return db - da;
-          });
+          const entries = refData.entries || [];
           setRegistryEntries(entries);
         }
       } catch (e) {
@@ -382,41 +408,94 @@ export default function MembersPanel() {
         </div>
       </div>
 
-      {/* Tabella membri (sopra) */}
+      {/* wrapper tabella membri */}
       <div className="-mx-2 overflow-x-auto rounded-xl border border-slate-800/80 bg-slate-950/60 px-2 py-2 sm:mx-0 sm:px-3">
         <MembersTable
           t={t}
           loading={loading}
           error={error}
-          filteredMembers={membersForTable}
+          filteredMembers={paginatedMembers}
           onOpenMember={handleOpenMember}
+          onOpenRegistryEntry={handleOpenRegistryEntry}
         />
+
+        {/* 🔹 paginazione prima tabella */}
+        {membersForTable.length > MEMBERS_PAGE_SIZE && (
+          <div className="mt-2 flex items-center justify-between text-[11px] text-slate-300">
+            <span>
+              Pagina {membersPage} di {totalMembersPages}
+            </span>
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() =>
+                  setMembersPage((p) => Math.max(1, p - 1))
+                }
+                disabled={membersPage <= 1}
+                className={`rounded-full px-2 py-1 text-[10px] uppercase tracking-[0.14em] ${
+                  membersPage <= 1
+                    ? "cursor-not-allowed bg-slate-800 text-slate-500"
+                    : "bg-slate-700 text-slate-100 hover:bg-slate-600"
+                }`}
+              >
+                Prev
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  setMembersPage((p) => Math.min(totalMembersPages, p + 1))
+                }
+                disabled={membersPage >= totalMembersPages}
+                className={`rounded-full px-2 py-1 text-[10px] uppercase tracking-[0.14em] ${
+                  membersPage >= totalMembersPages
+                    ? "cursor-not-allowed bg-slate-800 text-slate-500"
+                    : "bg-slate-700 text-slate-100 hover:bg-slate-600"
+                }`}
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Tabella storico (sotto) */}
-      <div className="-mx-2 overflow-x-auto rounded-xl border border-slate-800/80 bg-slate-950/60 px-2 py-2 sm:mx-0 sm:px-3">
-        <MembersRegistrySection
-          registryLoading={registryLoading}
-          registryError={registryError}
-          filteredRegistry={paginatedRegistry}
-          registryFile={registryFile}
-          setRegistryFile={setRegistryFile}
-          importingRegistry={importingRegistry}
-          importMessage={importMessage}
-          onImportClick={handleImportRegistry}
-          page={registryPage}
-          pageSize={REGISTRY_PAGE_SIZE}
-          total={filteredRegistry.length}
-          onPageChange={setRegistryPage}
-          registryYear={registryYear}
-          setRegistryYear={setRegistryYear}
-          onOpenRegistryEntry={handleOpenRegistryEntry}
-          yearFilter={yearFilter}
-          setYearFilter={setYearFilter}
-          registryStatusFilter={registryStatusFilter}
-          setRegistryStatusFilter={setRegistryStatusFilter}
-        />
+      {/* toggle per storico */}
+      <div className="flex justify-end">
+        <button
+          type="button"
+          onClick={() => setShowRegistrySection((v) => !v)}
+          className="rounded-full border border-slate-600 bg-slate-900/70 px-3 py-1 text-[10px] uppercase tracking-[0.16em] text-slate-100 hover:bg-slate-800"
+        >
+          {showRegistrySection ? "Nascondi storico ACSI" : "Mostra storico ACSI"}
+        </button>
       </div>
+
+      {/* wrapper storico: visibile solo se aperto */}
+      {showRegistrySection && (
+        <div className="-mx-2 overflow-x-auto rounded-xl border border-slate-800/80 bg-slate-950/60 px-2 py-2 sm:mx-0 sm:px-3">
+          <MembersRegistrySection
+            registryLoading={registryLoading}
+            registryError={registryError}
+            filteredRegistry={paginatedRegistry}
+            registryFile={registryFile}
+            setRegistryFile={setRegistryFile}
+            importingRegistry={importingRegistry}
+            importMessage={importMessage}
+            onImportClick={handleImportRegistry}
+            page={registryPage}
+            pageSize={REGISTRY_PAGE_SIZE}
+            total={filteredRegistry.length}
+            onPageChange={setRegistryPage}
+            registryYear={registryYear}
+            setRegistryYear={setRegistryYear}
+            onOpenRegistryEntry={handleOpenRegistryEntry}
+            yearFilter={yearFilter}
+            setYearFilter={setYearFilter}
+            registryStatusFilter={registryStatusFilter}
+            setRegistryStatusFilter={setRegistryStatusFilter}
+          />
+        </div>
+      )}
 
       <MemberModal
         open={modalOpen}
