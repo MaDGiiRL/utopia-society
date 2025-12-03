@@ -11,8 +11,8 @@ import MemberModal, {
 } from "../../components/admin/registry/MemberModal";
 
 const API_BASE = import.meta.env.VITE_ADMIN_API_URL || "";
-const REGISTRY_PAGE_SIZE = 50;   // 🔹 paginazione storico
-const MEMBERS_PAGE_SIZE = 50;    // 🔹 paginazione prima tabella
+const REGISTRY_PAGE_SIZE = 50; // 🔹 paginazione storico
+const MEMBERS_PAGE_SIZE = 50; // 🔹 paginazione prima tabella
 
 export default function MembersPanel() {
   const { t } = useTranslation();
@@ -43,10 +43,8 @@ export default function MembersPanel() {
   const [registryYear, setRegistryYear] = useState("");
 
   // filtro anno SOLO per lo storico
-  const [yearFilter, setYearFilter] = useState("ALL");
-
-  // filtro stato SOLO per lo storico (ALL | ACTIVE)
-  const [registryStatusFilter, setRegistryStatusFilter] = useState("ALL");
+  const [yearFilter, setYearFilter] = useState("2026");
+  const [registryStatusFilter, setRegistryStatusFilter] = useState("ACTIVE");
 
   // modale socio "nuovo"
   const [modalOpen, setModalOpen] = useState(false);
@@ -166,17 +164,15 @@ export default function MembersPanel() {
     }
 
     // ordino per anno desc, poi per data valid_from desc
-    return result
-      .slice()
-      .sort((a, b) => {
-        const ay = a.year || 0;
-        const by = b.year || 0;
-        if (by !== ay) return by - ay;
+    return result.slice().sort((a, b) => {
+      const ay = a.year || 0;
+      const by = b.year || 0;
+      if (by !== ay) return by - ay;
 
-        const aDate = a.valid_from ? new Date(a.valid_from).getTime() : 0;
-        const bDate = b.valid_from ? new Date(b.valid_from).getTime() : 0;
-        return bDate - aDate;
-      });
+      const aDate = a.valid_from ? new Date(a.valid_from).getTime() : 0;
+      const bDate = b.valid_from ? new Date(b.valid_from).getTime() : 0;
+      return bDate - aDate;
+    });
   }, [registryEntries, yearFilter, registryStatusFilter]);
 
   // Mappa gli entry "attivi" dello storico in "pseudo members"
@@ -428,9 +424,7 @@ export default function MembersPanel() {
             <div className="flex items-center gap-1">
               <button
                 type="button"
-                onClick={() =>
-                  setMembersPage((p) => Math.max(1, p - 1))
-                }
+                onClick={() => setMembersPage((p) => Math.max(1, p - 1))}
                 disabled={membersPage <= 1}
                 className={`rounded-full px-2 py-1 text-[10px] uppercase tracking-[0.14em] ${
                   membersPage <= 1
@@ -466,7 +460,9 @@ export default function MembersPanel() {
           onClick={() => setShowRegistrySection((v) => !v)}
           className="rounded-full border border-slate-600 bg-slate-900/70 px-3 py-1 text-[10px] uppercase tracking-[0.16em] text-slate-100 hover:bg-slate-800"
         >
-          {showRegistrySection ? "Nascondi storico ACSI" : "Mostra storico ACSI"}
+          {showRegistrySection
+            ? "Nascondi storico ACSI"
+            : "Mostra storico ACSI"}
         </button>
       </div>
 
