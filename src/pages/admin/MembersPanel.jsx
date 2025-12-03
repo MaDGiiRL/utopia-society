@@ -9,7 +9,7 @@ import MembersRegistrySection from "../../components/admin/registry/MembersRegis
 import MemberModal from "../../components/admin/registry/MemberModal";
 
 const API_BASE = import.meta.env.VITE_ADMIN_API_URL || "";
-const REGISTRY_PAGE_SIZE = 20; // 👈 paginazione da 20 per lo storico
+const REGISTRY_PAGE_SIZE = 20; // paginazione da 20 per lo storico
 
 export default function MembersPanel() {
   const { t } = useTranslation();
@@ -24,12 +24,15 @@ export default function MembersPanel() {
   const [registryError, setRegistryError] = useState("");
 
   // paginazione storico
-  const [registryPage, setRegistryPage] = useState(1); // 👈 pagina corrente
+  const [registryPage, setRegistryPage] = useState(1);
 
   // stato per import XLSX storico
   const [registryFile, setRegistryFile] = useState(null);
   const [importingRegistry, setImportingRegistry] = useState(false);
   const [importMessage, setImportMessage] = useState("");
+
+  // anno da usare in import XLSX (uguale per tutte le righe)
+  const [registryYear, setRegistryYear] = useState("");
 
   // filtri anno + fascia oraria
   // ⚠️ yearFilter ora VALE SOLO per lo storico, non per la tabella members
@@ -84,7 +87,7 @@ export default function MembersPanel() {
       setRegistryError("");
 
       // cambio anno => reset alla prima pagina
-      setRegistryPage(1); // 👈 reset pagina quando cambia il filtro anno
+      setRegistryPage(1);
 
       try {
         const url =
@@ -124,7 +127,7 @@ export default function MembersPanel() {
     };
   }, [yearFilter, t]);
 
-  // Anni disponibili (puoi anche lasciarli derivare da members se ti sta bene così)
+  // Anni disponibili (derivati da members.created_at per il filtro)
   const availableYears = useMemo(() => {
     const set = new Set();
     members.forEach((m) => {
@@ -140,7 +143,7 @@ export default function MembersPanel() {
 
   // Soci filtrati SOLO per fascia oraria (NON più per anno!)
   const filteredMembers = useMemo(() => {
-    let list = members; // 👈 niente filtro per yearFilter qui
+    let list = members; // niente filtro yearFilter qui
 
     const timeToMinutes = (t) => {
       if (!t) return null;
@@ -166,9 +169,9 @@ export default function MembersPanel() {
     }
 
     return list;
-  }, [members, fromTime, toTime]); // 👈 rimosso yearFilter dai deps
+  }, [members, fromTime, toTime]);
 
-  // Storico filtrato (in pratica è già filtrato da backend, ma lo lascio come sicurezza)
+  // Storico filtrato (di fatto già filtrato da backend, ma sicurezza extra)
   const filteredRegistry = useMemo(() => {
     if (yearFilter === "ALL") return registryEntries;
     const yearInt = parseInt(yearFilter, 10);
@@ -176,7 +179,7 @@ export default function MembersPanel() {
     return registryEntries.filter((r) => r.year === yearInt);
   }, [registryEntries, yearFilter]);
 
-  // Se il numero di righe cambia e la pagina corrente è fuori range, la aggiustiamo
+  // Allinea pagina se cambia il numero di righe
   useEffect(() => {
     const totalPages = Math.max(
       1,
@@ -219,6 +222,11 @@ export default function MembersPanel() {
       return;
     }
 
+    if (!registryYear || Number.isNaN(parseInt(registryYear, 10))) {
+      setImportMessage("Inserisci l'anno dello storico (es. 2024).");
+      return;
+    }
+
     setImportingRegistry(true);
     setImportMessage("");
 
@@ -226,13 +234,8 @@ export default function MembersPanel() {
       const formData = new FormData();
       formData.append("file", registryFile);
 
-      // 👇 anno da salvare in DB (colonna aanno)
-      const yearForImport =
-        yearFilter !== "ALL"
-          ? parseInt(yearFilter, 10)
-          : new Date().getFullYear(); // fallback: anno corrente
-
-      formData.append("year", yearForImport.toString());
+      // anno scritto dall'admin, uguale per tutte le righe nel DB
+      formData.append("year", parseInt(registryYear, 10).toString());
 
       const res = await fetch(
         `${API_BASE}/api/admin/members-registry/import-xlsx`,
@@ -259,6 +262,8 @@ export default function MembersPanel() {
       );
 
       setRegistryFile(null);
+      // se vuoi, puoi anche resettare l'anno dopo l'import:
+      // setRegistryYear("");
 
       // ricarica storico con filtro attuale
       try {
@@ -293,7 +298,7 @@ export default function MembersPanel() {
       <MembersHeaderFilters
         t={t}
         yearFilter={yearFilter}
-        setYearFilter={setYearFilter} // 👈 ora filtra solo lo storico
+        setYearFilter={setYearFilter} // ora filtra solo lo storico
         fromTime={fromTime}
         setFromTime={setFromTime}
         toTime={toTime}
@@ -307,7 +312,7 @@ export default function MembersPanel() {
         t={t}
         loading={loading}
         error={error}
-        filteredMembers={filteredMembers} // 👈 niente filtro anno
+        filteredMembers={filteredMembers} // nessun filtro anno
         onOpenMember={handleOpenMember}
       />
 
@@ -324,6 +329,8 @@ export default function MembersPanel() {
         pageSize={REGISTRY_PAGE_SIZE}
         total={filteredRegistry.length}
         onPageChange={setRegistryPage}
+        registryYear={registryYear} // 👈 input anno
+        setRegistryYear={setRegistryYear} // 👈 setter anno
       />
 
       <MemberModal

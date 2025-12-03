@@ -1,19 +1,20 @@
 export default function MembersRegistrySection({
   registryLoading,
   registryError,
-  filteredRegistry, // 👉 contiene SOLO la pagina corrente (max 20 righe)
+  filteredRegistry, // contiene SOLO la pagina corrente (max 20 righe)
   registryFile,
   setRegistryFile,
   importingRegistry,
   importMessage,
   onImportClick,
-  page, // 👉 pagina corrente (1-based)
-  pageSize, // 👉 es. 20
-  total, // 👉 numero totale record filtrati per anno
-  onPageChange, // 👉 funzione per cambiare pagina
+  page, // pagina corrente (1-based)
+  pageSize, // es. 20
+  total, // numero totale record filtrati per anno
+  onPageChange,
+  registryYear, // anno scelto dall'admin
+  setRegistryYear, // setter anno
 }) {
   const totalPages = Math.max(1, Math.ceil((total || 0) / (pageSize || 1)));
-
   const hasAnyRecords = (total || 0) > 0;
 
   const startIndex = !hasAnyRecords ? 0 : (page - 1) * pageSize + 1;
@@ -27,6 +28,17 @@ export default function MembersRegistrySection({
         </h3>
 
         <div className="flex flex-wrap items-center gap-2 text-[10px]">
+          {/* Input ANNO accanto al file */}
+          <input
+            type="number"
+            min="1900"
+            max="2100"
+            value={registryYear}
+            onChange={(e) => setRegistryYear(e.target.value)}
+            placeholder="Anno (es. 2024)"
+            className="w-[110px] rounded-full border border-slate-600 bg-slate-900/80 px-3 py-1 text-[10px] text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-cyan-400"
+          />
+
           <input
             type="file"
             accept=".xlsx,.xls"
@@ -36,6 +48,7 @@ export default function MembersRegistrySection({
             }}
             className="block max-w-[220px] cursor-pointer text-[10px] text-slate-300 file:mr-2 file:cursor-pointer file:rounded-full file:border file:border-cyan-400/70 file:bg-slate-900/80 file:px-2 file:py-1 file:text-[10px] file:text-cyan-100 hover:file:bg-cyan-500/20"
           />
+
           <button
             type="button"
             onClick={onImportClick}
@@ -90,9 +103,7 @@ export default function MembersRegistrySection({
                   <th className="px-3 py-2 font-medium text-slate-400">
                     Cod. fiscale
                   </th>
-                  {/* Anno rimosso */}
-                  {/* Valida dal rimosso */}
-                  {/* Valida al rimosso */}
+                  {/* Anno / Valida dal / Valida al rimossi dalla tabella */}
                   <th className="px-3 py-2 font-medium text-slate-400">
                     Email
                   </th>
@@ -125,9 +136,6 @@ export default function MembersRegistrySection({
                     <td className="px-3 py-2 text-[11px] text-slate-300">
                       {r.fiscal_code || "-"}
                     </td>
-                    {/* Anno rimosso */}
-                    {/* Valida dal rimosso */}
-                    {/* Valida al rimosso */}
                     <td className="px-3 py-2 text-[11px] text-slate-300">
                       {r.email || "-"}
                     </td>
