@@ -6,7 +6,6 @@ import ContactsAlerts from "../../components/admin/contacts/ContactsAlerts";
 import ContactsTable from "../../components/admin/contacts/ContactsTable";
 import ContactsPagination from "../../components/admin/contacts/ContactsPagination";
 import ContactMessageModal from "../../components/admin/contacts/ContactMessageModal";
-
 const PAGE_SIZE = 40;
 
 export default function ContactMessagesPanel() {
