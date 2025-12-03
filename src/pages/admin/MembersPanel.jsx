@@ -226,6 +226,14 @@ export default function MembersPanel() {
       const formData = new FormData();
       formData.append("file", registryFile);
 
+      // 👇 anno da salvare in DB (colonna aanno)
+      const yearForImport =
+        yearFilter !== "ALL"
+          ? parseInt(yearFilter, 10)
+          : new Date().getFullYear(); // fallback: anno corrente
+
+      formData.append("year", yearForImport.toString());
+
       const res = await fetch(
         `${API_BASE}/api/admin/members-registry/import-xlsx`,
         {
