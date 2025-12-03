@@ -37,7 +37,7 @@ export default function MembersTable({
 
       <table className="min-w-full text-left text-[11px] text-slate-200">
         <thead>
-          <tr className="border-b border-white/10 bg-slate-900/70 text-[10px] uppercase tracking-[0.16em] text-slate-400">
+          <tr className="border-b  border-white/10 bg-slate-900/70 text-[10px] uppercase tracking-[0.16em] text-slate-400">
             <th className="px-3 py-2">Anno</th>
             <th className="px-3 py-2">Stato</th>
             <th className="px-3 py-2">Cognome</th>
@@ -95,7 +95,7 @@ export default function MembersTable({
                 <td className="px-3 py-2 text-[11px]">
                   {status ? (
                     <span
-                      className={`inline-flex rounded-full px-2 py-[1px] text-[10px] uppercase tracking-[0.14em] ${
+                      className={`inline-flex rounded-full px-2 py-px text-[10px] uppercase tracking-[0.14em] ${
                         status.toLowerCase().startsWith("attiv")
                           ? "bg-emerald-500/10 text-emerald-300 border border-emerald-500/40"
                           : "bg-slate-700/40 text-slate-200 border border-slate-600/60"
@@ -109,12 +109,12 @@ export default function MembersTable({
                 </td>
 
                 {/* COGNOME */}
-                <td className="px-3 py-2 text-[11px] text-slate-200">
+                <td className="px-3 py-2 text-[11px] text-slate-200 uppercase">
                   {lastName || "-"}
                 </td>
 
                 {/* NOME */}
-                <td className="px-3 py-2 text-[11px] text-slate-300">
+                <td className="px-3 py-2 text-[11px] text-slate-300 uppercase">
                   {firstName || "-"}
                 </td>
 

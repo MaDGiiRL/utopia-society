@@ -25,7 +25,7 @@ export default function MembersPanel() {
   const [membersExportFilter, setMembersExportFilter] =
     useState("non_exported");
 
-  // 🔹 pagina per la PRIMA tabella
+  // pagina per la PRIMA tabella
   const [membersPage, setMembersPage] = useState(1);
 
   // storico (members_registry)
@@ -42,7 +42,7 @@ export default function MembersPanel() {
   // anno da usare per l'import XLSX storico
   const [registryYear, setRegistryYear] = useState("");
 
-  // filtro anno SOLO per lo storico
+  // filtro anno SOLO per lo storico (+ per i membri attivi derivati)
   const [yearFilter, setYearFilter] = useState("2026");
   const [registryStatusFilter, setRegistryStatusFilter] = useState("ACTIVE");
 
@@ -55,7 +55,7 @@ export default function MembersPanel() {
   const [registryModalOpen, setRegistryModalOpen] = useState(false);
   const [selectedRegistryEntry, setSelectedRegistryEntry] = useState(null);
 
-  // 🔹 mostra/nascondi sezione storico
+  // mostra/nascondi sezione storico
   const [showRegistrySection, setShowRegistrySection] = useState(false);
 
   // handler per il pulsante EXPORT
@@ -98,7 +98,7 @@ export default function MembersPanel() {
     };
   }, [t, membersExportFilter]);
 
-  // Carica storico + filtro per anno
+  // Carica storico + filtro per anno (dal backend)
   useEffect(() => {
     let cancelled = false;
 
@@ -148,7 +148,7 @@ export default function MembersPanel() {
   const filteredRegistry = useMemo(() => {
     let result = registryEntries;
 
-    // filtro anno
+    // filtro anno (di sicurezza nel frontend)
     if (yearFilter !== "ALL") {
       const yearInt = parseInt(yearFilter, 10);
       if (!Number.isNaN(yearInt)) {
@@ -175,13 +175,19 @@ export default function MembersPanel() {
     });
   }, [registryEntries, yearFilter, registryStatusFilter]);
 
-  // Mappa gli entry "attivi" dello storico in "pseudo members"
-  // che compaiono nella tabella SOPRA quando il filtro è "Solo esportati"
+  // 🔹 ATTIVI DI REGISTRY → "pseudo members" per la prima tabella
+  //   ⚠️ QUI ORA FILTRIAMO ANCHE PER ANNO, cosí non mischi 2025 e 2026
   const activeRegistryAsMembers = useMemo(() => {
     return registryEntries
       .filter((r) =>
         (r.status || "").toString().toLowerCase().startsWith("attiv")
       )
+      .filter((r) => {
+        if (yearFilter === "ALL") return true;
+        const yearInt = parseInt(yearFilter, 10);
+        if (Number.isNaN(yearInt)) return true;
+        return r.year === yearInt;
+      })
       .map((r) => {
         const fullName = `${r.first_name || ""} ${r.last_name || ""}`.trim();
         return {
@@ -200,7 +206,7 @@ export default function MembersPanel() {
           _registryEntry: r,
         };
       });
-  }, [registryEntries]);
+  }, [registryEntries, yearFilter]);
 
   // Lista finale per la tabella MEMBRI
   const membersForTable = useMemo(() => {
@@ -415,7 +421,7 @@ export default function MembersPanel() {
           onOpenRegistryEntry={handleOpenRegistryEntry}
         />
 
-        {/* 🔹 paginazione prima tabella */}
+        {/* paginazione prima tabella */}
         {membersForTable.length > MEMBERS_PAGE_SIZE && (
           <div className="mt-2 flex items-center justify-between text-[11px] text-slate-300">
             <span>

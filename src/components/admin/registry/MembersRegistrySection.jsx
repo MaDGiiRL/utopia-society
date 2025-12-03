@@ -132,7 +132,7 @@ export default function MembersRegistrySection({
 
                     <td className="px-2 py-1">
                       <span
-                        className={`inline-flex rounded-full px-2 py-[1px] text-[10px] uppercase tracking-[0.14em] ${
+                        className={`inline-flex rounded-full px-2 py-px text-[10px] uppercase tracking-[0.14em] ${
                           entry.status &&
                           entry.status.toLowerCase().startsWith("attiv")
                             ? "bg-emerald-500/10 text-emerald-300 border border-emerald-500/40"
