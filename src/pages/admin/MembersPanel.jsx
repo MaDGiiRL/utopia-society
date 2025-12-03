@@ -11,8 +11,8 @@ import MemberModal, {
 } from "../../components/admin/registry/MemberModal";
 
 const API_BASE = import.meta.env.VITE_ADMIN_API_URL || "";
-const REGISTRY_PAGE_SIZE = 50; // 🔹 paginazione storico
-const MEMBERS_PAGE_SIZE = 50; // 🔹 paginazione prima tabella
+const REGISTRY_PAGE_SIZE = 50; // paginazione storico
+const MEMBERS_PAGE_SIZE = 50; // paginazione prima tabella
 
 export default function MembersPanel() {
   const { t } = useTranslation();
@@ -24,6 +24,9 @@ export default function MembersPanel() {
   // filtro export per la PRIMA tabella (membri)
   const [membersExportFilter, setMembersExportFilter] =
     useState("non_exported");
+
+  // 🔹 filtro ANNO per la PRIMA tabella (solo per i soci derivati dal registry)
+  const [membersYearFilter, setMembersYearFilter] = useState("ALL");
 
   // pagina per la PRIMA tabella
   const [membersPage, setMembersPage] = useState(1);
@@ -42,8 +45,9 @@ export default function MembersPanel() {
   // anno da usare per l'import XLSX storico
   const [registryYear, setRegistryYear] = useState("");
 
-  // filtro anno SOLO per lo storico (+ per i membri attivi derivati)
+  // 🔹 filtro ANNO SOLO per lo STORICO (seconda tabella)
   const [yearFilter, setYearFilter] = useState("2026");
+  // 🔹 filtro STATO solo per storico
   const [registryStatusFilter, setRegistryStatusFilter] = useState("ACTIVE");
 
   // modale socio "nuovo"
@@ -98,7 +102,7 @@ export default function MembersPanel() {
     };
   }, [t, membersExportFilter]);
 
-  // Carica storico + filtro per anno (dal backend)
+  // Carica storico + filtro per anno (seconda tabella)
   useEffect(() => {
     let cancelled = false;
 
@@ -144,11 +148,11 @@ export default function MembersPanel() {
     };
   }, [yearFilter, t]);
 
-  // Storico filtrato per anno + stato, ordinato dall'ultimo anno
+  // Storico filtrato per anno + stato, ordinato dall'ultimo anno (per SECONDA tabella)
   const filteredRegistry = useMemo(() => {
     let result = registryEntries;
 
-    // filtro anno (di sicurezza nel frontend)
+    // filtro anno (di sicurezza)
     if (yearFilter !== "ALL") {
       const yearInt = parseInt(yearFilter, 10);
       if (!Number.isNaN(yearInt)) {
@@ -175,16 +179,16 @@ export default function MembersPanel() {
     });
   }, [registryEntries, yearFilter, registryStatusFilter]);
 
-  // 🔹 ATTIVI DI REGISTRY → "pseudo members" per la prima tabella
-  //   ⚠️ QUI ORA FILTRIAMO ANCHE PER ANNO, cosí non mischi 2025 e 2026
+  // 🔹 ATTIVI DI REGISTRY → "pseudo members" per la PRIMA tabella
+  //    QUI USIAMO SOLO membersYearFilter (NON yearFilter!)
   const activeRegistryAsMembers = useMemo(() => {
     return registryEntries
       .filter((r) =>
         (r.status || "").toString().toLowerCase().startsWith("attiv")
       )
       .filter((r) => {
-        if (yearFilter === "ALL") return true;
-        const yearInt = parseInt(yearFilter, 10);
+        if (membersYearFilter === "ALL") return true;
+        const yearInt = parseInt(membersYearFilter, 10);
         if (Number.isNaN(yearInt)) return true;
         return r.year === yearInt;
       })
@@ -206,9 +210,9 @@ export default function MembersPanel() {
           _registryEntry: r,
         };
       });
-  }, [registryEntries, yearFilter]);
+  }, [registryEntries, membersYearFilter]);
 
-  // Lista finale per la tabella MEMBRI
+  // Lista finale per la PRIMA tabella (richieste sito + attivi registry filtrati per anno)
   const membersForTable = useMemo(() => {
     if (membersExportFilter !== "exported") return members;
 
@@ -378,13 +382,13 @@ export default function MembersPanel() {
         totalCount={membersForTable.length}
       />
 
-      {/* Filtro ESPORTATI / NON ESPORTATI + pulsante export XLSX */}
+      {/* Filtro ESPORTATI / NON ESPORTATI + anno per prima tabella + pulsante export XLSX */}
       <div className="mb-1 flex flex-col gap-2 rounded-xl border border-white/5 bg-slate-950/60 p-3 md:flex-row md:items-center md:justify-between">
         <span className="text-xs text-slate-400">
           Filtro esportazione tessere:
         </span>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-3">
           <select
             className="h-8 rounded-lg border border-slate-700 bg-slate-900/80 px-2 text-xs text-slate-100"
             value={membersExportFilter}
@@ -407,6 +411,26 @@ export default function MembersPanel() {
           >
             Esporta XLSX ACSI
           </button>
+
+          {/* 🔹 filtro ANNO per la PRIMA tabella (solo per attivi registry) */}
+          <div className="flex items-center gap-1 text-xs text-slate-300">
+            <span>Anno storico (tabella sopra):</span>
+            <select
+              className="h-8 rounded-md border border-slate-700 bg-slate-900/80 px-2 text-xs text-slate-100"
+              value={membersYearFilter}
+              onChange={(e) => {
+                setMembersYearFilter(e.target.value);
+                setMembersPage(1);
+              }}
+            >
+              <option value="ALL">Tutti</option>
+              {["2026", "2025", "2024", "2023", "2022"].map((y) => (
+                <option key={y} value={y}>
+                  {y}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
 
