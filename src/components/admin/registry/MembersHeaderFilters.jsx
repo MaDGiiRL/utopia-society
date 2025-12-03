@@ -1,3 +1,4 @@
+// src/components/admin/registry/MembersHeaderFilters.jsx
 export default function MembersHeaderFilters({ t, filteredCount, totalCount }) {
   return (
     <div className="flex flex-col gap-2 border-b border-white/10 pb-3 sm:flex-row sm:items-center sm:justify-between">

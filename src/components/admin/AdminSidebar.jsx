@@ -1,3 +1,4 @@
+// src/components/admin/AdminSidebar.jsx
 import {
   Users,
   Mail,
@@ -49,8 +50,8 @@ export default function AdminSidebar({
 
       {/* Tabs */}
       <div className="rounded-2xl border border-white/10 bg-slate-950/85 p-2 shadow-lg">
-        <nav className="flex flex-col gap-1 text-xs md:flex-col">
-          <div className="flex gap-1 overflow-x-auto md:flex-col md:overflow-visible">
+        <nav className="flex flex-col gap-1 text-xs">
+          <div className="flex gap-1 overflow-x-auto pb-1 md:flex-col md:overflow-visible md:pb-0">
             {/* Membri */}
             <button
               type="button"
@@ -143,7 +144,7 @@ export default function AdminSidebar({
               </div>
             </button>
 
-            {/* ✅ Log attività */}
+            {/* Log attività */}
             <button
               type="button"
               onClick={() => onTabChange("logs")}
@@ -170,7 +171,7 @@ export default function AdminSidebar({
       </div>
 
       {/* Export + logout */}
-      <div className="flex flex-col gap-2 rounded-2xl border border-white/10 bg-slate-950/85 px-4 py-3 text-[11px] shadow-lg sm:flex-col sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-2 rounded-2xl border border-white/10 bg-slate-950/85 px-4 py-3 text-[11px] shadow-lg">
         {/* XLSX ACSI */}
         <div className="flex w-full flex-col gap-1">
           <button
@@ -193,7 +194,7 @@ export default function AdminSidebar({
             </span>
           </button>
 
-          {/* 🔹 info ultimo export */}
+          {/* info ultimo export */}
           {lastXlsxExportAt && (
             <p className="text-[10px] text-slate-500">
               Ultimo export:{" "}

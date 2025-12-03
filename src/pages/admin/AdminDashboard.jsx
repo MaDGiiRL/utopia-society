@@ -1,3 +1,4 @@
+// src/pages/admin/AdminDashboard.jsx
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
@@ -170,8 +171,8 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950/55 text-slate-50 px-4 py-24 text-base md:text-lg">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 md:flex-row">
+    <div className="min-h-screen bg-slate-950/55 text-slate-50 px-3 py-20 sm:px-4 sm:py-24">
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 md:gap-6 md:flex-row">
         <AdminSidebar
           tab={tab}
           onTabChange={handleTabChange}

@@ -1,3 +1,4 @@
+// src/components/admin/contacts/ContactsHeader.jsx
 import { Mail, Download } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -5,7 +6,7 @@ export default function ContactsHeader({ total, onExport }) {
   const { t } = useTranslation();
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-2">
+    <div className="flex flex-wrap items-center justify-between gap-3">
       <div className="flex items-center gap-2">
         <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-fuchsia-500/15 text-fuchsia-300">
           <Mail className="h-4 w-4" />

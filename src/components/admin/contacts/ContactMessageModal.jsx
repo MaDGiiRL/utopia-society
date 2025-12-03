@@ -1,3 +1,4 @@
+// src/components/admin/contacts/ContactMessageModal.jsx
 import { X, Reply } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -21,15 +22,18 @@ export default function ContactMessageModal({ message, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
-      <div className="w-full max-w-xl rounded-2xl border border-white/10 bg-slate-950 p-5 shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-3 sm:px-4">
+      <div className="w-full max-w-xl rounded-2xl border border-white/10 bg-slate-950 p-4 sm:p-5 shadow-2xl max-h-[90vh] overflow-auto">
         <div className="flex items-center justify-between gap-2 border-b border-white/10 pb-3">
           <div>
             <h3 className="text-sm font-semibold text-slate-100">
               {t("admin.contactsPanel.modal.title")}
             </h3>
             <p className="text-[11px] text-slate-400">
-              ID: <span className="font-mono text-[10px]">{message.id}</span>
+              ID:{" "}
+              <span className="font-mono text-[10px] break-all">
+                {message.id}
+              </span>
             </p>
           </div>
           <button
@@ -83,7 +87,7 @@ export default function ContactMessageModal({ message, onClose }) {
           </div>
         </div>
 
-        <div className="mt-4 flex justify-between gap-2">
+        <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:justify-between">
           <button
             type="button"
             onClick={onClose}
@@ -95,7 +99,7 @@ export default function ContactMessageModal({ message, onClose }) {
           {message.email && (
             <a
               href={buildMailtoLink()}
-              className="inline-flex items-center gap-1 rounded-full border border-cyan-400/70 bg-cyan-500/20 px-4 py-1.5 text-[11px] uppercase tracking-[0.18em] text-cyan-100 hover:bg-cyan-500/35 transition"
+              className="inline-flex items-center justify-center gap-1 rounded-full border border-cyan-400/70 bg-cyan-500/20 px-4 py-1.5 text-[11px] uppercase tracking-[0.18em] text-cyan-100 hover:bg-cyan-500/35 transition"
             >
               <Reply className="h-3.5 w-3.5" />
               {t("admin.contactsPanel.modal.reply")}

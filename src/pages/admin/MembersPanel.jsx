@@ -274,14 +274,14 @@ export default function MembersPanel() {
       />
 
       {/* 🔹 Filtro ESPORTATI / NON ESPORTATI + pulsante export XLSX */}
-      <div className="mb-1 flex items-center justify-between gap-2">
+      <div className="mb-1 flex flex-col gap-2 rounded-xl border border-white/5 bg-slate-950/60 p-3 md:flex-row md:items-center md:justify-between">
         <span className="text-xs text-slate-400">
           Filtro esportazione tessere:
         </span>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <select
-            className="rounded px-2 py-1 border border-slate-700 bg-slate-900/60 text-xs"
+            className="h-8 rounded-lg border border-slate-700 bg-slate-900/80 px-2 text-xs text-slate-100"
             value={membersExportFilter}
             onChange={(e) => setMembersExportFilter(e.target.value)}
           >
@@ -294,7 +294,7 @@ export default function MembersPanel() {
             type="button"
             onClick={handleExportXlsx}
             disabled={membersExportFilter !== "non_exported"}
-            className={`rounded-full border px-3 py-1 text-[10px] uppercase tracking-[0.16em] ${
+            className={`inline-flex items-center justify-center rounded-full border px-3 py-1 text-[10px] uppercase tracking-[0.16em] ${
               membersExportFilter !== "non_exported"
                 ? "cursor-not-allowed border-slate-600 bg-slate-900/60 text-slate-500 opacity-60"
                 : "border-cyan-400/70 bg-cyan-500/10 text-cyan-100 hover:bg-cyan-500/25"
@@ -305,33 +305,39 @@ export default function MembersPanel() {
         </div>
       </div>
 
-      <MembersTable
-        t={t}
-        loading={loading}
-        error={error}
-        filteredMembers={members}
-        onOpenMember={handleOpenMember}
-      />
+      {/* 🔹 wrapper con scroll orizzontale per la tabella membri */}
+      <div className="-mx-2 overflow-x-auto rounded-xl border border-slate-800/80 bg-slate-950/60 px-2 py-2 sm:mx-0 sm:px-3">
+        <MembersTable
+          t={t}
+          loading={loading}
+          error={error}
+          filteredMembers={members}
+          onOpenMember={handleOpenMember}
+        />
+      </div>
 
-      <MembersRegistrySection
-        registryLoading={registryLoading}
-        registryError={registryError}
-        filteredRegistry={paginatedRegistry}
-        registryFile={registryFile}
-        setRegistryFile={setRegistryFile}
-        importingRegistry={importingRegistry}
-        importMessage={importMessage}
-        onImportClick={handleImportRegistry}
-        page={registryPage}
-        pageSize={REGISTRY_PAGE_SIZE}
-        total={filteredRegistry.length}
-        onPageChange={setRegistryPage}
-        registryYear={registryYear}
-        setRegistryYear={setRegistryYear}
-        onOpenRegistryEntry={handleOpenRegistryEntry}
-        yearFilter={yearFilter}
-        setYearFilter={setYearFilter}
-      />
+      {/* 🔹 wrapper con scroll orizzontale per lo storico */}
+      <div className="-mx-2 overflow-x-auto rounded-xl border border-slate-800/80 bg-slate-950/60 px-2 py-2 sm:mx-0 sm:px-3">
+        <MembersRegistrySection
+          registryLoading={registryLoading}
+          registryError={registryError}
+          filteredRegistry={paginatedRegistry}
+          registryFile={registryFile}
+          setRegistryFile={setRegistryFile}
+          importingRegistry={importingRegistry}
+          importMessage={importMessage}
+          onImportClick={handleImportRegistry}
+          page={registryPage}
+          pageSize={REGISTRY_PAGE_SIZE}
+          total={filteredRegistry.length}
+          onPageChange={setRegistryPage}
+          registryYear={registryYear}
+          setRegistryYear={setRegistryYear}
+          onOpenRegistryEntry={handleOpenRegistryEntry}
+          yearFilter={yearFilter}
+          setYearFilter={setYearFilter}
+        />
+      </div>
 
       <MemberModal
         open={modalOpen}

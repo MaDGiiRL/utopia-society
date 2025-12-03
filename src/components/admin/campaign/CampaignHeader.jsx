@@ -1,3 +1,4 @@
+// src/components/admin/campaign/CampaignHeader.jsx
 import { Send } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -21,7 +22,7 @@ export default function CampaignHeader() {
       </div>
 
       <div className="flex flex-col items-end gap-1 text-[11px]">
-        <p className="text-[10px] text-slate-500">
+        <p className="text-[10px] text-slate-500 text-right max-w-xs">
           {t("admin.campaign.headerNote", { table: "members" })}
         </p>
       </div>

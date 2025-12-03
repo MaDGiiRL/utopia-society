@@ -110,7 +110,7 @@ export default function NewCampaign() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 md:space-y-7 max-w-5xl mx-auto w-full">
       <CampaignHeader />
       <CampaignForm
         onSubmit={handleSubmit}

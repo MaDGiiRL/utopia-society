@@ -1,3 +1,4 @@
+// src/components/admin/contacts/ContactsPagination.jsx
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -13,7 +14,7 @@ export default function ContactsPagination({
   if (totalItems <= pageSize) return null;
 
   return (
-    <div className="flex items-center justify-between gap-3 text-[11px] text-slate-300">
+    <div className="flex flex-col items-center justify-between gap-2 text-[11px] text-slate-300 sm:flex-row">
       <div>
         {t("ui.pagination.pageOf", {
           current: page,

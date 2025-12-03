@@ -212,7 +212,7 @@ export default function LogsPanel() {
   };
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-3 max-w-6xl mx-auto w-full">
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
@@ -230,19 +230,19 @@ export default function LogsPanel() {
         </div>
 
         {/* Search + refresh */}
-        <div className="flex items-center gap-2">
+        <div className="flex w-full flex-col items-stretch gap-2 sm:w-auto sm:flex-row sm:items-center">
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search in logs..."
-            className="h-8 rounded-full border border-slate-700 bg-slate-950/90 px-3 text-[11px] text-slate-100 outline-none ring-0 placeholder:text-slate-500 focus:border-cyan-400/80"
+            className="h-8 w-full rounded-full border border-slate-700 bg-slate-950/90 px-3 text-[11px] text-slate-100 outline-none ring-0 placeholder:text-slate-500 focus:border-cyan-400/80 sm:w-56"
           />
           <button
             type="button"
             onClick={handleRefresh}
             disabled={loading}
-            className={`inline-flex items-center gap-1 rounded-full border border-slate-600/70 px-2.5 py-1 text-[11px] uppercase tracking-[0.16em] text-slate-200 hover:border-cyan-400/70 hover:text-cyan-100 transition ${
+            className={`inline-flex items-center justify-center gap-1 rounded-full border border-slate-600/70 px-2.5 py-1 text-[11px] uppercase tracking-[0.16em] text-slate-200 hover:border-cyan-400/70 hover:text-cyan-100 transition ${
               loading ? "cursor-not-allowed opacity-60" : ""
             }`}
           >
@@ -255,7 +255,7 @@ export default function LogsPanel() {
       </div>
 
       {/* Severity filter */}
-      <div className="flex flex-wrap items-center justify-between gap-2 text-[10px]">
+      <div className="flex flex-col gap-2 text-[10px] sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-wrap gap-1.5">
           {[
             { key: "all", label: "All" },
@@ -336,7 +336,7 @@ export default function LogsPanel() {
                     className="px-3 py-2.5 hover:bg-slate-900/60 transition"
                   >
                     {/* Top row: type + source + time */}
-                    <div className="flex items-center justify-between gap-2">
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                       <div className="flex flex-wrap items-center gap-2">
                         {/* type pill */}
                         <span
@@ -356,7 +356,7 @@ export default function LogsPanel() {
                       </div>
 
                       {/* time */}
-                      <div className="flex flex-col items-end text-[10px] text-slate-500">
+                      <div className="flex flex-col items-start text-[10px] text-slate-500 sm:items-end">
                         <span>
                           {log.created_at
                             ? createdAt.toLocaleString("it-IT")
@@ -423,7 +423,7 @@ export default function LogsPanel() {
             </ul>
 
             {/* Pagination footer */}
-            <div className="flex items-center justify-between border-t border-slate-800 bg-slate-950/90 px-3 py-2 text-[10px] text-slate-400">
+            <div className="flex flex-col gap-2 border-t border-slate-800 bg-slate-950/90 px-3 py-2 text-[10px] text-slate-400 sm:flex-row sm:items-center sm:justify-between">
               <span>
                 Page {currentPage} of {pageCount}
               </span>

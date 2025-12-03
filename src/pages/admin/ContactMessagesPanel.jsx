@@ -125,17 +125,21 @@ export default function ContactMessagesPanel() {
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 max-w-6xl mx-auto w-full">
       <ContactsHeader total={messages.length} onExport={handleExportCsv} />
 
       <ContactsAlerts error={error} exportError={exportError} />
 
-      <ContactsTable
-        messages={pagedMessages}
-        onOpen={handleOpen}
-        empty={!messages.length}
-        error={error}
-      />
+      <div className="-mx-2 overflow-x-auto rounded-xl border border-slate-800/80 bg-slate-950/70 px-2 py-1 sm:mx-0 sm:px-3">
+        <div className="min-w-[640px] sm:min-w-0">
+          <ContactsTable
+            messages={pagedMessages}
+            onOpen={handleOpen}
+            empty={!messages.length}
+            error={error}
+          />
+        </div>
+      </div>
 
       <ContactsPagination
         page={page}

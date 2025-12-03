@@ -1,3 +1,4 @@
+// src/components/admin/registry/MembersTable.jsx
 export default function MembersTable({
   t,
   loading,
@@ -61,7 +62,7 @@ export default function MembersTable({
               key={m.id}
               className="border-b border-white/5 hover:bg-slate-900/60"
             >
-              <td className="px-3 py-2 text-[11px] text-slate-300">
+              <td className="px-3 py-2 text-[11px] text-slate-300 whitespace-nowrap">
                 {m.created_at
                   ? new Date(m.created_at).toLocaleString("it-IT")
                   : "-"}
@@ -69,7 +70,7 @@ export default function MembersTable({
               <td className="px-3 py-2 text-[11px] text-slate-200">
                 {m.full_name || "-"}
               </td>
-              <td className="px-3 py-2 text-[11px] text-slate-300">
+              <td className="px-3 py-2 text-[11px] text-slate-300 break-all">
                 {m.email || "-"}
               </td>
               <td className="px-3 py-2 text-[11px] text-slate-300">

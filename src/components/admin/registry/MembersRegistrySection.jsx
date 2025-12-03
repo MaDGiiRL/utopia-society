@@ -1,3 +1,4 @@
+// src/components/admin/registry/MembersRegistrySection.jsx
 export default function MembersRegistrySection({
   registryLoading,
   registryError,
@@ -32,13 +33,13 @@ export default function MembersRegistrySection({
           Storico soci
         </h3>
 
-        {/* 🔹 Filtro ANNO + import XLSX */}
+        {/* Filtro ANNO + import XLSX */}
         <div className="flex flex-wrap items-center gap-2 text-[10px]">
           {/* Filtro anno storico */}
           <select
             value={yearFilter}
             onChange={(e) => setYearFilter(e.target.value)}
-            className="rounded-full border border-white/10 bg-slate-900/70 px-3 py-1.5 text-[10px] text-slate-100 outline-none focus:border-cyan-400"
+            className="max-w-[160px] rounded-full border border-white/10 bg-slate-900/70 px-3 py-1.5 text-[10px] text-slate-100 outline-none focus:border-cyan-400"
           >
             <option value="ALL">Tutti gli anni</option>
             {fixedYears.map((y) => (
@@ -55,8 +56,8 @@ export default function MembersRegistrySection({
             max="2100"
             value={registryYear}
             onChange={(e) => setRegistryYear(e.target.value)}
-            placeholder="Anno import (es. 2025)"
-            className="w-[130px] rounded-full border border-slate-600 bg-slate-900/80 px-3 py-1 text-[10px] text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-cyan-400"
+            placeholder="Anno import"
+            className="w-[110px] sm:w-[130px] rounded-full border border-slate-600 bg-slate-900/80 px-3 py-1 text-[10px] text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-cyan-400"
           />
 
           {/* File XLSX */}

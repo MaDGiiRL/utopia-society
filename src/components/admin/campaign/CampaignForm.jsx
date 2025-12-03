@@ -110,7 +110,7 @@ export default function CampaignForm({
             onChange={handleHeroChange}
             className="text-[11px] text-slate-200 file:mr-3 file:rounded-full file:border-0 file:bg-cyan-400 file:px-3 file:py-1 file:text-[10px] file:font-semibold file:uppercase file:tracking-[0.16em] file:text-black file:hover:brightness-110"
           />
-          <div className="flex items-center justify-between text-[11px] text-slate-500">
+          <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between text-[11px] text-slate-500">
             <span>
               Puoi caricare un'immagine che apparirà sotto al titolo della
               newsletter.

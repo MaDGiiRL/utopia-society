@@ -1,3 +1,4 @@
+// src/components/admin/registry/MemberModal.jsx
 function Row({ label, value }) {
   return (
     <div className="flex gap-2 text-[11px]">
@@ -39,7 +40,7 @@ export default function MemberModal({
 
   return (
     <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/70 px-3">
-      <div className="max-h-[90vh] w-full max-w-lg overflow-auto rounded-2xl border border-white/15 bg-slate-950/95 p-4 text-[11px] text-slate-100 shadow-2xl">
+      <div className="max-h-[90vh] w-full max-w-lg overflow-auto rounded-2xl border border-white/15 bg-slate-950/95 p-4 sm:p-5 text-[11px] text-slate-100 shadow-2xl">
         <div className="mb-3 flex items-center justify-between">
           <div>
             <h3 className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-200">
@@ -135,7 +136,7 @@ export default function MemberModal({
               <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">
                 {t("admin.membersPanel.modal.documents")}
               </p>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 <DocLink
                   label={t("admin.membersPanel.modal.docFront")}
                   url={selectedMember.document_front_url}
@@ -171,7 +172,7 @@ export function RegistryEntryModal({ open, onClose, entry }) {
 
   return (
     <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/70 px-3">
-      <div className="max-h-[90vh] w-full max-w-3xl overflow-auto rounded-2xl border border-white/15 bg-slate-950/95 p-4 text-[11px] text-slate-100 shadow-2xl">
+      <div className="max-h-[90vh] w-full max-w-3xl overflow-auto rounded-2xl border border-white/15 bg-slate-950/95 p-4 sm:p-5 text-[11px] text-slate-100 shadow-2xl">
         <div className="mb-3 flex items-center justify-between">
           <div>
             <h3 className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-200">

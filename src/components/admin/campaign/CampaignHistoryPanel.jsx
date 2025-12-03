@@ -1,3 +1,4 @@
+// src/components/admin/campaign/CampaignHistoryPanel.jsx
 import React, { useMemo, useState } from "react";
 import { History, ListOrdered, ChevronLeft, ChevronRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -75,77 +76,79 @@ export default function CampaignHistoryPanel({
         {/* Tabella campagne */}
         <div className="flex flex-col max-h-64 rounded-xl border border-white/5 bg-slate-950/70">
           <div className="flex-1 overflow-auto">
-            <table className="min-w-full text-[11px]">
-              <thead className="bg-slate-900/80 uppercase tracking-[0.16em] text-slate-400">
-                <tr>
-                  <th className="px-3 py-2 text-left">
-                    {t("admin.campaign.history.table.date")}
-                  </th>
-                  <th className="px-3 py-2 text-left">
-                    {t("admin.campaign.history.table.title")}
-                  </th>
-                  <th className="px-3 py-2 text-left">
-                    {t("admin.campaign.history.table.eventDate")}
-                  </th>
-                  <th className="px-3 py-2 text-left">
-                    {t("admin.campaign.history.table.status")}
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {historyLoading ? (
+            <div className="min-w-full overflow-x-auto">
+              <table className="min-w-full text-[11px]">
+                <thead className="bg-slate-900/80 uppercase tracking-[0.16em] text-slate-400">
                   <tr>
-                    <td
-                      colSpan={4}
-                      className="px-3 py-4 text-center text-xs text-slate-400"
-                    >
-                      {t("admin.campaign.history.loading")}
-                    </td>
+                    <th className="px-3 py-2 text-left">
+                      {t("admin.campaign.history.table.date")}
+                    </th>
+                    <th className="px-3 py-2 text-left">
+                      {t("admin.campaign.history.table.title")}
+                    </th>
+                    <th className="px-3 py-2 text-left">
+                      {t("admin.campaign.history.table.eventDate")}
+                    </th>
+                    <th className="px-3 py-2 text-left">
+                      {t("admin.campaign.history.table.status")}
+                    </th>
                   </tr>
-                ) : pagedCampaigns.length ? (
-                  pagedCampaigns.map((c) => (
-                    <tr
-                      key={c.id}
-                      className="border-t border-white/5 bg-slate-950/40 hover:bg-slate-900/70"
-                    >
-                      <td className="px-3 py-2 text-[10px] text-slate-400">
-                        {c.created_at
-                          ? new Date(c.created_at).toLocaleString("it-IT")
-                          : "-"}
-                      </td>
-                      <td className="px-3 py-2">{c.title || "-"}</td>
-                      <td className="px-3 py-2 text-[10px] text-slate-300">
-                        {c.event_date
-                          ? new Date(c.event_date).toLocaleDateString("it-IT")
-                          : "—"}
-                      </td>
-                      <td className="px-3 py-2">
-                        <span
-                          className={`inline-flex rounded-full px-2 py-0.5 text-[10px] uppercase tracking-[0.16em] ${
-                            c.status === "sent"
-                              ? "bg-emerald-500/15 text-emerald-300 border border-emerald-500/40"
-                              : c.status === "sending"
-                              ? "bg-amber-500/15 text-amber-300 border border-amber-500/40"
-                              : "bg-slate-700/40 text-slate-200 border border-slate-500/40"
-                          }`}
-                        >
-                          {statusLabel(c.status)}
-                        </span>
+                </thead>
+                <tbody>
+                  {historyLoading ? (
+                    <tr>
+                      <td
+                        colSpan={4}
+                        className="px-3 py-4 text-center text-xs text-slate-400"
+                      >
+                        {t("admin.campaign.history.loading")}
                       </td>
                     </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td
-                      colSpan={4}
-                      className="px-3 py-4 text-center text-xs text-slate-500"
-                    >
-                      {t("admin.campaign.history.empty")}
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+                  ) : pagedCampaigns.length ? (
+                    pagedCampaigns.map((c) => (
+                      <tr
+                        key={c.id}
+                        className="border-t border-white/5 bg-slate-950/40 hover:bg-slate-900/70"
+                      >
+                        <td className="px-3 py-2 text-[10px] text-slate-400">
+                          {c.created_at
+                            ? new Date(c.created_at).toLocaleString("it-IT")
+                            : "-"}
+                        </td>
+                        <td className="px-3 py-2">{c.title || "-"}</td>
+                        <td className="px-3 py-2 text-[10px] text-slate-300">
+                          {c.event_date
+                            ? new Date(c.event_date).toLocaleDateString("it-IT")
+                            : "—"}
+                        </td>
+                        <td className="px-3 py-2">
+                          <span
+                            className={`inline-flex rounded-full px-2 py-0.5 text-[10px] uppercase tracking-[0.16em] ${
+                              c.status === "sent"
+                                ? "bg-emerald-500/15 text-emerald-300 border border-emerald-500/40"
+                                : c.status === "sending"
+                                ? "bg-amber-500/15 text-amber-300 border border-amber-500/40"
+                                : "bg-slate-700/40 text-slate-200 border border-slate-500/40"
+                            }`}
+                          >
+                            {statusLabel(c.status)}
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan={4}
+                        className="px-3 py-4 text-center text-xs text-slate-500"
+                      >
+                        {t("admin.campaign.history.empty")}
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
 
           {/* Paginazione campagne */}
@@ -200,77 +203,79 @@ export default function CampaignHistoryPanel({
           </div>
 
           <div className="flex-1 overflow-auto">
-            <table className="min-w-full text-[11px]">
-              <thead className="bg-slate-900/80 uppercase tracking-[0.16em] text-slate-400">
-                <tr>
-                  <th className="px-3 py-2 text-left">
-                    {t("admin.campaign.logs.table.ts")}
-                  </th>
-                  <th className="px-3 py-2 text-left">
-                    {t("admin.campaign.logs.table.campaign")}
-                  </th>
-                  <th className="px-3 py-2 text-left">
-                    {t("admin.campaign.logs.table.channel")}
-                  </th>
-                  <th className="px-3 py-2 text-left">
-                    {t("admin.campaign.logs.table.status")}
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {historyLoading ? (
+            <div className="min-w-full overflow-x-auto">
+              <table className="min-w-full text-[11px]">
+                <thead className="bg-slate-900/80 uppercase tracking-[0.16em] text-slate-400">
                   <tr>
-                    <td
-                      colSpan={4}
-                      className="px-3 py-3 text-center text-xs text-slate-400"
-                    >
-                      {t("admin.campaign.logs.loading")}
-                    </td>
+                    <th className="px-3 py-2 text-left">
+                      {t("admin.campaign.logs.table.ts")}
+                    </th>
+                    <th className="px-3 py-2 text-left">
+                      {t("admin.campaign.logs.table.campaign")}
+                    </th>
+                    <th className="px-3 py-2 text-left">
+                      {t("admin.campaign.logs.table.channel")}
+                    </th>
+                    <th className="px-3 py-2 text-left">
+                      {t("admin.campaign.logs.table.status")}
+                    </th>
                   </tr>
-                ) : pagedLogs.length ? (
-                  pagedLogs.map((l) => (
-                    <tr
-                      key={l.id}
-                      className="border-t border-white/5 bg-slate-950/40 hover:bg-slate-900/70"
-                    >
-                      <td className="px-3 py-2 text-[10px] text-slate-400">
-                        {l.created_at
-                          ? new Date(l.created_at).toLocaleString("it-IT")
-                          : "-"}
-                      </td>
-                      <td className="px-3 py-2 text-[10px] text-slate-300">
-                        {l.campaign_id}
-                      </td>
-                      <td className="px-3 py-2">
-                        <span className="rounded-full bg-slate-800/80 px-2 py-px text-[10px] uppercase tracking-[0.16em] text-slate-100">
-                          {l.channel}
-                        </span>
-                      </td>
-                      <td className="px-3 py-2">
-                        <span
-                          className={`inline-flex rounded-full px-2 py-0.5 text-[10px] uppercase tracking-[0.16em] ${
-                            l.status === "sent"
-                              ? "bg-emerald-500/15 text-emerald-300"
-                              : "bg-rose-500/15 text-rose-300"
-                          }`}
-                        >
-                          {logStatusLabel(l.status)}
-                        </span>
+                </thead>
+                <tbody>
+                  {historyLoading ? (
+                    <tr>
+                      <td
+                        colSpan={4}
+                        className="px-3 py-3 text-center text-xs text-slate-400"
+                      >
+                        {t("admin.campaign.logs.loading")}
                       </td>
                     </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td
-                      colSpan={4}
-                      className="px-3 py-3 text-center text-xs text-slate-500"
-                    >
-                      {t("admin.campaign.logs.empty")}
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+                  ) : pagedLogs.length ? (
+                    pagedLogs.map((l) => (
+                      <tr
+                        key={l.id}
+                        className="border-t border-white/5 bg-slate-950/40 hover:bg-slate-900/70"
+                      >
+                        <td className="px-3 py-2 text-[10px] text-slate-400">
+                          {l.created_at
+                            ? new Date(l.created_at).toLocaleString("it-IT")
+                            : "-"}
+                        </td>
+                        <td className="px-3 py-2 text-[10px] text-slate-300">
+                          {l.campaign_id}
+                        </td>
+                        <td className="px-3 py-2">
+                          <span className="rounded-full bg-slate-800/80 px-2 py-px text-[10px] uppercase tracking-[0.16em] text-slate-100">
+                            {l.channel}
+                          </span>
+                        </td>
+                        <td className="px-3 py-2">
+                          <span
+                            className={`inline-flex rounded-full px-2 py-0.5 text-[10px] uppercase tracking-[0.16em] ${
+                              l.status === "sent"
+                                ? "bg-emerald-500/15 text-emerald-300"
+                                : "bg-rose-500/15 text-rose-300"
+                            }`}
+                          >
+                            {logStatusLabel(l.status)}
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan={4}
+                        className="px-3 py-3 text-center text-xs text-slate-500"
+                      >
+                        {t("admin.campaign.logs.empty")}
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
 
           {/* Paginazione log */}
