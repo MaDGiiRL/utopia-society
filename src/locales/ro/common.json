@@ -68,6 +68,10 @@
         "copyright": "© {{year}} Utopia Society"
     },
     "admin": {
+        "badge": "Zonă rezervată Clubului Utopia",
+        "funHint": "Introdu acreditările de administrator. Fără spam, doar super-puteri.",
+        "passwordHint": "Păstreaz-o în siguranță, nu o distribui în grupuri.",
+        "footerHint": "Acces rezervat personalului Utopia. Dacă nu ar trebui să fii aici… probabil că nu ar trebui să fii aici 😄",
         "dashboard": {
             "badge": "Utopia · Admin",
             "subtitle": "Gestionezi membrii, contactele și campaniile.",

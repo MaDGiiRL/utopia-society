@@ -68,6 +68,10 @@
         "by": "da"
     },
     "admin": {
+        "badge": "Area riservata Utopia Club",
+        "funHint": "Inserisci le credenziali amministratore. Niente spam, solo super-poteri.",
+        "passwordHint": "Tienila al sicuro, non condividerla in chat di gruppo.",
+        "footerHint": "Accesso riservato allo staff Utopia. Se non dovresti essere qui… probabilmente non dovresti essere qui 😄",
         "dashboard": {
             "badge": "Utopia · Admin",
             "subtitle": "Gestisci soci, contatti e campagne.",
