@@ -25,7 +25,7 @@ export default function MembersPanel() {
   const [membersExportFilter, setMembersExportFilter] =
     useState("non_exported");
 
-  // 🔹 filtro ANNO per la PRIMA tabella (solo per i soci derivati dal registry)
+  // 🔹 filtro ANNO per la PRIMA tabella (solo per attivi derivati da registry)
   const [membersYearFilter, setMembersYearFilter] = useState("ALL");
 
   // pagina per la PRIMA tabella
@@ -70,7 +70,39 @@ export default function MembersPanel() {
     window.location.href = url;
   };
 
-  // Carica TUTTO lo storico (il filtro anno lo facciamo solo lato client)
+  // 🔹 Carica membri (PRIMA tabella) con filtro exported / non-exported / all
+  useEffect(() => {
+    let cancelled = false;
+
+    async function load() {
+      setLoading(true);
+      setError("");
+      try {
+        const data = await fetchMembers(membersExportFilter);
+        if (!cancelled) {
+          if (!data.ok) {
+            throw new Error(data.message || t("admin.membersPanel.error"));
+          }
+          setMembers(data.members || []);
+          setMembersPage(1); // reset pagina quando cambia il filtro
+        }
+      } catch (err) {
+        console.error(err);
+        if (!cancelled) {
+          setError(t("admin.membersPanel.error"));
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [t, membersExportFilter]);
+
+  // 🔹 Carica TUTTO lo storico (una volta sola; i filtri li facciamo lato client)
   useEffect(() => {
     let cancelled = false;
 
@@ -109,59 +141,12 @@ export default function MembersPanel() {
     return () => {
       cancelled = true;
     };
-  }, [t]); // 👈 niente più yearFilter qui
+  }, [t]);
 
-  // Carica storico + filtro per anno (seconda tabella)
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadRegistry() {
-      setRegistryLoading(true);
-      setRegistryError("");
-      setRegistryPage(1);
-
-      try {
-        const url =
-          yearFilter === "ALL"
-            ? `${API_BASE}/api/admin/members-registry`
-            : `${API_BASE}/api/admin/members-registry?year=${encodeURIComponent(
-                yearFilter
-              )}`;
-
-        const res = await fetch(url, { credentials: "include" });
-        const data = await res.json().catch(() => ({}));
-
-        if (!res.ok || !data.ok) {
-          throw new Error(data.message || "Errore storico soci");
-        }
-
-        if (!cancelled) {
-          const entries = data.entries || [];
-          setRegistryEntries(entries);
-        }
-      } catch (err) {
-        console.error(err);
-        if (!cancelled) {
-          setRegistryError(
-            err instanceof Error ? err.message : t("admin.membersPanel.error")
-          );
-        }
-      } finally {
-        if (!cancelled) setRegistryLoading(false);
-      }
-    }
-
-    loadRegistry();
-    return () => {
-      cancelled = true;
-    };
-  }, [yearFilter, t]);
-
-  // Storico filtrato per anno + stato, ordinato dall'ultimo anno (per SECONDA tabella)
+  // 🔹 Storico filtrato per anno + stato, ordinato (SOLO per la SECONDA tabella)
   const filteredRegistry = useMemo(() => {
     let result = registryEntries;
 
-    // filtro anno (di sicurezza)
     if (yearFilter !== "ALL") {
       const yearInt = parseInt(yearFilter, 10);
       if (!Number.isNaN(yearInt)) {
@@ -169,14 +154,12 @@ export default function MembersPanel() {
       }
     }
 
-    // filtro per stato "attivo"
     if (registryStatusFilter === "ACTIVE") {
       result = result.filter((r) =>
         (r.status || "").toString().toLowerCase().startsWith("attiv")
       );
     }
 
-    // ordino per anno desc, poi per data valid_from desc
     return result.slice().sort((a, b) => {
       const ay = a.year || 0;
       const by = b.year || 0;
@@ -188,8 +171,7 @@ export default function MembersPanel() {
     });
   }, [registryEntries, yearFilter, registryStatusFilter]);
 
-  // 🔹 ATTIVI DI REGISTRY → "pseudo members" per la PRIMA tabella
-  //    QUI USIAMO SOLO membersYearFilter (NON yearFilter!)
+  // 🔹 Attivi di registry → pseudo members per PRIMA tabella (filtrati per membersYearFilter)
   const activeRegistryAsMembers = useMemo(() => {
     return registryEntries
       .filter((r) =>
@@ -221,9 +203,13 @@ export default function MembersPanel() {
       });
   }, [registryEntries, membersYearFilter]);
 
-  // Lista finale per la PRIMA tabella (richieste sito + attivi registry filtrati per anno)
+  // 🔹 Lista finale per PRIMA tabella
+  // - se filtro ≠ "exported": solo members (come era prima)
+  // - se filtro = "exported": members esportati + attivi registry (filtrati per anni), senza duplicati
   const membersForTable = useMemo(() => {
-    if (membersExportFilter !== "exported") return members;
+    if (membersExportFilter !== "exported") {
+      return members;
+    }
 
     const activeSorted = activeRegistryAsMembers.slice().sort((a, b) => {
       const ay = a.created_at ? new Date(a.created_at).getTime() : 0;
@@ -231,10 +217,10 @@ export default function MembersPanel() {
       return by - ay;
     });
 
-    // evito duplicati basandomi sull'email
     const existingEmails = new Set(
       members.map((m) => (m.email || "").toLowerCase())
     );
+
     const filteredActives = activeSorted.filter(
       (r) => !existingEmails.has((r.email || "").toLowerCase())
     );
@@ -293,7 +279,6 @@ export default function MembersPanel() {
     }
   };
 
-  // apertura modale storico
   const handleOpenRegistryEntry = (entry) => {
     setSelectedRegistryEntry(entry);
     setRegistryModalOpen(true);
@@ -306,7 +291,6 @@ export default function MembersPanel() {
       return;
     }
 
-    // anno da usare per la colonna "year" dello storico
     const yearForImportRaw =
       registryYear && registryYear.trim().length
         ? registryYear
@@ -353,7 +337,7 @@ export default function MembersPanel() {
       );
       setRegistryFile(null);
 
-      // ricarico TUTTO lo storico (poi filtriamo lato client)
+      // ricarico TUTTO lo storico
       try {
         const url = `${API_BASE}/api/admin/members-registry`;
         const refRes = await fetch(url, { credentials: "include" });
@@ -416,7 +400,7 @@ export default function MembersPanel() {
             Esporta XLSX ACSI
           </button>
 
-          {/* 🔹 filtro ANNO per la PRIMA tabella (solo per attivi registry) */}
+          {/* 🔹 filtro ANNO per la PRIMA tabella (attivi registry) */}
           <div className="flex items-center gap-1 text-xs text-slate-300">
             <span>Anno storico (tabella sopra):</span>
             <select
