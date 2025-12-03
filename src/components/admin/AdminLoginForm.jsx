@@ -53,7 +53,7 @@ export default function AdminLoginForm() {
           <span className="inline-flex items-center gap-1 rounded-full border border-slate-700/70 bg-slate-900/80 px-3 py-1">
             <Lock className="h-3.5 w-3.5 text-cyan-400" />
             <span className="uppercase tracking-[0.18em]">
-              {t("admin.login.badge", "Area riservata Utopia Club")}
+              {t("admin.login.badge", "Reserved area · Utopia Club")}
             </span>
           </span>
         </div>
@@ -74,7 +74,7 @@ export default function AdminLoginForm() {
               ✨{" "}
               {t(
                 "admin.login.funHint",
-                "Inserisci le credenziali amministratore. Niente spam, solo super-poteri."
+                "Enter your administrator credentials. No spam, only super-powers."
               )}
             </p>
           </div>
@@ -124,7 +124,7 @@ export default function AdminLoginForm() {
                 🔐{" "}
                 {t(
                   "admin.login.passwordHint",
-                  "Tienila al sicuro, non condividerla in chat di gruppo."
+                  "Keep it safe, don’t share it in group chats."
                 )}
               </p>
             </div>
@@ -152,7 +152,7 @@ export default function AdminLoginForm() {
           <div className="mt-4 text-center text-[10px] text-slate-500">
             {t(
               "admin.login.footerHint",
-              "Accesso riservato allo staff Utopia. Se non dovresti essere qui… probabilmente non dovresti essere qui 😄"
+              "Access reserved to Utopia staff. If you shouldn't be here… you probably shouldn't be here 😄"
             )}
           </div>
         </div>
