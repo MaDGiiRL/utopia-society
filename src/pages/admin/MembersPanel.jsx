@@ -26,7 +26,7 @@ export default function MembersPanel() {
     useState("non_exported");
 
   // 🔹 filtro ANNO per la PRIMA tabella (solo per attivi derivati da registry)
-  const [membersYearFilter, setMembersYearFilter] = useState("ALL");
+  const [membersYearFilter, setMembersYearFilter] = useState("2025");
 
   // pagina per la PRIMA tabella
   const [membersPage, setMembersPage] = useState(1);
