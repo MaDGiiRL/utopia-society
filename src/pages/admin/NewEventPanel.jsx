@@ -10,6 +10,7 @@ import {
   Star,
   X,
 } from "lucide-react";
+import Swal from "sweetalert2";
 
 const API_BASE = import.meta.env.VITE_ADMIN_API_URL || "";
 
