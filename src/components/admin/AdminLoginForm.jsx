@@ -40,7 +40,7 @@ export default function AdminLoginForm() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex items-center justify-center px-4 py-6 sm:py-10">
+    <div className="min-h-screen bg-slate-350 flex items-center justify-center px-4 py-6 sm:py-10">
       {/* sfondo glow dietro la card */}
       <div className="pointer-events-none fixed inset-0 -z-10 bg-gradient-to-b from-cyan-500/5 via-fuchsia-500/3 to-slate-950" />
       <div className="pointer-events-none fixed inset-x-0 -z-10 top-1/4 flex justify-center">
