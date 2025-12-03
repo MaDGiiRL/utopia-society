@@ -3,10 +3,10 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { fetchMembers, fetchMemberById } from "../../api/admin";
 
-import MembersHeaderFilters from "../../components/registry/MembersHeaderFilters";
+import MembersHeaderFilters from "../../components/admin/registry/MembersHeaderFilters";
 import MembersTable from "../../components/admin/registry/MembersTable";
-import MembersRegistrySection from "../../components/registry/MembersRegistrySection";
-import MemberModal from "../../components/registry/MemberModal";
+import MembersRegistrySection from "../../components/admin/registry/MembersRegistrySection";
+import MemberModal from "../../components/admin/registry/MemberModal";
 
 const API_BASE = import.meta.env.VITE_ADMIN_API_URL || "";
 
