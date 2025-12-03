@@ -1,4 +1,3 @@
-// src/pages/admin/MembersPanel.jsx
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { fetchMembers, fetchMemberById } from "../../api/admin";
@@ -21,10 +20,6 @@ export default function MembersPanel() {
   const [error, setError] = useState("");
 
   // 🔹 filtro export per la PRIMA tabella (membri)
-  // valori possibili:
-  // - "non_exported" → exported=false (default)
-  // - "exported"     → exported=true
-  // - "all"          → exported=all
   const [membersExportFilter, setMembersExportFilter] =
     useState("non_exported");
 
@@ -32,8 +27,6 @@ export default function MembersPanel() {
   const [registryEntries, setRegistryEntries] = useState([]);
   const [registryLoading, setRegistryLoading] = useState(false);
   const [registryError, setRegistryError] = useState("");
-
-  const [availableYears, setAvailableYears] = useState([]);
 
   const [registryPage, setRegistryPage] = useState(1);
 
@@ -44,9 +37,8 @@ export default function MembersPanel() {
   // anno da usare per l'import XLSX storico
   const [registryYear, setRegistryYear] = useState("");
 
-  const [yearFilter, setYearFilter] = useState("ALL"); // filtra SOLO storico
-  const [fromTime, setFromTime] = useState("");
-  const [toTime, setToTime] = useState("");
+  // 🔹 filtro anno SOLO per lo storico
+  const [yearFilter, setYearFilter] = useState("ALL");
 
   // modale socio "nuovo"
   const [modalOpen, setModalOpen] = useState(false);
@@ -59,14 +51,9 @@ export default function MembersPanel() {
 
   // 👇 handler per il pulsante EXPORT
   const handleExportXlsx = () => {
-    // sicurezza extra: non fare nulla se il filtro non è "non_exported"
     if (membersExportFilter !== "non_exported") return;
-
-    // se vuoi puoi in futuro usare un year scelto da UI; per ora uso anno corrente
     const year = new Date().getFullYear();
     const url = `${API_BASE}/api/admin/members.xlsx?year=${year}`;
-
-    // trigger download
     window.location.href = url;
   };
 
@@ -78,8 +65,6 @@ export default function MembersPanel() {
       setLoading(true);
       setError("");
       try {
-        // 🔹 passiamo il filtro al wrapper fetchMembers
-        // che a sua volta chiamerà /api/admin/members?exported=...
         const data = await fetchMembers(membersExportFilter);
         if (!cancelled) {
           if (!data.ok) {
@@ -101,9 +86,9 @@ export default function MembersPanel() {
     return () => {
       cancelled = true;
     };
-  }, [t, membersExportFilter]); // 🔹 ricarica quando cambia filtro export
+  }, [t, membersExportFilter]);
 
-  // Carica storico + anni disponibili
+  // Carica storico + filtro per anno
   useEffect(() => {
     let cancelled = false;
 
@@ -130,15 +115,6 @@ export default function MembersPanel() {
         if (!cancelled) {
           const entries = data.entries || [];
           setRegistryEntries(entries);
-
-          // aggiorna anni
-          setAvailableYears((prev) => {
-            const yearsSet = new Set(prev);
-            entries.forEach((r) => {
-              if (r.year != null) yearsSet.add(String(r.year));
-            });
-            return Array.from(yearsSet).sort((a, b) => b.localeCompare(a));
-          });
         }
       } catch (err) {
         console.error(err);
@@ -158,36 +134,7 @@ export default function MembersPanel() {
     };
   }, [yearFilter, t]);
 
-  // Filtro fascia oraria per i "nuovi" membri
-  const filteredMembers = useMemo(() => {
-    let list = members;
-
-    const timeToMinutes = (t) => {
-      if (!t) return null;
-      const [h, m] = t.split(":").map((x) => parseInt(x, 10));
-      if (Number.isNaN(h) || Number.isNaN(m)) return null;
-      return h * 60 + m;
-    };
-
-    const fromMinutes = timeToMinutes(fromTime);
-    const toMinutes = timeToMinutes(toTime);
-
-    if (fromMinutes != null || toMinutes != null) {
-      list = list.filter((m) => {
-        if (!m.created_at) return false;
-        const d = new Date(m.created_at);
-        if (Number.isNaN(d.getTime())) return false;
-        const minutes = d.getHours() * 60 + d.getMinutes();
-        if (fromMinutes != null && minutes < fromMinutes) return false;
-        if (toMinutes != null && minutes > toMinutes) return false;
-        return true;
-      });
-    }
-
-    return list;
-  }, [members, fromTime, toTime]);
-
-  // Storico filtrato per anno (già filtrato dal backend ma doppia sicurezza)
+  // Storico filtrato per anno (doppia sicurezza)
   const filteredRegistry = useMemo(() => {
     if (yearFilter === "ALL") return registryEntries;
     const yearInt = parseInt(yearFilter, 10);
@@ -242,11 +189,12 @@ export default function MembersPanel() {
     }
 
     // anno da usare per la colonna "year" dello storico
-    const yearForImportRaw = registryYear
-      ? registryYear
-      : yearFilter !== "ALL"
-      ? yearFilter
-      : new Date().getFullYear().toString();
+    const yearForImportRaw =
+      registryYear && registryYear.trim().length
+        ? registryYear
+        : yearFilter !== "ALL"
+        ? yearFilter
+        : new Date().getFullYear().toString();
 
     const yearForImport = parseInt(yearForImportRaw, 10);
     if (Number.isNaN(yearForImport)) {
@@ -300,13 +248,6 @@ export default function MembersPanel() {
         if (refRes.ok && refData.ok) {
           const entries = refData.entries || [];
           setRegistryEntries(entries);
-          setAvailableYears((prev) => {
-            const yearsSet = new Set(prev);
-            entries.forEach((r) => {
-              if (r.year != null) yearsSet.add(String(r.year));
-            });
-            return Array.from(yearsSet).sort((a, b) => b.localeCompare(a));
-          });
         }
       } catch (e) {
         console.warn("Errore reload members_registry dopo import:", e);
@@ -325,28 +266,22 @@ export default function MembersPanel() {
 
   return (
     <div className="flex flex-col gap-3">
+      {/* HEADER: solo titolo + contatore */}
       <MembersHeaderFilters
         t={t}
-        yearFilter={yearFilter}
-        setYearFilter={setYearFilter}
-        fromTime={fromTime}
-        setFromTime={setFromTime}
-        toTime={toTime}
-        setToTime={setToTime}
-        filteredCount={filteredMembers.length}
+        filteredCount={members.length}
         totalCount={members.length}
-        availableYears={availableYears}
       />
 
       {/* 🔹 Filtro ESPORTATI / NON ESPORTATI + pulsante export XLSX */}
-      <div className="flex items-center justify-between gap-2 mb-1">
+      <div className="mb-1 flex items-center justify-between gap-2">
         <span className="text-xs text-slate-400">
           Filtro esportazione tessere:
         </span>
 
         <div className="flex items-center gap-2">
           <select
-            className="bg-slate-900/60 border border-slate-700 text-xs rounded px-2 py-1"
+            className="rounded px-2 py-1 border border-slate-700 bg-slate-900/60 text-xs"
             value={membersExportFilter}
             onChange={(e) => setMembersExportFilter(e.target.value)}
           >
@@ -361,7 +296,7 @@ export default function MembersPanel() {
             disabled={membersExportFilter !== "non_exported"}
             className={`rounded-full border px-3 py-1 text-[10px] uppercase tracking-[0.16em] ${
               membersExportFilter !== "non_exported"
-                ? "border-slate-600 text-slate-500 bg-slate-900/60 cursor-not-allowed opacity-60"
+                ? "cursor-not-allowed border-slate-600 bg-slate-900/60 text-slate-500 opacity-60"
                 : "border-cyan-400/70 bg-cyan-500/10 text-cyan-100 hover:bg-cyan-500/25"
             }`}
           >
@@ -374,7 +309,7 @@ export default function MembersPanel() {
         t={t}
         loading={loading}
         error={error}
-        filteredMembers={filteredMembers}
+        filteredMembers={members}
         onOpenMember={handleOpenMember}
       />
 
@@ -394,6 +329,8 @@ export default function MembersPanel() {
         registryYear={registryYear}
         setRegistryYear={setRegistryYear}
         onOpenRegistryEntry={handleOpenRegistryEntry}
+        yearFilter={yearFilter}
+        setYearFilter={setYearFilter}
       />
 
       <MemberModal

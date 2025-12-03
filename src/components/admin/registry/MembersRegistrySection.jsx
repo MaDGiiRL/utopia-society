@@ -14,12 +14,16 @@ export default function MembersRegistrySection({
   registryYear,
   setRegistryYear,
   onOpenRegistryEntry,
+  yearFilter,
+  setYearFilter,
 }) {
   const totalPages = Math.max(1, Math.ceil((total || 0) / (pageSize || 1)));
   const hasAnyRecords = (total || 0) > 0;
 
   const startIndex = !hasAnyRecords ? 0 : (page - 1) * pageSize + 1;
   const endIndex = !hasAnyRecords ? 0 : Math.min(page * pageSize, total || 0);
+
+  const fixedYears = [2022, 2023, 2024, 2025, 2026];
 
   return (
     <div className="mt-4">
@@ -28,8 +32,22 @@ export default function MembersRegistrySection({
           Storico soci (tabella members_registry)
         </h3>
 
-        {/* 🔹 QUI scegli ANNO + FILE + pulsante IMPORT */}
+        {/* 🔹 Filtro ANNO + import XLSX */}
         <div className="flex flex-wrap items-center gap-2 text-[10px]">
+          {/* Filtro anno storico */}
+          <select
+            value={yearFilter}
+            onChange={(e) => setYearFilter(e.target.value)}
+            className="rounded-full border border-white/10 bg-slate-900/70 px-3 py-1.5 text-[10px] text-slate-100 outline-none focus:border-cyan-400"
+          >
+            <option value="ALL">Tutti gli anni</option>
+            {fixedYears.map((y) => (
+              <option key={y} value={String(y)}>
+                {y}
+              </option>
+            ))}
+          </select>
+
           {/* Anno usato per l'import */}
           <input
             type="number"
@@ -37,8 +55,8 @@ export default function MembersRegistrySection({
             max="2100"
             value={registryYear}
             onChange={(e) => setRegistryYear(e.target.value)}
-            placeholder="Anno (es. 2025)"
-            className="w-[110px] rounded-full border border-slate-600 bg-slate-900/80 px-3 py-1 text-[10px] text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-cyan-400"
+            placeholder="Anno import (es. 2025)"
+            className="w-[130px] rounded-full border border-slate-600 bg-slate-900/80 px-3 py-1 text-[10px] text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-cyan-400"
           />
 
           {/* File XLSX */}
@@ -95,7 +113,6 @@ export default function MembersRegistrySection({
               <thead>
                 <tr className="border-b border-white/10 bg-slate-900/70">
                   <th className="px-3 py-2 font-medium text-slate-400">Anno</th>
-                  {/* 👇 Tolti Stato / Tessera / Cellulare / Qualifica dalla tabella */}
                   <th className="px-3 py-2 font-medium text-slate-400">Nome</th>
                   <th className="px-3 py-2 font-medium text-slate-400">
                     Cognome
