@@ -3,13 +3,20 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { fetchMembers, fetchMemberById } from "../../api/admin";
 
+const API_BASE = import.meta.env.VITE_ADMIN_API_URL || "";
+
 export default function MembersPanel() {
   const { t } = useTranslation();
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // 🔹 solo filtri anno + ora
+  // 📌 nuova: storico da tabella members_registry
+  const [registryEntries, setRegistryEntries] = useState([]);
+  const [registryLoading, setRegistryLoading] = useState(false);
+  const [registryError, setRegistryError] = useState("");
+
+  // 🔹 solo filtri anno + ora (per tabella "members")
   const [yearFilter, setYearFilter] = useState("ALL");
   const [fromTime, setFromTime] = useState(""); // "HH:MM"
   const [toTime, setToTime] = useState(""); // "HH:MM"
@@ -18,7 +25,7 @@ export default function MembersPanel() {
   const [selectedMember, setSelectedMember] = useState(null);
   const [loadingMember, setLoadingMember] = useState(false);
 
-  // Carica lista soci
+  // Carica lista soci (tabella members)
   useEffect(() => {
     let cancelled = false;
 
@@ -51,7 +58,54 @@ export default function MembersPanel() {
     };
   }, [t]);
 
-  // 🔹 Anni disponibili (da created_at)
+  // Carica storico soci (tabella members_registry)
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadRegistry() {
+      setRegistryLoading(true);
+      setRegistryError("");
+
+      try {
+        // posso usare yearFilter anche qui (se non ALL)
+        const url =
+          yearFilter === "ALL"
+            ? `${API_BASE}/api/admin/members-registry`
+            : `${API_BASE}/api/admin/members-registry?year=${encodeURIComponent(
+                yearFilter
+              )}`;
+
+        const res = await fetch(url, { credentials: "include" });
+        const data = await res.json().catch(() => ({}));
+
+        if (!res.ok || !data.ok) {
+          throw new Error(data.message || "Errore storico soci");
+        }
+
+        if (!cancelled) {
+          setRegistryEntries(data.entries || []);
+        }
+      } catch (err) {
+        console.error(err);
+        if (!cancelled) {
+          setRegistryError(
+            err instanceof Error ? err.message : t("admin.membersPanel.error")
+          );
+        }
+      } finally {
+        if (!cancelled) {
+          setRegistryLoading(false);
+        }
+      }
+    }
+
+    loadRegistry();
+    return () => {
+      cancelled = true;
+    };
+  }, [yearFilter, t]);
+
+  // 🔹 Anni disponibili (calcolati dalla tabella members.created_at)
   const availableYears = useMemo(() => {
     const set = new Set();
     members.forEach((m) => {
@@ -65,7 +119,7 @@ export default function MembersPanel() {
     return Array.from(set).sort((a, b) => b.localeCompare(a)); // anni decrescenti
   }, [members]);
 
-  // 🔹 Soci filtrati per anno + fascia oraria
+  // 🔹 Soci filtrati per anno + fascia oraria (solo tabella members)
   const filteredMembers = useMemo(() => {
     let list = members;
 
@@ -109,6 +163,14 @@ export default function MembersPanel() {
     return list;
   }, [members, yearFilter, fromTime, toTime]);
 
+  // 🔹 Storico filtrato (usa solo yearFilter, l'ora non ha senso qui)
+  const filteredRegistry = useMemo(() => {
+    if (yearFilter === "ALL") return registryEntries;
+    const yearInt = parseInt(yearFilter, 10);
+    if (Number.isNaN(yearInt)) return registryEntries;
+    return registryEntries.filter((r) => r.year === yearInt);
+  }, [registryEntries, yearFilter]);
+
   const handleOpenMember = async (id) => {
     setModalOpen(true);
     setSelectedMember(null);
@@ -129,7 +191,7 @@ export default function MembersPanel() {
 
   return (
     <div className="flex h-full flex-col gap-3">
-      {/* Header */}
+      {/* Header + filtri */}
       <div className="flex flex-col gap-2 border-b border-white/10 pb-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-200">
@@ -156,7 +218,7 @@ export default function MembersPanel() {
             ))}
           </select>
 
-          {/* fascia oraria */}
+          {/* fascia oraria (solo membri "nuovi") */}
           <div className="flex flex-wrap items-center gap-1">
             <span className="text-[10px] text-slate-500">Ora da</span>
             <input
@@ -174,7 +236,7 @@ export default function MembersPanel() {
             />
           </div>
 
-          {/* contatore */}
+          {/* contatore (solo per tabella members) */}
           <span className="rounded-full border border-slate-700/60 bg-slate-900/80 px-3 py-1.5 text-[10px] text-slate-300">
             {t("admin.membersPanel.shownCounter", {
               filtered: filteredMembers.length,
@@ -184,7 +246,7 @@ export default function MembersPanel() {
         </div>
       </div>
 
-      {/* Lista */}
+      {/* Lista membri (tabella members) */}
       <div className="flex-1 overflow-auto">
         {loading && (
           <div className="py-6 text-center text-[11px] text-slate-400">
@@ -205,7 +267,10 @@ export default function MembersPanel() {
         )}
 
         {!loading && !error && filteredMembers.length > 0 && (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto mb-4">
+            <h3 className="mb-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+              Richieste tessera dal sito (tabella members)
+            </h3>
             <table className="min-w-full text-left text-[11px]">
               <thead>
                 <tr className="border-b border-white/10 bg-slate-900/70">
@@ -269,9 +334,128 @@ export default function MembersPanel() {
             </table>
           </div>
         )}
+
+        {/* Storico soci da XLSX (members_registry) */}
+        <div className="mt-4">
+          <h3 className="mb-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+            Storico soci da XLSX (tabella members_registry)
+          </h3>
+
+          {registryLoading && (
+            <div className="py-4 text-center text-[11px] text-slate-400">
+              Caricamento storico soci...
+            </div>
+          )}
+
+          {registryError && !registryLoading && (
+            <div className="py-4 text-center text-[11px] text-rose-300">
+              {registryError}
+            </div>
+          )}
+
+          {!registryLoading &&
+            !registryError &&
+            filteredRegistry.length === 0 && (
+              <div className="py-4 text-center text-[11px] text-slate-500">
+                Nessun record storico per l&apos;anno selezionato.
+              </div>
+            )}
+
+          {!registryLoading &&
+            !registryError &&
+            filteredRegistry.length > 0 && (
+              <div className="overflow-x-auto">
+                <table className="min-w-full text-left text-[11px]">
+                  <thead>
+                    <tr className="border-b border-white/10 bg-slate-900/70">
+                      <th className="px-3 py-2 font-medium text-slate-400">
+                        Stato
+                      </th>
+                      <th className="px-3 py-2 font-medium text-slate-400">
+                        Tessera
+                      </th>
+                      <th className="px-3 py-2 font-medium text-slate-400">
+                        Nome
+                      </th>
+                      <th className="px-3 py-2 font-medium text-slate-400">
+                        Cognome
+                      </th>
+                      <th className="px-3 py-2 font-medium text-slate-400">
+                        Cod. fiscale
+                      </th>
+                      <th className="px-3 py-2 font-medium text-slate-400">
+                        Anno
+                      </th>
+                      <th className="px-3 py-2 font-medium text-slate-400">
+                        Valida dal
+                      </th>
+                      <th className="px-3 py-2 font-medium text-slate-400">
+                        Valida al
+                      </th>
+                      <th className="px-3 py-2 font-medium text-slate-400">
+                        Email
+                      </th>
+                      <th className="px-3 py-2 font-medium text-slate-400">
+                        Cellulare
+                      </th>
+                      <th className="px-3 py-2 font-medium text-slate-400">
+                        Qualifica
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredRegistry.map((r) => (
+                      <tr
+                        key={r.id}
+                        className="border-b border-white/5 hover:bg-slate-900/60"
+                      >
+                        <td className="px-3 py-2 text-[11px] text-slate-300">
+                          {r.status || "-"}
+                        </td>
+                        <td className="px-3 py-2 text-[11px] text-slate-300">
+                          {r.card_number || "-"}
+                        </td>
+                        <td className="px-3 py-2 text-[11px] text-slate-300">
+                          {r.first_name || "-"}
+                        </td>
+                        <td className="px-3 py-2 text-[11px] text-slate-300">
+                          {r.last_name || "-"}
+                        </td>
+                        <td className="px-3 py-2 text-[11px] text-slate-300">
+                          {r.fiscal_code || "-"}
+                        </td>
+                        <td className="px-3 py-2 text-[11px] text-slate-300">
+                          {r.year || "-"}
+                        </td>
+                        <td className="px-3 py-2 text-[11px] text-slate-300">
+                          {r.valid_from
+                            ? new Date(r.valid_from).toLocaleDateString("it-IT")
+                            : "-"}
+                        </td>
+                        <td className="px-3 py-2 text-[11px] text-slate-300">
+                          {r.valid_to
+                            ? new Date(r.valid_to).toLocaleDateString("it-IT")
+                            : "-"}
+                        </td>
+                        <td className="px-3 py-2 text-[11px] text-slate-300">
+                          {r.email || "-"}
+                        </td>
+                        <td className="px-3 py-2 text-[11px] text-slate-300">
+                          {r.phone || "-"}
+                        </td>
+                        <td className="px-3 py-2 text-[11px] text-slate-300">
+                          {r.qualification || "-"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+        </div>
       </div>
 
-      {/* Modal scheda socio */}
+      {/* Modal scheda socio (SOLO per tabella members, non registry) */}
       {modalOpen && (
         <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/70 px-3">
           <div className="max-h-[90vh] w-full max-w-lg overflow-auto rounded-2xl border border-white/15 bg-slate-950/95 p-4 text-[11px] text-slate-100 shadow-2xl">
@@ -405,7 +589,7 @@ function Row({ label, value }) {
   return (
     <div className="flex gap-2 text-[11px]">
       <div className="w-32 shrink-0 text-slate-400">{label}</div>
-      <div className="flex-1 text-slate-100 break-word">{value || "—"}</div>
+      <div className="flex-1 break-word text-slate-100">{value || "—"}</div>
     </div>
   );
 }
