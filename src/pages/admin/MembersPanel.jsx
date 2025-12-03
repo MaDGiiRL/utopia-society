@@ -23,7 +23,7 @@ export default function MembersPanel() {
   const [membersExportFilter, setMembersExportFilter] =
     useState("non_exported");
 
-  // storico
+  // storico (members_registry)
   const [registryEntries, setRegistryEntries] = useState([]);
   const [registryLoading, setRegistryLoading] = useState(false);
   const [registryError, setRegistryError] = useState("");
@@ -40,7 +40,7 @@ export default function MembersPanel() {
   // 🔹 filtro anno SOLO per lo storico
   const [yearFilter, setYearFilter] = useState("ALL");
 
-  // 🔹 NUOVO: filtro stato SOLO per lo storico (ALL | ACTIVE)
+  // 🔹 filtro stato SOLO per lo storico (ALL | ACTIVE)
   const [registryStatusFilter, setRegistryStatusFilter] = useState("ALL");
 
   // modale socio "nuovo"
@@ -137,11 +137,11 @@ export default function MembersPanel() {
     };
   }, [yearFilter, t]);
 
-  // Storico filtrato per anno + stato
+  // Storico filtrato per anno + stato (per la tabella sotto)
   const filteredRegistry = useMemo(() => {
     let result = registryEntries;
 
-    // filtro anno (come prima)
+    // filtro anno
     if (yearFilter !== "ALL") {
       const yearInt = parseInt(yearFilter, 10);
       if (!Number.isNaN(yearInt)) {
@@ -149,7 +149,7 @@ export default function MembersPanel() {
       }
     }
 
-    // 🔹 filtro per stato "attivo"
+    // filtro per stato "attivo"
     if (registryStatusFilter === "ACTIVE") {
       result = result.filter((r) =>
         (r.status || "").toString().toLowerCase().startsWith("attiv")
@@ -159,7 +159,41 @@ export default function MembersPanel() {
     return result;
   }, [registryEntries, yearFilter, registryStatusFilter]);
 
-  // aggiusta pagina se fuori range
+  // 🔹 Mappa gli entry "attivi" dello storico in "pseudo members"
+  //    che compaiono nella tabella SOPRA quando il filtro è "Solo esportati"
+  const activeRegistryAsMembers = useMemo(() => {
+    return registryEntries
+      .filter((r) =>
+        (r.status || "").toString().toLowerCase().startsWith("attiv")
+      )
+      .map((r) => {
+        const fullName = `${r.first_name || ""} ${r.last_name || ""}`.trim();
+        return {
+          id:
+            r.id ||
+            `registry-${
+              r.external_id || r.card_number || r.year || Math.random()
+            }`, // id pseudo
+          created_at: r.valid_from || null, // usato come "Data"
+          full_name: fullName || r.card_number || "Socio ACSI (storico attivo)",
+          email: r.email || "",
+          phone: r.phone || "",
+          city: r.club_name || "", // o null se non ti interessa
+          source: "members_registry", // per riconoscerli in MembersTable se vuoi
+          is_registry_active: true, // flag comodo
+        };
+      });
+  }, [registryEntries]);
+
+  // 🔹 Lista finale per la tabella MEMBRI:
+  //    - se filtro ≠ "exported": come prima
+  //    - se filtro = "exported": membri esportati + soci attivi da members_registry
+  const membersForTable = useMemo(() => {
+    if (membersExportFilter !== "exported") return members;
+    return [...members, ...activeRegistryAsMembers];
+  }, [members, membersExportFilter, activeRegistryAsMembers]);
+
+  // aggiusta pagina storico se fuori range
   useEffect(() => {
     const totalPages = Math.max(
       1,
@@ -286,8 +320,8 @@ export default function MembersPanel() {
       {/* HEADER: solo titolo + contatore */}
       <MembersHeaderFilters
         t={t}
-        filteredCount={members.length}
-        totalCount={members.length}
+        filteredCount={membersForTable.length}
+        totalCount={membersForTable.length}
       />
 
       {/* 🔹 Filtro ESPORTATI / NON ESPORTATI + pulsante export XLSX */}
@@ -328,7 +362,7 @@ export default function MembersPanel() {
           t={t}
           loading={loading}
           error={error}
-          filteredMembers={members}
+          filteredMembers={membersForTable}
           onOpenMember={handleOpenMember}
         />
       </div>
