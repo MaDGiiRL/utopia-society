@@ -47,8 +47,8 @@ export default function FeaturedEventBanner() {
     };
   }, []);
 
+  // Se non c'è niente da mostrare, non sporcare la home
   if (loading || error || !event) {
-    // nessun banner → non mostrare nulla, la home resta pulita
     return null;
   }
 
@@ -70,6 +70,8 @@ export default function FeaturedEventBanner() {
       })
     : null;
 
+  const hasImage = !!banner_image_url;
+
   return (
     <section className="px-3 pt-4">
       <div className="mx-auto max-w-5xl">
@@ -78,9 +80,29 @@ export default function FeaturedEventBanner() {
           <div className="pointer-events-none absolute -left-16 -top-16 h-40 w-40 rounded-full bg-cyan-500/25 blur-3xl" />
           <div className="pointer-events-none absolute -right-10 bottom-0 h-32 w-32 rounded-full bg-fuchsia-500/25 blur-3xl" />
 
-          <div className="relative grid gap-4 md:grid-cols-[1.7fr,1.3fr]">
-            {/* Testo */}
-            <div className="flex flex-col justify-between p-5 md:p-6 lg:p-7">
+          <div
+            className={`relative grid gap-4 ${
+              hasImage ? "md:grid-cols-2" : "md:grid-cols-1"
+            }`}
+          >
+            {/* Immagine a SINISTRA (se presente) */}
+            {hasImage && (
+              <div className="relative order-1 min-h-[180px] border-b border-slate-800/70 md:border-b-0 md:border-r">
+                <div className="absolute inset-0 bg-gradient-to-tr from-cyan-500/10 via-transparent to-fuchsia-500/15" />
+                <img
+                  src={banner_image_url}
+                  alt={banner_title || title}
+                  className="relative block h-full w-full max-h-72 object-cover md:max-h-full"
+                />
+              </div>
+            )}
+
+            {/* Testo a DESTRA (o full width se non c'è immagine) */}
+            <div
+              className={`flex flex-col justify-between p-5 md:p-6 lg:p-7 ${
+                hasImage ? "order-2" : "order-1 md:col-span-1"
+              }`}
+            >
               <div className="space-y-3">
                 <div className="inline-flex items-center gap-2 rounded-full border border-cyan-400/50 bg-slate-950/80 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-cyan-100">
                   <span className="inline-flex h-1.5 w-1.5 rounded-full bg-cyan-400" />
@@ -108,11 +130,12 @@ export default function FeaturedEventBanner() {
               </div>
 
               <div className="mt-4 flex flex-wrap items-center gap-3">
+                {/* CTA – usa l’URL che inserisci nel form admin */}
                 {banner_cta_label && banner_cta_url && (
                   <a
                     href={banner_cta_url}
                     target="_blank"
-                    rel="noreferrer"
+                    rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 rounded-full bg-linear-to-r from-cyan-400 to-fuchsia-500 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-950 shadow-[0_0_25px_rgba(56,189,248,0.8)] hover:brightness-110"
                   >
                     <span>{banner_cta_label}</span>
@@ -134,18 +157,6 @@ export default function FeaturedEventBanner() {
                 )}
               </div>
             </div>
-
-            {/* Immagine */}
-            {banner_image_url && (
-              <div className="relative border-t border-slate-800/70 md:border-l md:border-t-0">
-                <div className="absolute inset-0 bg-gradient-to-tr from-cyan-500/10 via-transparent to-fuchsia-500/15" />
-                <img
-                  src={banner_image_url}
-                  alt={banner_title || title}
-                  className="relative block h-full w-full max-h-72 object-cover md:max-h-full"
-                />
-              </div>
-            )}
           </div>
         </div>
       </div>
