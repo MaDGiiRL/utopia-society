@@ -30,7 +30,7 @@ export default function MembersTable({
   return (
     <div className="mb-4 overflow-x-auto">
       <h3 className="mb-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">
-        Richieste tessera dal sito (tabella members)
+        Richieste tessera dal sito
       </h3>
       <table className="min-w-full text-left text-[11px]">
         <thead>

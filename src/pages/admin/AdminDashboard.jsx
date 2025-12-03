@@ -170,8 +170,8 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="min-h-[calc(100vh)] bg-slate-950/55 text-slate-50 px-3 py-25">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 md:flex-row">
+    <div className="min-h-screen bg-slate-950/55 text-slate-50 px-4 py-8 md:px-8 md:py-10 text-base md:text-lg">
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 md:flex-row">
         <AdminSidebar
           tab={tab}
           onTabChange={handleTabChange}

@@ -29,7 +29,7 @@ export default function MembersRegistrySection({
     <div className="mt-4">
       <div className="mb-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <h3 className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">
-          Storico soci (tabella members_registry)
+          Storico soci
         </h3>
 
         {/* 🔹 Filtro ANNO + import XLSX */}
