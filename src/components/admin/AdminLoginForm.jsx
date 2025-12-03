@@ -72,7 +72,7 @@ export default function AdminLoginForm() {
             </p>
             <p className="text-[10px] text-slate-500">
               ✨{" "}
-              {t("admin.login.funHint")}
+              {t("admin.funHint")}
             </p>
           </div>
 
@@ -119,7 +119,7 @@ export default function AdminLoginForm() {
               </div>
               <p className="text-[10px] text-slate-500">
                 🔐{" "}
-                {t("admin.login.passwordHint")}
+                {t("admin.passwordHint")}
               </p>
             </div>
 
@@ -144,7 +144,7 @@ export default function AdminLoginForm() {
 
           {/* Piccola nota in basso */}
           <div className="mt-4 text-center text-[10px] text-slate-500">
-            {t("admin.login.footerHint")}
+             {t("admin.footerHint")}
           </div>
         </div>
       </div>
