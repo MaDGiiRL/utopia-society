@@ -4,9 +4,7 @@ import {
   CalendarDays,
   Image as ImageIcon,
   Sparkles,
-  Mail,
   Loader2,
-  ExternalLink,
   Send,
 } from "lucide-react";
 
@@ -69,6 +67,7 @@ export default function NewEventPanel() {
     setSending(true);
 
     const formData = new FormData(e.currentTarget);
+
     const payload = {
       title: formData.get("title") || "",
       event_date: formData.get("event_date") || null,
@@ -77,9 +76,8 @@ export default function NewEventPanel() {
       banner_cta_label: formData.get("banner_cta_label") || "",
       banner_cta_url: formData.get("banner_cta_url") || "",
       banner_image_url: bannerImageUrl || "",
+      // ✅ niente oggetto/testo mail: si genera tutto in automatico lato server
       send_newsletter: formData.get("send_newsletter") === "on",
-      newsletter_subject: formData.get("newsletter_subject") || "",
-      newsletter_body: formData.get("newsletter_body") || "",
     };
 
     try {
@@ -127,8 +125,8 @@ export default function NewEventPanel() {
               Nuovo evento
             </div>
             <p className="text-xs text-slate-400">
-              Crea un evento con banner in homepage e invia una newsletter ai
-              soci.
+              Crea un evento con banner in homepage e (opzionalmente) invia una
+              newsletter automatica ai soci.
             </p>
           </div>
         </div>
@@ -172,7 +170,8 @@ export default function NewEventPanel() {
                 Banner homepage
               </div>
               <p className="text-[11px] text-slate-400">
-                Contenuti per il riquadro promozionale nella home del sito.
+                I testi che inserisci qui vengono usati sia nel banner della
+                home, sia nella newsletter automatica.
               </p>
             </div>
           </div>
@@ -214,8 +213,7 @@ export default function NewEventPanel() {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="flex items-center gap-1 text-[11px] font-medium uppercase tracking-[0.16em] text-slate-300">
-                    <ExternalLink className="h-3 w-3" />
+                  <label className="text-[11px] font-medium uppercase tracking-[0.16em] text-slate-300">
                     Link pulsante
                   </label>
                   <input
@@ -273,59 +271,22 @@ export default function NewEventPanel() {
           </div>
         </div>
 
-        {/* Sezione Newsletter */}
-        <div className="space-y-3 rounded-2xl border border-white/10 bg-slate-950/70 p-4">
-          <div className="flex items-center justify-between gap-2">
-            <div>
-              <div className="text-[10px] uppercase tracking-[0.2em] text-slate-400">
-                Newsletter soci
-              </div>
-              <p className="text-[11px] text-slate-400">
-                Invia un'email a tutti i soci che hanno dato il consenso
-                marketing.
-              </p>
-            </div>
-          </div>
-
-          <div className="space-y-1.5">
-            <label className="flex items-center gap-1 text-[11px] font-medium uppercase tracking-[0.16em] text-slate-300">
-              <Mail className="h-3 w-3 text-cyan-300" />
-              Oggetto email
-            </label>
-            <input
-              name="newsletter_subject"
-              placeholder="Venerdì {{data_evento}} • Nuova serata a Utopia"
-              className="w-full rounded-xl border border-white/10 bg-slate-950/80 px-3 py-2 text-sm text-slate-100 outline-none ring-0 focus:border-cyan-400/80"
-            />
-          </div>
-
-          <div className="space-y-1.5">
-            <label className="text-[11px] font-medium uppercase tracking-[0.16em] text-slate-300">
-              Testo email
-            </label>
-            <textarea
-              name="newsletter_body"
-              rows={7}
-              placeholder={
-                "Ciao {{nome}},\n\nvenerdì {{data_evento}} ti aspettiamo a Utopia per una nuova serata speciale...\n\nIngresso riservato ai soci in regola con il tesseramento."
-              }
-              className="w-full rounded-xl border border-white/10 bg-slate-950/80 px-3 py-2 text-sm text-slate-100 outline-none ring-0 focus:border-cyan-400/80"
-            />
-            <p className="mt-1 text-[11px] text-slate-500">
-              Puoi usare i placeholder <code>{"{{nome}}"}</code> e{" "}
-              <code>{"{{data_evento}}"}</code> che verranno sostituiti
-              automaticamente.
-            </p>
-          </div>
-
-          <label className="mt-2 inline-flex items-center gap-2 text-[11px] text-slate-200">
+        {/* Opzione: invio newsletter automatico */}
+        <div className="rounded-2xl border border-white/10 bg-slate-950/70 p-4">
+          <label className="inline-flex items-start gap-2 text-[11px] text-slate-200">
             <input
               type="checkbox"
               name="send_newsletter"
-              className="h-3.5 w-3.5 rounded border-slate-500 bg-slate-950 text-cyan-400 focus:ring-cyan-400"
+              className="mt-[2px] h-3.5 w-3.5 rounded border-slate-500 bg-slate-950 text-cyan-400 focus:ring-cyan-400"
               defaultChecked
             />
-            Invia newsletter ai soci (solo email, niente SMS).
+            <span>
+              Invia automaticamente una newsletter ai soci marketing usando{" "}
+              <span className="font-semibold text-cyan-300">
+                titolo, data, descrizione e immagine
+              </span>{" "}
+              di questo evento.
+            </span>
           </label>
         </div>
 
