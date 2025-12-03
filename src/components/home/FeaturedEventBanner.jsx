@@ -53,6 +53,7 @@ export default function FeaturedEventBanner() {
   }
 
   const {
+    id,
     title,
     event_date,
     banner_title,
@@ -71,6 +72,37 @@ export default function FeaturedEventBanner() {
     : null;
 
   const hasImage = !!banner_image_url;
+
+  // 🔹 logging click CTA evento in evidenza
+  const handleCtaClick = () => {
+    try {
+      fetch(`${API_BASE}/api/admin/logs/track`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        // endpoint pubblico → niente credentials
+        body: JSON.stringify({
+          event_type: "featured_event_cta_click",
+          description: `Click CTA evento in evidenza: ${
+            banner_cta_label || ""
+          }`,
+          source: "public_site_featured_event_banner",
+          meta: {
+            event_id: id,
+            title,
+            event_date,
+            banner_cta_url,
+            banner_cta_label,
+            path:
+              typeof window !== "undefined" ? window.location.pathname : null,
+          },
+        }),
+      }).catch(() => {
+        // non bloccare mai la UX per un errore di logging
+      });
+    } catch {
+      // silenzioso
+    }
+  };
 
   return (
     <section className="px-3 pt-4">
@@ -130,12 +162,13 @@ export default function FeaturedEventBanner() {
               </div>
 
               <div className="mt-4 flex flex-wrap items-center gap-3">
-                {/* CTA – usa l’URL che inserisci nel form admin */}
+                {/* CTA – logga click + apre link */}
                 {banner_cta_label && banner_cta_url && (
                   <a
                     href={banner_cta_url}
                     target="_blank"
                     rel="noopener noreferrer"
+                    onClick={handleCtaClick}
                     className="inline-flex items-center gap-2 rounded-full bg-linear-to-r from-cyan-400 to-fuchsia-500 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-950 shadow-[0_0_25px_rgba(56,189,248,0.8)] hover:brightness-110"
                   >
                     <span>{banner_cta_label}</span>

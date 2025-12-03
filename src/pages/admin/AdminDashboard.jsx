@@ -9,8 +9,7 @@ const API_BASE = import.meta.env.VITE_ADMIN_API_URL || "";
 export default function AdminDashboard() {
   const { t } = useTranslation();
 
-  // niente <...> qui, solo JS
-  const [tab, setTab] = useState("members"); // "members" | "contacts" | "campaign" | "events"
+  const [tab, setTab] = useState("members"); // "members" | "contacts" | "campaign" | "event" | "logs"
 
   const [xmlError, setXmlError] = useState("");
   const [xmlLoading, setXmlLoading] = useState(false);
@@ -19,6 +18,31 @@ export default function AdminDashboard() {
   const [xlsxLoading, setXlsxLoading] = useState(false);
 
   const navigate = useNavigate();
+
+  // ---- helper tracking UI → /api/admin/logs/track
+  const trackUiEvent = async (event_type, description, meta) => {
+    try {
+      await fetch(`${API_BASE}/api/admin/logs/track`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          event_type,
+          description,
+          meta: meta || null,
+          source: "admin_panel_ui",
+        }),
+      });
+    } catch {
+      // non bloccare mai la UI per un errore di logging
+    }
+  };
+
+  const handleTabChange = (nextTab) => {
+    setTab(nextTab);
+    trackUiEvent("admin_tab_change", `Cambio tab admin in ${nextTab}`, {
+      tab: nextTab,
+    });
+  };
 
   // -------- XML EXPORT (completo) --------
   const handleExportXml = async () => {
@@ -48,6 +72,10 @@ export default function AdminDashboard() {
       a.click();
       a.remove();
       URL.revokeObjectURL(url);
+
+      trackUiEvent("admin_export_members_xml", "Export soci XML riuscito", {
+        status: "ok",
+      });
     } catch (err) {
       console.error(err);
       setXmlError(
@@ -58,6 +86,10 @@ export default function AdminDashboard() {
               "Errore imprevisto export XML"
             )
       );
+      trackUiEvent("admin_export_members_xml", "Errore export soci XML", {
+        status: "error",
+        errorMessage: err?.message || String(err),
+      });
     } finally {
       setXmlLoading(false);
     }
@@ -89,9 +121,26 @@ export default function AdminDashboard() {
       a.click();
       a.remove();
       URL.revokeObjectURL(url);
+
+      trackUiEvent(
+        "admin_export_members_xlsx",
+        "Export soci XLSX ACSI riuscito",
+        {
+          status: "ok",
+        }
+      );
     } catch (err) {
       console.error(err);
       setXlsxError(err.message || "Errore imprevisto");
+
+      trackUiEvent(
+        "admin_export_members_xlsx",
+        "Errore export soci XLSX ACSI",
+        {
+          status: "error",
+          errorMessage: err?.message || String(err),
+        }
+      );
     } finally {
       setXlsxLoading(false);
     }
@@ -99,6 +148,7 @@ export default function AdminDashboard() {
 
   const handleLogout = async () => {
     try {
+      trackUiEvent("admin_logout_click", "Click su logout admin");
       await fetch(`${API_BASE}/api/admin/logout`, {
         method: "POST",
         credentials: "include",
@@ -113,7 +163,7 @@ export default function AdminDashboard() {
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 md:flex-row">
         <AdminSidebar
           tab={tab}
-          onTabChange={setTab}
+          onTabChange={handleTabChange}
           // XML export
           xmlError={xmlError}
           xmlLoading={xmlLoading}

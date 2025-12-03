@@ -2,12 +2,11 @@ import {
   Users,
   Mail,
   Send,
-  Download,
   LogOut,
   Shield,
   Activity,
   FileSpreadsheet,
-  Sparkles, // 👈 AGGIUNTO
+  Sparkles,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -121,7 +120,7 @@ export default function AdminSidebar({
               </div>
             </button>
 
-            {/* 🔥 Nuovo evento – stesso stile delle altre tab */}
+            {/* Nuovo evento */}
             <button
               type="button"
               onClick={() => onTabChange("event")}
@@ -143,13 +142,36 @@ export default function AdminSidebar({
                 </span>
               </div>
             </button>
+
+            {/* ✅ Log attività */}
+            <button
+              type="button"
+              onClick={() => onTabChange("logs")}
+              className={`flex w-full min-w-40 items-center gap-2 rounded-xl px-3 py-2 text-left transition md:min-w-0 ${
+                tab === "logs"
+                  ? "border border-cyan-400/70 bg-cyan-500/15 text-cyan-100 shadow-[0_0_20px_rgba(56,189,248,0.35)]"
+                  : "border border-transparent text-slate-300 hover:bg-slate-900/70"
+              }`}
+            >
+              <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-slate-900/80">
+                <Activity className="h-3.5 w-3.5 shrink-0" />
+              </div>
+              <div className="flex flex-col">
+                <span className="uppercase tracking-[0.18em]">
+                  {t("admin.dashboard.logsTabTitle", "Log attività")}
+                </span>
+                <span className="text-[10px] text-slate-500">
+                  {t("admin.dashboard.logsTabSubtitle", "Azioni admin + sito")}
+                </span>
+              </div>
+            </button>
           </div>
         </nav>
       </div>
 
       {/* Export + logout */}
       <div className="flex flex-col gap-2 rounded-2xl border border-white/10 bg-slate-950/85 px-4 py-3 text-[11px] shadow-lg sm:flex-col sm:items-center sm:justify-between">
-        {/* 🔹 XLSX ACSI */}
+        {/* XLSX ACSI */}
         <button
           type="button"
           onClick={onExportXlsx}
