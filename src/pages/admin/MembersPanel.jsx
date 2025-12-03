@@ -306,13 +306,12 @@ export default function MembersPanel() {
       <MembersRegistrySection
         registryLoading={registryLoading}
         registryError={registryError}
-        filteredRegistry={paginatedRegistry} // 👈 solo la pagina corrente
+        filteredRegistry={paginatedRegistry} // pagina corrente
         registryFile={registryFile}
         setRegistryFile={setRegistryFile}
         importingRegistry={importingRegistry}
         importMessage={importMessage}
         onImportClick={handleImportRegistry}
-        // 👇 nuovi props per la paginazione (da gestire dentro MembersRegistrySection)
         page={registryPage}
         pageSize={REGISTRY_PAGE_SIZE}
         total={filteredRegistry.length}
