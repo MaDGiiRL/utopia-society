@@ -9,6 +9,7 @@ import MembersRegistrySection from "../../components/admin/registry/MembersRegis
 import MemberModal from "../../components/admin/registry/MemberModal";
 
 const API_BASE = import.meta.env.VITE_ADMIN_API_URL || "";
+const REGISTRY_PAGE_SIZE = 20; // 👈 paginazione da 20 per lo storico
 
 export default function MembersPanel() {
   const { t } = useTranslation();
@@ -22,12 +23,16 @@ export default function MembersPanel() {
   const [registryLoading, setRegistryLoading] = useState(false);
   const [registryError, setRegistryError] = useState("");
 
+  // paginazione storico
+  const [registryPage, setRegistryPage] = useState(1); // 👈 pagina corrente
+
   // stato per import XLSX storico
   const [registryFile, setRegistryFile] = useState(null);
   const [importingRegistry, setImportingRegistry] = useState(false);
   const [importMessage, setImportMessage] = useState("");
 
-  // filtri anno + fascia oraria (per tabella "members")
+  // filtri anno + fascia oraria
+  // ⚠️ yearFilter ora VALE SOLO per lo storico, non per la tabella members
   const [yearFilter, setYearFilter] = useState("ALL");
   const [fromTime, setFromTime] = useState("");
   const [toTime, setToTime] = useState("");
@@ -78,6 +83,9 @@ export default function MembersPanel() {
       setRegistryLoading(true);
       setRegistryError("");
 
+      // cambio anno => reset alla prima pagina
+      setRegistryPage(1); // 👈 reset pagina quando cambia il filtro anno
+
       try {
         const url =
           yearFilter === "ALL"
@@ -116,7 +124,7 @@ export default function MembersPanel() {
     };
   }, [yearFilter, t]);
 
-  // Anni disponibili (da members.created_at)
+  // Anni disponibili (puoi anche lasciarli derivare da members se ti sta bene così)
   const availableYears = useMemo(() => {
     const set = new Set();
     members.forEach((m) => {
@@ -130,18 +138,9 @@ export default function MembersPanel() {
     return Array.from(set).sort((a, b) => b.localeCompare(a));
   }, [members]);
 
-  // Soci filtrati (anno + fascia oraria)
+  // Soci filtrati SOLO per fascia oraria (NON più per anno!)
   const filteredMembers = useMemo(() => {
-    let list = members;
-
-    if (yearFilter !== "ALL") {
-      list = list.filter((m) => {
-        if (!m.created_at) return false;
-        const d = new Date(m.created_at);
-        if (Number.isNaN(d.getTime())) return false;
-        return d.getFullYear().toString() === yearFilter;
-      });
-    }
+    let list = members; // 👈 niente filtro per yearFilter qui
 
     const timeToMinutes = (t) => {
       if (!t) return null;
@@ -167,15 +166,33 @@ export default function MembersPanel() {
     }
 
     return list;
-  }, [members, yearFilter, fromTime, toTime]);
+  }, [members, fromTime, toTime]); // 👈 rimosso yearFilter dai deps
 
-  // Storico filtrato
+  // Storico filtrato (in pratica è già filtrato da backend, ma lo lascio come sicurezza)
   const filteredRegistry = useMemo(() => {
     if (yearFilter === "ALL") return registryEntries;
     const yearInt = parseInt(yearFilter, 10);
     if (Number.isNaN(yearInt)) return registryEntries;
     return registryEntries.filter((r) => r.year === yearInt);
   }, [registryEntries, yearFilter]);
+
+  // Se il numero di righe cambia e la pagina corrente è fuori range, la aggiustiamo
+  useEffect(() => {
+    const totalPages = Math.max(
+      1,
+      Math.ceil(filteredRegistry.length / REGISTRY_PAGE_SIZE)
+    );
+    if (registryPage > totalPages) {
+      setRegistryPage(totalPages);
+    }
+  }, [filteredRegistry, registryPage]);
+
+  // Applichiamo la paginazione da 20 allo storico
+  const paginatedRegistry = useMemo(() => {
+    const start = (registryPage - 1) * REGISTRY_PAGE_SIZE;
+    const end = start + REGISTRY_PAGE_SIZE;
+    return filteredRegistry.slice(start, end);
+  }, [filteredRegistry, registryPage]);
 
   const handleOpenMember = async (id) => {
     setModalOpen(true);
@@ -264,37 +281,42 @@ export default function MembersPanel() {
   };
 
   return (
-    <div className="flex h-full flex-col gap-3">
+    <div className="flex flex-col gap-3">
       <MembersHeaderFilters
         t={t}
         yearFilter={yearFilter}
-        setYearFilter={setYearFilter}
+        setYearFilter={setYearFilter} // 👈 ora filtra solo lo storico
         fromTime={fromTime}
         setFromTime={setFromTime}
         toTime={toTime}
         setToTime={setToTime}
         filteredCount={filteredMembers.length}
         totalCount={members.length}
-        availableYears={availableYears} // 👈 QUI
+        availableYears={availableYears}
       />
 
       <MembersTable
         t={t}
         loading={loading}
         error={error}
-        filteredMembers={filteredMembers}
+        filteredMembers={filteredMembers} // 👈 niente filtro anno
         onOpenMember={handleOpenMember}
       />
 
       <MembersRegistrySection
         registryLoading={registryLoading}
         registryError={registryError}
-        filteredRegistry={filteredRegistry}
+        filteredRegistry={paginatedRegistry} // 👈 solo la pagina corrente
         registryFile={registryFile}
         setRegistryFile={setRegistryFile}
         importingRegistry={importingRegistry}
         importMessage={importMessage}
         onImportClick={handleImportRegistry}
+        // 👇 nuovi props per la paginazione (da gestire dentro MembersRegistrySection)
+        page={registryPage}
+        pageSize={REGISTRY_PAGE_SIZE}
+        total={filteredRegistry.length}
+        onPageChange={setRegistryPage}
       />
 
       <MemberModal
