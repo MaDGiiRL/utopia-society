@@ -172,12 +172,22 @@ export default function NewEventPanel() {
     loadEvents();
   }, []);
 
-  // ---- delete evento ----
+  // ---- delete evento (con SweetAlert2) ----
   const handleDeleteEvent = async (ev) => {
-    const ok = window.confirm(
-      `Vuoi davvero cancellare l'evento "${ev.title}"?`
-    );
-    if (!ok) return;
+    const result = await Swal.fire({
+      title: "Eliminare evento?",
+      text: `Vuoi davvero cancellare l'evento "${ev.title}"?`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#ef4444", // rosso
+      cancelButtonColor: "#64748b", // slate
+      confirmButtonText: "Sì, elimina",
+      cancelButtonText: "Annulla",
+      background: "#020617", // slate-950
+      color: "#e5e7eb", // slate-200
+    });
+
+    if (!result.isConfirmed) return;
 
     try {
       const res = await fetch(`${API_BASE}/api/admin/events/${ev.id}`, {
@@ -194,13 +204,28 @@ export default function NewEventPanel() {
       }
 
       setEvents((prev) => prev.filter((e) => e.id !== ev.id));
+
+      await Swal.fire({
+        title: "Eliminato",
+        text: "L'evento è stato cancellato correttamente.",
+        icon: "success",
+        confirmButtonColor: "#22c55e", // emerald
+        background: "#020617",
+        color: "#e5e7eb",
+      });
     } catch (err) {
       console.error(err);
-      alert(
-        err instanceof Error
-          ? err.message
-          : "Errore imprevisto durante la cancellazione"
-      );
+      await Swal.fire({
+        title: "Errore",
+        text:
+          err instanceof Error
+            ? err.message
+            : "Errore imprevisto durante la cancellazione",
+        icon: "error",
+        confirmButtonColor: "#ef4444",
+        background: "#020617",
+        color: "#e5e7eb",
+      });
     }
   };
 
