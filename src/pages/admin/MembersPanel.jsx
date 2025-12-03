@@ -40,6 +40,9 @@ export default function MembersPanel() {
   // 🔹 filtro anno SOLO per lo storico
   const [yearFilter, setYearFilter] = useState("ALL");
 
+  // 🔹 NUOVO: filtro stato SOLO per lo storico (ALL | ACTIVE)
+  const [registryStatusFilter, setRegistryStatusFilter] = useState("ALL");
+
   // modale socio "nuovo"
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState(null);
@@ -134,13 +137,27 @@ export default function MembersPanel() {
     };
   }, [yearFilter, t]);
 
-  // Storico filtrato per anno (doppia sicurezza)
+  // Storico filtrato per anno + stato
   const filteredRegistry = useMemo(() => {
-    if (yearFilter === "ALL") return registryEntries;
-    const yearInt = parseInt(yearFilter, 10);
-    if (Number.isNaN(yearInt)) return registryEntries;
-    return registryEntries.filter((r) => r.year === yearInt);
-  }, [registryEntries, yearFilter]);
+    let result = registryEntries;
+
+    // filtro anno (come prima)
+    if (yearFilter !== "ALL") {
+      const yearInt = parseInt(yearFilter, 10);
+      if (!Number.isNaN(yearInt)) {
+        result = result.filter((r) => r.year === yearInt);
+      }
+    }
+
+    // 🔹 filtro per stato "attivo"
+    if (registryStatusFilter === "ACTIVE") {
+      result = result.filter((r) =>
+        (r.status || "").toString().toLowerCase().startsWith("attiv")
+      );
+    }
+
+    return result;
+  }, [registryEntries, yearFilter, registryStatusFilter]);
 
   // aggiusta pagina se fuori range
   useEffect(() => {
@@ -336,6 +353,9 @@ export default function MembersPanel() {
           onOpenRegistryEntry={handleOpenRegistryEntry}
           yearFilter={yearFilter}
           setYearFilter={setYearFilter}
+          // 🔹 nuovo filtro stato storico
+          registryStatusFilter={registryStatusFilter}
+          setRegistryStatusFilter={setRegistryStatusFilter}
         />
       </div>
 
