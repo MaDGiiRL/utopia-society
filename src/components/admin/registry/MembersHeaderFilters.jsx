@@ -8,7 +8,7 @@ export default function MembersHeaderFilters({
   setToTime,
   filteredCount,
   totalCount,
-  availableYears, // 👈 NUOVO
+  availableYears,
 }) {
   return (
     <div className="flex flex-col gap-2 border-b border-white/10 pb-3 sm:flex-row sm:items-center sm:justify-between">
