@@ -74,7 +74,6 @@ export default function AdminLoginForm() {
               ✨{" "}
               {t(
                 "admin.login.funHint",
-                "Enter your administrator credentials. No spam, only super-powers."
               )}
             </p>
           </div>
@@ -123,8 +122,7 @@ export default function AdminLoginForm() {
               <p className="text-[10px] text-slate-500">
                 🔐{" "}
                 {t(
-                  "admin.login.passwordHint",
-                  "Keep it safe, don’t share it in group chats."
+                  "admin.login.passwordHint"
                 )}
               </p>
             </div>
@@ -152,7 +150,6 @@ export default function AdminLoginForm() {
           <div className="mt-4 text-center text-[10px] text-slate-500">
             {t(
               "admin.login.footerHint",
-              "Access reserved to Utopia staff. If you shouldn't be here… you probably shouldn't be here 😄"
             )}
           </div>
         </div>
