@@ -24,7 +24,9 @@ export default function AdminLoginForm() {
     setError("");
 
     try {
-      await adminLogin({ email, password });
+      const normalizedEmail = email.trim().toLowerCase(); // 🔹 qui
+
+      await adminLogin({ email: normalizedEmail, password });
       navigate(from, { replace: true });
     } catch (err) {
       console.error(err);
@@ -40,7 +42,7 @@ export default function AdminLoginForm() {
     <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 py-10">
       <div className="w-full max-w-sm rounded-2xl border border-white/10 bg-slate-950/90 px-5 py-6 shadow-[0_0_28px_rgba(15,23,42,0.9)] backdrop-blur-xl">
         <div className="mb-5 text-center space-y-1.5">
-          <div className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-linear-to-tr from-fuchsia-500 via-cyan-400 to-blue-500 shadow-[0_0_18px_rgba(56,189,248,0.9)]">
+          <div className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-linear-to-tr from-fuchsia-500 via-cyan-400 to-blue-500 shadow-[0_0_18px_rgba(15,23,42,0.9)]">
             <Lock className="h-5 w-5 text-slate-950" />
           </div>
           <h1 className="text-lg font-semibold tracking-[0.2em] uppercase text-slate-50">
