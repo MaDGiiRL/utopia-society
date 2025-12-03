@@ -1,4 +1,3 @@
-// src/components/admin/registry/MembersRegistrySection.jsx
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -25,7 +24,13 @@ export default function MembersRegistrySection({
 }) {
   const { t } = useTranslation();
 
+  // 🔹 calcolo pagine totali in base al totale passato dal parent
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
+
+  // 🔹 slice dei risultati in base alla pagina corrente
+  const startIndex = (page - 1) * pageSize;
+  const endIndex = startIndex + pageSize;
+  const pageEntries = filteredRegistry.slice(startIndex, endIndex);
 
   return (
     <div className="space-y-3">
@@ -75,7 +80,7 @@ export default function MembersRegistrySection({
         </div>
       </div>
 
-      {/* Tabella */}
+      {/* TABELLONE */}
       {registryLoading ? (
         <div className="py-6 text-center text-xs text-slate-400">
           Caricamento storico soci…
@@ -84,7 +89,7 @@ export default function MembersRegistrySection({
         <div className="py-6 text-center text-xs text-rose-400">
           {registryError}
         </div>
-      ) : filteredRegistry.length === 0 ? (
+      ) : total === 0 || filteredRegistry.length === 0 ? (
         <div className="py-6 text-center text-xs text-slate-400">
           Nessun socio nello storico con i filtri selezionati.
         </div>
@@ -101,42 +106,95 @@ export default function MembersRegistrySection({
               </tr>
             </thead>
             <tbody>
-              {filteredRegistry.map((entry) => (
-                <tr
-                  key={entry.id}
-                  className="border-b border-slate-800/60 hover:bg-slate-800/50"
-                >
-                  <td className="px-2 py-1 text-slate-300">{entry.year}</td>
-
-                  <td className="px-2 py-1">
-                    <span
-                      className={`inline-flex rounded-full px-2 py-[1px] text-[10px] uppercase tracking-[0.14em] ${
-                        entry.status &&
-                        entry.status.toLowerCase().startsWith("attiv")
-                          ? "bg-emerald-500/10 text-emerald-300 border border-emerald-500/40"
-                          : "bg-slate-700/40 text-slate-200 border border-slate-600/60"
-                      }`}
-                    >
-                      {entry.status}
-                    </span>
-                  </td>
-
-                  <td className="px-2 py-1">{entry.last_name || "-"}</td>
-                  <td className="px-2 py-1">{entry.first_name || "-"}</td>
-
-                  <td className="px-2 py-1 text-right">
-                    <button
-                      type="button"
-                      onClick={() => onOpenRegistryEntry(entry)}
-                      className="rounded-full border border-slate-500/70 bg-slate-800/60 px-3 py-1 text-[10px] uppercase tracking-[0.16em] text-slate-100 hover:bg-slate-700"
-                    >
-                      Dettagli
-                    </button>
+              {pageEntries.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={5}
+                    className="px-2 py-4 text-center text-xs text-slate-400"
+                  >
+                    Nessun risultato per questa pagina.
                   </td>
                 </tr>
-              ))}
+              ) : (
+                pageEntries.map((entry) => (
+                  <tr
+                    key={
+                      entry.id ||
+                      `${entry.external_id || ""}-${entry.card_number || ""}-${
+                        entry.year || ""
+                      }`
+                    }
+                    className="border-b border-slate-800/60 hover:bg-slate-800/50"
+                  >
+                    <td className="px-2 py-1 text-slate-300">
+                      {entry.year ?? "-"}
+                    </td>
+
+                    <td className="px-2 py-1">
+                      <span
+                        className={`inline-flex rounded-full px-2 py-[1px] text-[10px] uppercase tracking-[0.14em] ${
+                          entry.status &&
+                          entry.status.toLowerCase().startsWith("attiv")
+                            ? "bg-emerald-500/10 text-emerald-300 border border-emerald-500/40"
+                            : "bg-slate-700/40 text-slate-200 border border-slate-600/60"
+                        }`}
+                      >
+                        {entry.status || "-"}
+                      </span>
+                    </td>
+
+                    <td className="px-2 py-1">{entry.last_name || "-"}</td>
+                    <td className="px-2 py-1">{entry.first_name || "-"}</td>
+
+                    <td className="px-2 py-1 text-right">
+                      <button
+                        type="button"
+                        onClick={() => onOpenRegistryEntry(entry)}
+                        className="rounded-full border border-slate-500/70 bg-slate-800/60 px-3 py-1 text-[10px] uppercase tracking-[0.16em] text-slate-100 hover:bg-slate-700"
+                      >
+                        Dettagli
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
+
+          {/* PAGINAZIONE */}
+          {total > pageSize && (
+            <div className="mt-2 flex items-center justify-between text-[11px] text-slate-300">
+              <span>
+                Pagina {page} di {totalPages}
+              </span>
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => onPageChange(Math.max(1, page - 1))}
+                  disabled={page <= 1}
+                  className={`rounded-full px-2 py-1 text-[10px] uppercase tracking-[0.14em] ${
+                    page <= 1
+                      ? "cursor-not-allowed bg-slate-800 text-slate-500"
+                      : "bg-slate-700 text-slate-100 hover:bg-slate-600"
+                  }`}
+                >
+                  Prev
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onPageChange(Math.min(totalPages, page + 1))}
+                  disabled={page >= totalPages}
+                  className={`rounded-full px-2 py-1 text-[10px] uppercase tracking-[0.14em] ${
+                    page >= totalPages
+                      ? "cursor-not-allowed bg-slate-800 text-slate-500"
+                      : "bg-slate-700 text-slate-100 hover:bg-slate-600"
+                  }`}
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
         </>
       )}
     </div>
