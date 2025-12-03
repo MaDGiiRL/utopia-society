@@ -1,3 +1,4 @@
+// src/pages/MembershipForm.jsx
 import { useRef, useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Swal from "sweetalert2";
@@ -6,6 +7,7 @@ import ScrollScene3D from "../components/ScrollScene3D";
 import MembershipIntro from "../components/membership/MembershipIntro";
 import MembershipFormHeader from "../components/membership/MembershipFormHeader";
 import MembershipDocumentsSection from "../components/membership/MembershipDocumentsSection";
+import MembershipNotesSection from "../components/membership/MembershipNotesSection";
 import MembershipConsentsSection from "../components/membership/MembershipConsentsSection";
 import MembershipMessages from "../components/membership/MembershipMessages";
 import MembershipSubmitRow from "../components/membership/MembershipSubmitRow";
@@ -31,7 +33,7 @@ const generateSignatureBlackPng = (canvasOriginal) => {
 
   const ctx = tmp.getContext("2d");
 
-  // Disegniamo la firma così com'è (bianca su trasparente)
+  // Disegniamo la firma così com'è (bianca su trasparente / sfondo scuro)
   ctx.drawImage(canvasOriginal, 0, 0);
 
   const imgData = ctx.getImageData(0, 0, tmp.width, tmp.height);
@@ -292,7 +294,7 @@ function MembershipForm() {
         date_of_birth: formData.get("birthDate") || null,
         birth_place: formData.get("birthPlace") || null,
         fiscal_code: formData.get("fiscalCode") || null,
-        note: formData.get("note") || null, // se non esiste è null
+        note: formData.get("note") || null, // viene da MembershipNotesSection
         accept_privacy: formData.get("accept_privacy") === "on",
         accept_marketing: formData.get("accept_marketing") === "on",
         source: "membership_form",
@@ -367,10 +369,129 @@ function MembershipForm() {
             <MembershipFormHeader />
 
             {/* DATI ANAGRAFICI */}
-            {/* ... (questa parte è invariata, la lascio come nel tuo codice) ... */}
+            <div className="space-y-3">
+              <p className="text-[0.7rem] uppercase tracking-[0.22em] text-slate-400">
+                {t("membership.sectionPersonal")}
+              </p>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <label className="text-[0.7rem] uppercase tracking-wide text-slate-300">
+                    {t("membership.labelName")}
+                  </label>
+                  <input
+                    id="associatedName"
+                    name="associatedName"
+                    className="mt-1 w-full rounded-xl border border-white/10 bg-slate-950/70 px-3 py-2 text-sm outline-none focus:border-cyan-400"
+                    placeholder={t("membership.placeholderName")}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="text-[0.7rem] uppercase tracking-wide text-slate-300">
+                    {t("membership.labelSurname")}
+                  </label>
+                  <input
+                    id="associatedSurname"
+                    name="associatedSurname"
+                    className="mt-1 w-full rounded-xl border border-white/10 bg-slate-950/70 px-3 py-2 text-sm outline-none focus:border-cyan-400"
+                    placeholder={t("membership.placeholderSurname")}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <label className="text-[0.7rem] uppercase tracking-wide text-slate-300">
+                    {t("membership.labelBirthPlace")}
+                  </label>
+                  <input
+                    id="birthPlace"
+                    name="birthPlace"
+                    className="mt-1 w-full rounded-xl border border-white/10 bg-slate-950/70 px-3 py-2 text-sm outline-none focus:border-cyan-400"
+                    placeholder={t("membership.placeholderBirthPlace")}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="text-[0.7rem] uppercase tracking-wide text-slate-300">
+                    {t("membership.labelBirthDate")}
+                  </label>
+                  <input
+                    id="birthDate"
+                    name="birthDate"
+                    type="date"
+                    className="mt-1 w-full rounded-xl border border-white/10 bg-slate-950/70 px-3 py-2 text-sm outline-none focus:border-cyan-400"
+                    required
+                  />
+                </div>
+              </div>
+            </div>
 
             {/* CONTATTI */}
-            {/* ... invariato ... */}
+            <div className="space-y-3 border-t border-white/5 pt-4">
+              <p className="text-[0.7rem] uppercase tracking-[0.22em] text-slate-400">
+                {t("membership.sectionContacts")}
+              </p>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <label className="text-[0.7rem] uppercase tracking-wide text-slate-300">
+                    {t("membership.labelFiscalCode")}
+                  </label>
+                  <input
+                    id="fiscalCode"
+                    name="fiscalCode"
+                    maxLength={16}
+                    minLength={16}
+                    className="mt-1 w-full rounded-xl border border-white/10 bg-slate-950/70 px-3 py-2 text-sm uppercase outline-none focus:border-cyan-400"
+                    placeholder={t("membership.placeholderFiscalCode")}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="text-[0.7rem] uppercase tracking-wide text-slate-300">
+                    {t("membership.labelEmail")}
+                  </label>
+                  <input
+                    id="emailType"
+                    name="emailType"
+                    type="email"
+                    className="mt-1 w-full rounded-xl border border-white/10 bg-slate-950/70 px-3 py-2 text-sm outline-none focus:border-cyan-400"
+                    placeholder={t("membership.placeholderEmail")}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <label className="text-[0.7rem] uppercase tracking-wide text-slate-300">
+                    {t("membership.labelPhone")}
+                  </label>
+                  <input
+                    id="telephone"
+                    name="telephone"
+                    type="tel"
+                    maxLength={10}
+                    className="mt-1 w-full rounded-xl border border-white/10 bg-slate-950/70 px-3 py-2 text-sm outline-none focus:border-cyan-400"
+                    placeholder={t("membership.placeholderPhone")}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="text-[0.7rem] uppercase tracking-wide text-slate-300">
+                    {t("membership.labelCity")}
+                  </label>
+                  <input
+                    id="city"
+                    name="city"
+                    className="mt-1 w-full rounded-xl border border-white/10 bg-slate-950/70 px-3 py-2 text-sm outline-none focus:border-cyan-400"
+                    placeholder={t("membership.placeholderCity")}
+                    required
+                  />
+                </div>
+              </div>
+            </div>
 
             {/* DOCUMENTO */}
             <MembershipDocumentsSection
@@ -385,6 +506,7 @@ function MembershipForm() {
                 handleFileChange(e, setBackPreview, setBackName)
               }
             />
+
 
             {/* FIRMA DIGITALE */}
             <div className="space-y-3 border-t border-white/5 pt-4">
