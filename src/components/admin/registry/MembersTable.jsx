@@ -55,50 +55,72 @@ export default function MembersTable({
 
             const entry = m._registryEntry || (isRegistry ? m : null);
 
+            // ANNO
+            const year =
+              entry?.year ??
+              (entry?.valid_from
+                ? new Date(entry.valid_from).getFullYear()
+                : m.created_at
+                ? new Date(m.created_at).getFullYear()
+                : null);
+
+            // STATO
+            const status = entry?.status || m.status || "";
+
+            // NOME / COGNOME
+            let firstName = entry?.first_name || m.first_name || "";
+            let lastName = entry?.last_name || m.last_name || "";
+
+            if (!firstName && !lastName && m.full_name) {
+              const parts = m.full_name.trim().split(" ");
+              if (parts.length === 1) {
+                lastName = parts[0];
+              } else {
+                firstName = parts.slice(0, -1).join(" ");
+                lastName = parts[parts.length - 1];
+              }
+            }
+
             return (
               <tr
                 key={m.id}
                 className="border-b border-white/5 hover:bg-slate-900/60"
               >
-                {/*
-                  ANNO
-                  da valid_from oppure r.year se arriva da registry
-                */}
+                {/* ANNO */}
                 <td className="px-3 py-2 text-[11px] text-slate-300">
-                  {entry?.year
-                    ? entry.year
-                    : entry?.valid_from
-                    ? new Date(entry.valid_from).getFullYear()
-                    : "-"}
+                  {year || "-"}
                 </td>
 
                 {/* STATO */}
                 <td className="px-3 py-2 text-[11px]">
-                  <span
-                    className={`inline-flex rounded-full px-2 py-[1px] text-[10px] uppercase tracking-[0.14em] ${
-                      entry?.status &&
-                      entry.status.toLowerCase().startsWith("attiv")
-                        ? "bg-emerald-500/10 text-emerald-300 border border-emerald-500/40"
-                        : "bg-slate-700/40 text-slate-200 border border-slate-600/60"
-                    }`}
-                  >
-                    {entry?.status || "-"}
-                  </span>
+                  {status ? (
+                    <span
+                      className={`inline-flex rounded-full px-2 py-[1px] text-[10px] uppercase tracking-[0.14em] ${
+                        status.toLowerCase().startsWith("attiv")
+                          ? "bg-emerald-500/10 text-emerald-300 border border-emerald-500/40"
+                          : "bg-slate-700/40 text-slate-200 border border-slate-600/60"
+                      }`}
+                    >
+                      {status}
+                    </span>
+                  ) : (
+                    "-"
+                  )}
                 </td>
 
                 {/* COGNOME */}
                 <td className="px-3 py-2 text-[11px] text-slate-200">
-                  {entry?.last_name || "-"}
+                  {lastName || "-"}
                 </td>
 
                 {/* NOME */}
                 <td className="px-3 py-2 text-[11px] text-slate-300">
-                  {entry?.first_name || "-"}
+                  {firstName || "-"}
                 </td>
 
                 {/* AZIONI */}
                 <td className="px-3 py-2 text-right">
-                  {isRegistry ? (
+                  {isRegistry && onOpenRegistryEntry ? (
                     <button
                       type="button"
                       onClick={() => onOpenRegistryEntry(entry)}
@@ -109,7 +131,7 @@ export default function MembersTable({
                   ) : (
                     <button
                       type="button"
-                      onClick={() => onOpenMember(m.id)}
+                      onClick={() => onOpenMember && onOpenMember(m.id)}
                       className="rounded-full border border-cyan-400/70 bg-cyan-500/10 px-3 py-1 text-[10px] text-cyan-100 hover:bg-cyan-500/25"
                     >
                       {t("admin.membersPanel.openCard")}
