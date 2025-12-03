@@ -20,6 +20,14 @@ export default function MembersPanel() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  // 🔹 filtro export per la PRIMA tabella (membri)
+  // valori possibili:
+  // - "non_exported" → exported=false (default)
+  // - "exported"     → exported=true
+  // - "all"          → exported=all
+  const [membersExportFilter, setMembersExportFilter] =
+    useState("non_exported");
+
   // storico
   const [registryEntries, setRegistryEntries] = useState([]);
   const [registryLoading, setRegistryLoading] = useState(false);
@@ -49,7 +57,7 @@ export default function MembersPanel() {
   const [registryModalOpen, setRegistryModalOpen] = useState(false);
   const [selectedRegistryEntry, setSelectedRegistryEntry] = useState(null);
 
-  // Carica membri non ancora esportati
+  // Carica membri con filtro exported / non-exported / all
   useEffect(() => {
     let cancelled = false;
 
@@ -57,7 +65,9 @@ export default function MembersPanel() {
       setLoading(true);
       setError("");
       try {
-        const data = await fetchMembers();
+        // 🔹 passiamo il filtro al wrapper fetchMembers
+        // che a sua volta chiamerà /api/admin/members?exported=...
+        const data = await fetchMembers(membersExportFilter);
         if (!cancelled) {
           if (!data.ok) {
             throw new Error(data.message || t("admin.membersPanel.error"));
@@ -78,7 +88,7 @@ export default function MembersPanel() {
     return () => {
       cancelled = true;
     };
-  }, [t]);
+  }, [t, membersExportFilter]); // 🔹 ricarica quando cambia filtro export
 
   // Carica storico + anni disponibili
   useEffect(() => {
@@ -314,6 +324,22 @@ export default function MembersPanel() {
         totalCount={members.length}
         availableYears={availableYears}
       />
+
+      {/* 🔹 Filtro ESPORTATI / NON ESPORTATI sulla PRIMA tabella */}
+      <div className="flex items-center justify-between gap-2 mb-1">
+        <span className="text-xs text-slate-400">
+          Filtro esportazione tessere:
+        </span>
+        <select
+          className="bg-slate-900/60 border border-slate-700 text-xs rounded px-2 py-1"
+          value={membersExportFilter}
+          onChange={(e) => setMembersExportFilter(e.target.value)}
+        >
+          <option value="non_exported">Solo non esportati</option>
+          <option value="exported">Solo esportati</option>
+          <option value="all">Tutti</option>
+        </select>
+      </div>
 
       <MembersTable
         t={t}

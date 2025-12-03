@@ -16,8 +16,29 @@ export async function adminLogout() {
   return res.data;
 }
 
-export async function fetchMembers() {
-  const res = await api.get("/api/admin/members");
+/**
+ * fetchMembers
+ *
+ * exportFilter può essere:
+ *  - "non_exported" (default) → exported=false
+ *  - "exported"               → exported=true
+ *  - "all"                    → exported=all
+ *
+ * Il backend deve leggere req.query.exported e filtrare di conseguenza.
+ */
+export async function fetchMembers(exportFilter = "non_exported") {
+  let exportedParam = "false";
+
+  if (exportFilter === "exported") {
+    exportedParam = "true";
+  } else if (exportFilter === "all") {
+    exportedParam = "all";
+  }
+
+  const res = await api.get("/api/admin/members", {
+    params: { exported: exportedParam },
+  });
+
   return res.data;
 }
 
