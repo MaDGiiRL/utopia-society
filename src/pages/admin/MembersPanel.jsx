@@ -70,37 +70,46 @@ export default function MembersPanel() {
     window.location.href = url;
   };
 
-  // Carica membri con filtro exported / non-exported / all
+  // Carica TUTTO lo storico (il filtro anno lo facciamo solo lato client)
   useEffect(() => {
     let cancelled = false;
 
-    async function load() {
-      setLoading(true);
-      setError("");
+    async function loadRegistry() {
+      setRegistryLoading(true);
+      setRegistryError("");
+      setRegistryPage(1);
+
       try {
-        const data = await fetchMembers(membersExportFilter);
+        const url = `${API_BASE}/api/admin/members-registry`;
+
+        const res = await fetch(url, { credentials: "include" });
+        const data = await res.json().catch(() => ({}));
+
+        if (!res.ok || !data.ok) {
+          throw new Error(data.message || "Errore storico soci");
+        }
+
         if (!cancelled) {
-          if (!data.ok) {
-            throw new Error(data.message || t("admin.membersPanel.error"));
-          }
-          setMembers(data.members || []);
-          setMembersPage(1); // reset pagina quando cambia il filtro
+          const entries = data.entries || [];
+          setRegistryEntries(entries);
         }
       } catch (err) {
         console.error(err);
         if (!cancelled) {
-          setError(t("admin.membersPanel.error"));
+          setRegistryError(
+            err instanceof Error ? err.message : t("admin.membersPanel.error")
+          );
         }
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) setRegistryLoading(false);
       }
     }
 
-    load();
+    loadRegistry();
     return () => {
       cancelled = true;
     };
-  }, [t, membersExportFilter]);
+  }, [t]); // 👈 niente più yearFilter qui
 
   // Carica storico + filtro per anno (seconda tabella)
   useEffect(() => {
@@ -344,14 +353,9 @@ export default function MembersPanel() {
       );
       setRegistryFile(null);
 
-      // ricarico storico con filtro attuale
+      // ricarico TUTTO lo storico (poi filtriamo lato client)
       try {
-        const url =
-          yearFilter === "ALL"
-            ? `${API_BASE}/api/admin/members-registry`
-            : `${API_BASE}/api/admin/members-registry?year=${encodeURIComponent(
-                yearFilter
-              )}`;
+        const url = `${API_BASE}/api/admin/members-registry`;
         const refRes = await fetch(url, { credentials: "include" });
         const refData = await refRes.json().catch(() => ({}));
         if (refRes.ok && refData.ok) {
