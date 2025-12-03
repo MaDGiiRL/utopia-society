@@ -7,6 +7,7 @@ import {
   Shield,
   Activity,
   FileSpreadsheet,
+  Sparkles, // 👈 AGGIUNTO
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -51,6 +52,7 @@ export default function AdminSidebar({
       <div className="rounded-2xl border border-white/10 bg-slate-950/85 p-2 shadow-lg">
         <nav className="flex flex-col gap-1 text-xs md:flex-col">
           <div className="flex gap-1 overflow-x-auto md:flex-col md:overflow-visible">
+            {/* Membri */}
             <button
               type="button"
               onClick={() => onTabChange("members")}
@@ -73,6 +75,7 @@ export default function AdminSidebar({
               </div>
             </button>
 
+            {/* Contatti */}
             <button
               type="button"
               onClick={() => onTabChange("contacts")}
@@ -95,6 +98,7 @@ export default function AdminSidebar({
               </div>
             </button>
 
+            {/* Campagne */}
             <button
               type="button"
               onClick={() => onTabChange("campaign")}
@@ -117,16 +121,27 @@ export default function AdminSidebar({
               </div>
             </button>
 
+            {/* 🔥 Nuovo evento – stesso stile delle altre tab */}
             <button
               type="button"
               onClick={() => onTabChange("event")}
-              className={`w-full rounded-xl px-3 py-2 text-left text-xs ${
+              className={`flex w-full min-w-40 items-center gap-2 rounded-xl px-3 py-2 text-left transition md:min-w-0 ${
                 tab === "event"
-                  ? "bg-cyan-500/20 text-cyan-100 border border-cyan-400/60"
-                  : "bg-slate-900/60 text-slate-300 border border-white/10 hover:bg-slate-900"
+                  ? "border border-cyan-400/70 bg-cyan-500/15 text-cyan-100 shadow-[0_0_20px_rgba(56,189,248,0.35)]"
+                  : "border border-transparent text-slate-300 hover:bg-slate-900/70"
               }`}
             >
-              Nuovo evento
+              <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-slate-900/80">
+                <Sparkles className="h-3.5 w-3.5 shrink-0" />
+              </div>
+              <div className="flex flex-col">
+                <span className="uppercase tracking-[0.18em]">
+                  Nuovo evento
+                </span>
+                <span className="text-[10px] text-slate-500">
+                  Banner + newsletter
+                </span>
+              </div>
             </button>
           </div>
         </nav>
@@ -134,24 +149,6 @@ export default function AdminSidebar({
 
       {/* Export + logout */}
       <div className="flex flex-col gap-2 rounded-2xl border border-white/10 bg-slate-950/85 px-4 py-3 text-[11px] shadow-lg sm:flex-col sm:items-center sm:justify-between">
-        {/* XML (completo) */}
-        {/* <button
-          type="button"
-          onClick={onExportXml}
-          disabled={xmlLoading}
-          className={`inline-flex items-center justify-center gap-1 rounded-full border border-cyan-400/70 bg-cyan-500/10 px-3 py-1.5 font-semibold uppercase tracking-[0.16em] text-cyan-100 hover:bg-cyan-500/25 transition ${
-            xmlLoading ? "cursor-not-allowed opacity-60" : ""
-          }`}
-        >
-          <Download className="h-3 w-3" />
-          <span className="hidden sm:inline">
-            {t("admin.dashboard.exportMembersXmlFull")}
-          </span>
-          <span className="sm:hidden">
-            {t("admin.dashboard.exportMembersXmlShort")}
-          </span>
-        </button> */}
-
         {/* 🔹 XLSX ACSI */}
         <button
           type="button"

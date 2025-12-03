@@ -10,7 +10,7 @@ export default function AdminDashboard() {
   const { t } = useTranslation();
 
   // niente <...> qui, solo JS
-  const [tab, setTab] = useState("members"); // "members" | "contacts" | "campaign"
+  const [tab, setTab] = useState("members"); // "members" | "contacts" | "campaign" | "events"
 
   const [xmlError, setXmlError] = useState("");
   const [xmlLoading, setXmlLoading] = useState(false);

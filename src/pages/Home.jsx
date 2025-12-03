@@ -3,7 +3,7 @@ import HeroSection from "../components/HeroSection";
 import AboutSection from "../components/AboutSection";
 import ContactSection from "../components/ContactSection";
 import EventsGallery from "../components/EventsGallery";
-
+import FeaturedEventBanner from "../components/home/FeaturedEventBanner";
 function Home() {
   return (
     <div className="relative">
@@ -13,6 +13,7 @@ function Home() {
       {/* CONTENUTO SCROLLABILE SOPRA IL 3D */}
       <div className="relative z-10">
         <HeroSection />
+        <FeaturedEventBanner />
         <AboutSection />
         <EventsGallery />
         <ContactSection />
