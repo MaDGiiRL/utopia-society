@@ -17,6 +17,11 @@ export default function AdminDashboard() {
   const [xlsxError, setXlsxError] = useState("");
   const [xlsxLoading, setXlsxLoading] = useState(false);
 
+  const [lastXlsxExportAt, setLastXlsxExportAt] = useState(() => {
+    if (typeof window === "undefined") return "";
+    return localStorage.getItem("utopia:lastXlsxExportAt") || "";
+  });
+
   const navigate = useNavigate();
 
   // ---- helper tracking UI → /api/admin/logs/track
@@ -112,15 +117,21 @@ export default function AdminDashboard() {
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
-      a.href = url;
-
       const today = new Date().toISOString().slice(0, 10);
+      a.href = url;
       a.download = `utopia_acsi_${today}.xlsx`;
 
       document.body.appendChild(a);
       a.click();
       a.remove();
       URL.revokeObjectURL(url);
+
+      // 🔹 salva orario ultimo export
+      const nowIso = new Date().toISOString();
+      setLastXlsxExportAt(nowIso);
+      if (typeof window !== "undefined") {
+        localStorage.setItem("utopia:lastXlsxExportAt", nowIso);
+      }
 
       trackUiEvent(
         "admin_export_members_xlsx",
@@ -172,6 +183,7 @@ export default function AdminDashboard() {
           xlsxError={xlsxError}
           xlsxLoading={xlsxLoading}
           onExportXlsx={handleExportXlsx}
+          lastXlsxExportAt={lastXlsxExportAt}
           // logout
           onLogout={handleLogout}
         />

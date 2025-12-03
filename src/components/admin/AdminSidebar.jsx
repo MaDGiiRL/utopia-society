@@ -16,11 +16,11 @@ export default function AdminSidebar({
   xmlError,
   xmlLoading,
   onExportXml,
-  // 🔹 nuove props per export ACSI
   xlsxError,
   xlsxLoading,
   onExportXlsx,
   onLogout,
+  lastXlsxExportAt,
 }) {
   const { t } = useTranslation();
 
@@ -172,22 +172,35 @@ export default function AdminSidebar({
       {/* Export + logout */}
       <div className="flex flex-col gap-2 rounded-2xl border border-white/10 bg-slate-950/85 px-4 py-3 text-[11px] shadow-lg sm:flex-col sm:items-center sm:justify-between">
         {/* XLSX ACSI */}
-        <button
-          type="button"
-          onClick={onExportXlsx}
-          disabled={xlsxLoading}
-          className={`inline-flex items-center justify-center gap-1 rounded-full border border-emerald-400/70 bg-emerald-500/10 px-3 py-1.5 font-semibold uppercase tracking-[0.16em] text-emerald-100 hover:bg-emerald-500/25 transition ${
-            xlsxLoading ? "cursor-not-allowed opacity-60" : ""
-          }`}
-        >
-          <FileSpreadsheet className="h-3 w-3" />
-          <span className="hidden sm:inline">
-            {t("admin.dashboard.exportMembersAcsiFull", "Export ACSI (.xlsx)")}
-          </span>
-          <span className="sm:hidden">
-            {t("admin.dashboard.exportMembersAcsiShort", "ACSI .xlsx")}
-          </span>
-        </button>
+        <div className="flex w-full flex-col gap-1">
+          <button
+            type="button"
+            onClick={onExportXlsx}
+            disabled={xlsxLoading}
+            className={`inline-flex items-center justify-center gap-1 rounded-full border border-emerald-400/70 bg-emerald-500/10 px-3 py-1.5 font-semibold uppercase tracking-[0.16em] text-emerald-100 hover:bg-emerald-500/25 transition ${
+              xlsxLoading ? "cursor-not-allowed opacity-60" : ""
+            }`}
+          >
+            <FileSpreadsheet className="h-3 w-3" />
+            <span className="hidden sm:inline">
+              {t(
+                "admin.dashboard.exportMembersAcsiFull",
+                "Export ACSI (.xlsx)"
+              )}
+            </span>
+            <span className="sm:hidden">
+              {t("admin.dashboard.exportMembersAcsiShort", "ACSI .xlsx")}
+            </span>
+          </button>
+
+          {/* 🔹 info ultimo export */}
+          {lastXlsxExportAt && (
+            <p className="text-[10px] text-slate-500">
+              Ultimo export:{" "}
+              {new Date(lastXlsxExportAt).toLocaleString("it-IT")}
+            </p>
+          )}
+        </div>
 
         <button
           type="button"

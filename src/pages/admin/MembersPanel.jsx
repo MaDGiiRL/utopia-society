@@ -9,8 +9,10 @@ export default function MembersPanel() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const [search, setSearch] = useState("");
-  const [cityFilter, setCityFilter] = useState("ALL");
+  // 🔹 solo filtri anno + ora
+  const [yearFilter, setYearFilter] = useState("ALL");
+  const [fromTime, setFromTime] = useState(""); // "HH:MM"
+  const [toTime, setToTime] = useState(""); // "HH:MM"
 
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState(null);
@@ -49,36 +51,63 @@ export default function MembersPanel() {
     };
   }, [t]);
 
-  // Città disponibili
-  const availableCities = useMemo(() => {
+  // 🔹 Anni disponibili (da created_at)
+  const availableYears = useMemo(() => {
     const set = new Set();
     members.forEach((m) => {
-      if (m.city) set.add(m.city);
+      if (m.created_at) {
+        const d = new Date(m.created_at);
+        if (!Number.isNaN(d.getTime())) {
+          set.add(d.getFullYear().toString());
+        }
+      }
     });
-    return Array.from(set).sort((a, b) => a.localeCompare(b));
+    return Array.from(set).sort((a, b) => b.localeCompare(a)); // anni decrescenti
   }, [members]);
 
-  // Filtrati
+  // 🔹 Soci filtrati per anno + fascia oraria
   const filteredMembers = useMemo(() => {
     let list = members;
 
-    if (cityFilter !== "ALL") {
-      list = list.filter((m) => m.city === cityFilter);
+    // filtro anno
+    if (yearFilter !== "ALL") {
+      list = list.filter((m) => {
+        if (!m.created_at) return false;
+        const d = new Date(m.created_at);
+        if (Number.isNaN(d.getTime())) return false;
+        return d.getFullYear().toString() === yearFilter;
+      });
     }
 
-    if (search.trim()) {
-      const s = search.trim().toLowerCase();
+    // helper per trasformare "HH:MM" in minuti da inizio giornata
+    const timeToMinutes = (t) => {
+      if (!t) return null;
+      const [h, m] = t.split(":").map((x) => parseInt(x, 10));
+      if (Number.isNaN(h) || Number.isNaN(m)) return null;
+      return h * 60 + m;
+    };
+
+    const fromMinutes = timeToMinutes(fromTime);
+    const toMinutes = timeToMinutes(toTime);
+
+    // filtro fascia oraria (sull'ora locale del created_at)
+    if (fromMinutes != null || toMinutes != null) {
       list = list.filter((m) => {
-        return (
-          m.full_name?.toLowerCase().includes(s) ||
-          m.email?.toLowerCase().includes(s) ||
-          m.city?.toLowerCase().includes(s)
-        );
+        if (!m.created_at) return false;
+        const d = new Date(m.created_at);
+        if (Number.isNaN(d.getTime())) return false;
+
+        const minutes = d.getHours() * 60 + d.getMinutes();
+
+        if (fromMinutes != null && minutes < fromMinutes) return false;
+        if (toMinutes != null && minutes > toMinutes) return false;
+
+        return true;
       });
     }
 
     return list;
-  }, [members, search, cityFilter]);
+  }, [members, yearFilter, fromTime, toTime]);
 
   const handleOpenMember = async (id) => {
     setModalOpen(true);
@@ -111,30 +140,41 @@ export default function MembersPanel() {
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-2 text-[11px]">
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder={t("admin.membersPanel.searchPlaceholder")}
-            className="w-full min-w-[220px] rounded-full border border-white/10 bg-slate-900/70 px-3 py-1.5 text-[11px] text-slate-100 outline-none focus:border-cyan-400 sm:w-56"
-          />
-
+        {/* 🔹 Solo filtri anno + orario */}
+        <div className="flex flex-wrap items-center gap-2 text-[11px]">
+          {/* filtro anno */}
           <select
-            value={cityFilter}
-            onChange={(e) => setCityFilter(e.target.value)}
+            value={yearFilter}
+            onChange={(e) => setYearFilter(e.target.value)}
             className="rounded-full border border-white/10 bg-slate-900/70 px-3 py-1.5 text-[11px] text-slate-100 outline-none focus:border-cyan-400"
           >
-            <option value="ALL">
-              {t("admin.membersPanel.filterAllCities")}
-            </option>
-            {availableCities.map((city) => (
-              <option key={city} value={city}>
-                {city}
+            <option value="ALL">Tutti gli anni</option>
+            {availableYears.map((year) => (
+              <option key={year} value={year}>
+                {year}
               </option>
             ))}
           </select>
 
+          {/* fascia oraria */}
+          <div className="flex flex-wrap items-center gap-1">
+            <span className="text-[10px] text-slate-500">Ora da</span>
+            <input
+              type="time"
+              value={fromTime}
+              onChange={(e) => setFromTime(e.target.value)}
+              className="rounded-full border border-white/10 bg-slate-900/70 px-2 py-1 text-[10px] text-slate-100 outline-none focus:border-cyan-400"
+            />
+            <span className="text-[10px] text-slate-500">a</span>
+            <input
+              type="time"
+              value={toTime}
+              onChange={(e) => setToTime(e.target.value)}
+              className="rounded-full border border-white/10 bg-slate-900/70 px-2 py-1 text-[10px] text-slate-100 outline-none focus:border-cyan-400"
+            />
+          </div>
+
+          {/* contatore */}
           <span className="rounded-full border border-slate-700/60 bg-slate-900/80 px-3 py-1.5 text-[10px] text-slate-300">
             {t("admin.membersPanel.shownCounter", {
               filtered: filteredMembers.length,
@@ -374,7 +414,7 @@ function DocLink({ label, url }) {
   if (!url) {
     return (
       <div className="rounded-xl border border-slate-700/60 bg-slate-900/80 px-3 py-2 text-[10px] text-slate-400">
-        {label}: {/** notAvailable key **/ "Non disponibile"}
+        {label}: {/* notAvailable key */} {"Non disponibile"}
       </div>
     );
   }
