@@ -25,7 +25,7 @@
         "paragraph": "Utopia este un club privat situat în inima orașului. Un mediu exclusivist, atent construit în fiecare detaliu, unde sonoritățile balcanice, instalațiile de lumină și mixologia de nivel înalt se îmbină pentru a crea o experiență unică.",
         "card1Title": "Atmosferă futuristă",
         "card1Text": "Utopia valorifică estetica contemporană printr-un design luminos și elemente vizuale moderne. Spațiul îmbină tehnologia cu expresia artistică, oferind membrilor o experiență culturală bazată pe identitate, creativitate și dialog. Materialele, jocurile de lumină și interacțiunile digitale creează un cadru unde comunitatea se poate întâlni, socializa și descoperi noi forme de expresie.",
-        "card2Title": "Muzică selectată",
+        "card2Title": "Asociația noastră Culturală",
         "card2Text": "Asociația noastră Culturală promovează cultura românească prin cursuri de dans tradițional și cursuri de limbă română pentru toate vârstele. Creăm un spațiu deschis, primitor și bogat în activități culturale, evenimente și momente de împărtășire, pentru a valorifica tradițiile și a sprijini integrarea în comunitate.",
         "card3Title": "Acces rezervat",
         "card3Text": "Accesul este dedicat membrilor înscriși, pentru a păstra un mediu sigur, respectuos și orientat către dezvoltare culturală. Înscrierea se face online, într-un proces simplu și transparent, pentru a facilita participarea tuturor celor interesați de activitățile, evenimentele și experiențele propuse în cadrul comunității Utopia."
@@ -306,7 +306,8 @@
         "alertSuccessTitle": "Cerere trimisă",
         "alertSuccessText": "Cererea ta de înscriere a fost înregistrată cu succes.",
         "uploadErrorPrefix": "Eroare la încărcarea documentului",
-        "apiBaseMissing": "API_BASE nu este configurat (VITE_ADMIN_API_URL lipsește din .env-ul frontend-ului)."
+        "apiBaseMissing": "API_BASE nu este configurat (VITE_ADMIN_API_URL lipsește din .env-ul frontend-ului).",
+        "needItem4": "Cod fiscal italian (CF). Dacă nu îl știi, îl poți calcula aici "
     },
     "gallery": {
         "header": {

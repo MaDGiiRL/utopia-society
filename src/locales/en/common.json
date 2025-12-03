@@ -25,7 +25,7 @@
         "paragraph": "Utopia is a private club located in the heart of the city. An exclusive environment, crafted with attention to every detail, where Balkan sounds, light installations and high-end mixology blend together to create a unique experience.",
         "card1Title": "Futuristic atmosphere",
         "card1Text": "Utopia embraces contemporary aesthetics through a luminous design and modern visual elements. The space brings together technology and artistic expression, offering members a cultural experience built on identity, creativity and dialogue. Materials, light displays and digital interactions create a setting where the community can meet, socialise and discover new forms of expression.",
-        "card2Title": "Selected music",
+        "card2Title": "La nostra Associazione Culturale",
         "card2Text": "Our Cultural Association promotes Romanian culture through traditional dance courses and Romanian language classes for all ages. We create an open, welcoming space rich in cultural activities, events and shared moments, in order to enhance traditions and support integration within the community.",
         "card3Title": "Reserved access",
         "card3Text": "Access is reserved for registered members, to preserve a safe, respectful environment focused on cultural development. Registration takes place online, through a simple and transparent process, to facilitate the participation of all those interested in the activities, events and experiences proposed within the Utopia community."
@@ -306,7 +306,8 @@
         "alertSuccessTitle": "Application sent",
         "alertSuccessText": "Your membership request has been registered successfully.",
         "uploadErrorPrefix": "Document upload error",
-        "apiBaseMissing": "API_BASE not configured (VITE_ADMIN_API_URL missing in frontend .env)."
+        "apiBaseMissing": "API_BASE not configured (VITE_ADMIN_API_URL missing in frontend .env).",
+        "needItem4": "Italian tax code (CF). If you don't know it, you can calculate it here "
     },
     "gallery": {
         "header": {

@@ -5,24 +5,13 @@ export default function MembershipSubmitRow({
   loading,
   submitLabel,
   submitLoadingLabel,
-  onOpenSignature, // opzionale: link "firma digitalmente"
-  signatureLabel,
-  onSubmitClick, // ✅ nuovo prop: logica di submit gestita dal parent
 }) {
-  const handleClick = (e) => {
-    if (onSubmitClick) {
-      e.preventDefault(); // blocca il submit HTML di default
-      onSubmitClick(); // lascia che sia il parent a decidere cosa fare
-    }
-  };
-
   return (
     <div className="flex justify-center pt-2 w-full">
       <motion.button
         id="btnSubmit"
         type="submit"
         disabled={loading}
-        onClick={handleClick} // ✅ intercettiamo il click
         className={`w-full sm:w-auto rounded-full bg-linear-to-r from-cyan-400 to-fuchsia-500 px-4 py-3 text-xs md:text-sm font-semibold uppercase tracking-[0.18em] text-black shadow-[0_0_40px_rgba(56,189,248,0.9)] hover:brightness-110 transition ${
           loading ? "opacity-60 cursor-not-allowed" : ""
         }`}
@@ -37,8 +26,6 @@ export default function MembershipSubmitRow({
           <span>{loading ? submitLoadingLabel : submitLabel}</span>
         </span>
       </motion.button>
-
-    
     </div>
   );
 }

@@ -62,6 +62,21 @@ export default function MembershipIntro() {
           <li>{t("membership.needItem1")}</li>
           <li>{t("membership.needItem2")}</li>
           <li>{t("membership.needItem3")}</li>
+          <li className="mt-5 list-none rounded-md border border-cyan-400/60 bg-cyan-400/10 px-4 py-4 text-cyan-100 font-medium flex flex-wrap items-center gap-1">
+            <span className="text-[0.65rem] uppercase tracking-[0.18em] rounded-full bg-cyan-500/20 px-2 py-0.5 mr-2">
+              CF
+            </span>
+            <span>{t("membership.needItem4")}</span>
+            <span className="mx-1">→</span>
+            <a
+              href="https://codicefiscale.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline decoration-dotted underline-offset-2"
+            >
+              Click
+            </a>
+          </li>
         </ul>
       </div>
     </motion.div>
