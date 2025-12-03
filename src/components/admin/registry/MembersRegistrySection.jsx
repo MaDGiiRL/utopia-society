@@ -53,7 +53,7 @@ export default function MembersRegistrySection({
               onChange={(e) => setYearFilter(e.target.value)}
             >
               <option value="ALL">Tutti</option>
-              {/* opzionale: puoi aggiungere qui anni “predefiniti” */}
+              {/* puoi aggiungere qui anni fissi se vuoi */}
               {/* <option value="2024">2024</option> */}
             </select>
           </div>
@@ -163,6 +163,7 @@ export default function MembersRegistrySection({
                   </td>
                 </tr>
               )}
+
               {filteredRegistry.length > 0 &&
                 filteredRegistry
                   .slice((page - 1) * pageSize, page * pageSize)
@@ -175,45 +176,20 @@ export default function MembersRegistrySection({
                       className="cursor-pointer border-b border-slate-800/60 hover:bg-slate-800/50"
                       onClick={() => onOpenRegistryEntry(entry)}
                     >
-                      <td className="px-2 py-1 align-middle text-[11px] text-slate-300">
-                        {entry.year ?? "-"}
-                      </td>
-                      <td className="px-2 py-1 align-middle text-[11px]">
-                        <span
-                          className={`inline-flex rounded-full px-2 py-[1px] text-[10px] uppercase tracking-[0.14em] ${
-                            (entry.status || "")
-                              .toString()
-                              .toLowerCase()
-                              .startsWith("attiv")
-                              ? "bg-emerald-500/10 text-emerald-300 border border-emerald-500/40"
-                              : "bg-slate-700/40 text-slate-200 border border-slate-600/60"
-                          }`}
-                        >
-                          {entry.status || "-"}
-                        </span>
-                      </td>
-                      <td className="px-2 py-1 align-middle text-[11px]">
-                        {entry.last_name || "-"}
-                      </td>
-                      <td className="px-2 py-1 align-middle text-[11px]">
-                        {entry.first_name || "-"}
-                      </td>
-                      <td className="px-2 py-1 align-middle text-[11px] text-slate-300">
+                      <td className="px-2 py-1">{entry.year ?? "-"}</td>
+                      <td className="px-2 py-1">{entry.status || "-"}</td>
+                      <td className="px-2 py-1">{entry.last_name || "-"}</td>
+                      <td className="px-2 py-1">{entry.first_name || "-"}</td>
+                      <td className="px-2 py-1 text-slate-300">
                         {entry.card_number || "-"}
                       </td>
-                      <td className="px-2 py-1 align-middle text-[11px]">
-                        {entry.fiscal_code || "-"}
-                      </td>
-                      <td className="px-2 py-1 align-middle text-[11px]">
-                        {entry.email || "-"}
-                      </td>
-                      <td className="px-2 py-1 align-middle text-[11px]">
-                        {entry.phone || "-"}
-                      </td>
-                      <td className="px-2 py-1 align-middle text-[11px] text-slate-300">
+                      <td className="px-2 py-1">{entry.fiscal_code || "-"}</td>
+                      <td className="px-2 py-1">{entry.email || "-"}</td>
+                      <td className="px-2 py-1">{entry.phone || "-"}</td>
+                      <td className="px-2 py-1 text-slate-300">
                         {entry.valid_from || "-"}
                       </td>
-                      <td className="px-2 py-1 align-middle text-[11px] text-slate-300">
+                      <td className="px-2 py-1 text-slate-300">
                         {entry.valid_to || "-"}
                       </td>
                     </tr>
