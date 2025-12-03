@@ -6,10 +6,12 @@ import { fetchMembers, fetchMemberById } from "../../api/admin";
 import MembersHeaderFilters from "../../components/admin/registry/MembersHeaderFilters";
 import MembersTable from "../../components/admin/registry/MembersTable";
 import MembersRegistrySection from "../../components/admin/registry/MembersRegistrySection";
-import MemberModal from "../../components/admin/registry/MemberModal";
+import MemberModal, {
+  RegistryEntryModal,
+} from "../../components/admin/registry/MemberModal";
 
 const API_BASE = import.meta.env.VITE_ADMIN_API_URL || "";
-const REGISTRY_PAGE_SIZE = 20; // 👈 paginazione da 20 per lo storico
+const REGISTRY_PAGE_SIZE = 20;
 
 export default function MembersPanel() {
   const { t } = useTranslation();
@@ -18,34 +20,36 @@ export default function MembersPanel() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // storico da tabella members_registry
+  // storico
   const [registryEntries, setRegistryEntries] = useState([]);
   const [registryLoading, setRegistryLoading] = useState(false);
   const [registryError, setRegistryError] = useState("");
 
-  // anni disponibili letti dal DB (colonna year di members_registry)
   const [availableYears, setAvailableYears] = useState([]);
 
-  // paginazione storico
-  const [registryPage, setRegistryPage] = useState(1); // 👈 pagina corrente
+  const [registryPage, setRegistryPage] = useState(1);
 
-  // stato per import XLSX storico
   const [registryFile, setRegistryFile] = useState(null);
   const [importingRegistry, setImportingRegistry] = useState(false);
   const [importMessage, setImportMessage] = useState("");
 
-  // filtri anno + fascia oraria
-  // ⚠️ yearFilter ora VALE SOLO per lo storico, non per la tabella members
-  const [yearFilter, setYearFilter] = useState("ALL");
+  // anno da usare per l'import XLSX storico
+  const [registryYear, setRegistryYear] = useState("");
+
+  const [yearFilter, setYearFilter] = useState("ALL"); // filtra SOLO storico
   const [fromTime, setFromTime] = useState("");
   const [toTime, setToTime] = useState("");
 
-  // modal dettagli socio
+  // modale socio "nuovo"
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState(null);
   const [loadingMember, setLoadingMember] = useState(false);
 
-  // Carica lista soci (tabella members)
+  // modale storico
+  const [registryModalOpen, setRegistryModalOpen] = useState(false);
+  const [selectedRegistryEntry, setSelectedRegistryEntry] = useState(null);
+
+  // Carica membri non ancora esportati
   useEffect(() => {
     let cancelled = false;
 
@@ -66,9 +70,7 @@ export default function MembersPanel() {
           setError(t("admin.membersPanel.error"));
         }
       } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
+        if (!cancelled) setLoading(false);
       }
     }
 
@@ -78,15 +80,13 @@ export default function MembersPanel() {
     };
   }, [t]);
 
-  // Carica storico soci (tabella members_registry) + anni disponibili
+  // Carica storico + anni disponibili
   useEffect(() => {
     let cancelled = false;
 
     async function loadRegistry() {
       setRegistryLoading(true);
       setRegistryError("");
-
-      // cambio anno => reset alla prima pagina
       setRegistryPage(1);
 
       try {
@@ -108,13 +108,11 @@ export default function MembersPanel() {
           const entries = data.entries || [];
           setRegistryEntries(entries);
 
-          // 👇 aggiorna elenco anni disponibili leggendo dal DB (colonna year)
+          // aggiorna anni
           setAvailableYears((prev) => {
             const yearsSet = new Set(prev);
             entries.forEach((r) => {
-              if (r.year != null) {
-                yearsSet.add(String(r.year));
-              }
+              if (r.year != null) yearsSet.add(String(r.year));
             });
             return Array.from(yearsSet).sort((a, b) => b.localeCompare(a));
           });
@@ -127,9 +125,7 @@ export default function MembersPanel() {
           );
         }
       } finally {
-        if (!cancelled) {
-          setRegistryLoading(false);
-        }
+        if (!cancelled) setRegistryLoading(false);
       }
     }
 
@@ -139,9 +135,9 @@ export default function MembersPanel() {
     };
   }, [yearFilter, t]);
 
-  // Soci filtrati SOLO per fascia oraria (NON più per anno!)
+  // Filtro fascia oraria per i "nuovi" membri
   const filteredMembers = useMemo(() => {
-    let list = members; // 👈 niente filtro per yearFilter qui
+    let list = members;
 
     const timeToMinutes = (t) => {
       if (!t) return null;
@@ -158,7 +154,6 @@ export default function MembersPanel() {
         if (!m.created_at) return false;
         const d = new Date(m.created_at);
         if (Number.isNaN(d.getTime())) return false;
-
         const minutes = d.getHours() * 60 + d.getMinutes();
         if (fromMinutes != null && minutes < fromMinutes) return false;
         if (toMinutes != null && minutes > toMinutes) return false;
@@ -169,7 +164,7 @@ export default function MembersPanel() {
     return list;
   }, [members, fromTime, toTime]);
 
-  // Storico filtrato (in pratica già filtrato da backend, ma lo lascio come sicurezza)
+  // Storico filtrato per anno (già filtrato dal backend ma doppia sicurezza)
   const filteredRegistry = useMemo(() => {
     if (yearFilter === "ALL") return registryEntries;
     const yearInt = parseInt(yearFilter, 10);
@@ -177,7 +172,7 @@ export default function MembersPanel() {
     return registryEntries.filter((r) => r.year === yearInt);
   }, [registryEntries, yearFilter]);
 
-  // se cambia il numero di righe, aggiusta pagina se fuori range
+  // aggiusta pagina se fuori range
   useEffect(() => {
     const totalPages = Math.max(
       1,
@@ -188,7 +183,6 @@ export default function MembersPanel() {
     }
   }, [filteredRegistry, registryPage]);
 
-  // paginazione da 20 righe per lo storico
   const paginatedRegistry = useMemo(() => {
     const start = (registryPage - 1) * REGISTRY_PAGE_SIZE;
     const end = start + REGISTRY_PAGE_SIZE;
@@ -201,9 +195,7 @@ export default function MembersPanel() {
     setLoadingMember(true);
     try {
       const data = await fetchMemberById(id);
-      if (!data.ok) {
-        throw new Error(data.message || "Errore lettura socio");
-      }
+      if (!data.ok) throw new Error(data.message || "Errore lettura socio");
       setSelectedMember(data.member);
     } catch (err) {
       console.error(err);
@@ -213,10 +205,29 @@ export default function MembersPanel() {
     }
   };
 
-  // Import XLSX storico soci
+  // apertura modale storico
+  const handleOpenRegistryEntry = (entry) => {
+    setSelectedRegistryEntry(entry);
+    setRegistryModalOpen(true);
+  };
+
+  // Import storico da XLSX
   const handleImportRegistry = async () => {
     if (!registryFile) {
       setImportMessage("Seleziona prima un file .xlsx");
+      return;
+    }
+
+    // anno da usare per la colonna "year" dello storico
+    const yearForImportRaw = registryYear
+      ? registryYear
+      : yearFilter !== "ALL"
+      ? yearFilter
+      : new Date().getFullYear().toString();
+
+    const yearForImport = parseInt(yearForImportRaw, 10);
+    if (Number.isNaN(yearForImport)) {
+      setImportMessage("Inserisci un anno valido per l'import.");
       return;
     }
 
@@ -226,13 +237,6 @@ export default function MembersPanel() {
     try {
       const formData = new FormData();
       formData.append("file", registryFile);
-
-      // anno da salvare in DB (colonna year)
-      const yearForImport =
-        yearFilter !== "ALL"
-          ? parseInt(yearFilter, 10)
-          : new Date().getFullYear(); // fallback: anno corrente
-
       formData.append("year", yearForImport.toString());
 
       const res = await fetch(
@@ -258,10 +262,9 @@ export default function MembersPanel() {
           ? `Import completato (${inserted} righe inserite).`
           : "Import completato."
       );
-
       setRegistryFile(null);
 
-      // ricarica storico con filtro attuale
+      // ricarico storico con filtro attuale
       try {
         const url =
           yearFilter === "ALL"
@@ -274,14 +277,10 @@ export default function MembersPanel() {
         if (refRes.ok && refData.ok) {
           const entries = refData.entries || [];
           setRegistryEntries(entries);
-
-          // aggiorna anche gli anni disponibili
           setAvailableYears((prev) => {
             const yearsSet = new Set(prev);
             entries.forEach((r) => {
-              if (r.year != null) {
-                yearsSet.add(String(r.year));
-              }
+              if (r.year != null) yearsSet.add(String(r.year));
             });
             return Array.from(yearsSet).sort((a, b) => b.localeCompare(a));
           });
@@ -306,28 +305,28 @@ export default function MembersPanel() {
       <MembersHeaderFilters
         t={t}
         yearFilter={yearFilter}
-        setYearFilter={setYearFilter} // filtra solo lo storico
+        setYearFilter={setYearFilter}
         fromTime={fromTime}
         setFromTime={setFromTime}
         toTime={toTime}
         setToTime={setToTime}
         filteredCount={filteredMembers.length}
         totalCount={members.length}
-        availableYears={availableYears} // 👈 anni presi dal DB (members_registry.year)
+        availableYears={availableYears}
       />
 
       <MembersTable
         t={t}
         loading={loading}
         error={error}
-        filteredMembers={filteredMembers} // niente filtro anno
+        filteredMembers={filteredMembers}
         onOpenMember={handleOpenMember}
       />
 
       <MembersRegistrySection
         registryLoading={registryLoading}
         registryError={registryError}
-        filteredRegistry={paginatedRegistry} // pagina corrente
+        filteredRegistry={paginatedRegistry}
         registryFile={registryFile}
         setRegistryFile={setRegistryFile}
         importingRegistry={importingRegistry}
@@ -337,6 +336,9 @@ export default function MembersPanel() {
         pageSize={REGISTRY_PAGE_SIZE}
         total={filteredRegistry.length}
         onPageChange={setRegistryPage}
+        registryYear={registryYear}
+        setRegistryYear={setRegistryYear}
+        onOpenRegistryEntry={handleOpenRegistryEntry}
       />
 
       <MemberModal
@@ -348,6 +350,15 @@ export default function MembersPanel() {
         t={t}
         loadingMember={loadingMember}
         selectedMember={selectedMember}
+      />
+
+      <RegistryEntryModal
+        open={registryModalOpen}
+        onClose={() => {
+          setRegistryModalOpen(false);
+          setSelectedRegistryEntry(null);
+        }}
+        entry={selectedRegistryEntry}
       />
     </div>
   );

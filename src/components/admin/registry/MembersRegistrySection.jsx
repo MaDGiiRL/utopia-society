@@ -1,18 +1,19 @@
 export default function MembersRegistrySection({
   registryLoading,
   registryError,
-  filteredRegistry, // contiene SOLO la pagina corrente (max 20 righe)
+  filteredRegistry, // pagina corrente
   registryFile,
   setRegistryFile,
   importingRegistry,
   importMessage,
   onImportClick,
-  page, // pagina corrente (1-based)
-  pageSize, // es. 20
-  total, // numero totale record filtrati per anno
+  page,
+  pageSize,
+  total,
   onPageChange,
-  registryYear, // anno scelto dall'admin
-  setRegistryYear, // setter anno
+  registryYear,
+  setRegistryYear,
+  onOpenRegistryEntry,
 }) {
   const totalPages = Math.max(1, Math.ceil((total || 0) / (pageSize || 1)));
   const hasAnyRecords = (total || 0) > 0;
@@ -24,11 +25,11 @@ export default function MembersRegistrySection({
     <div className="mt-4">
       <div className="mb-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <h3 className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">
-          Storico soci da XLSX (tabella members_registry)
+          Storico soci (tabella members_registry)
         </h3>
 
         <div className="flex flex-wrap items-center gap-2 text-[10px]">
-          {/* Input ANNO accanto al file */}
+          {/* Anno usato per l'import */}
           <input
             type="number"
             min="1900"
@@ -90,6 +91,7 @@ export default function MembersRegistrySection({
             <table className="min-w-full text-left text-[11px]">
               <thead>
                 <tr className="border-b border-white/10 bg-slate-900/70">
+                  <th className="px-3 py-2 font-medium text-slate-400">Anno</th>
                   <th className="px-3 py-2 font-medium text-slate-400">
                     Stato
                   </th>
@@ -101,17 +103,16 @@ export default function MembersRegistrySection({
                     Cognome
                   </th>
                   <th className="px-3 py-2 font-medium text-slate-400">
-                    Cod. fiscale
-                  </th>
-                  {/* Anno / Valida dal / Valida al rimossi dalla tabella */}
-                  <th className="px-3 py-2 font-medium text-slate-400">
-                    Email
+                    E-mail
                   </th>
                   <th className="px-3 py-2 font-medium text-slate-400">
                     Cellulare
                   </th>
                   <th className="px-3 py-2 font-medium text-slate-400">
                     Qualifica
+                  </th>
+                  <th className="px-3 py-2 font-medium text-slate-400">
+                    Scheda
                   </th>
                 </tr>
               </thead>
@@ -121,6 +122,9 @@ export default function MembersRegistrySection({
                     key={r.id}
                     className="border-b border-white/5 hover:bg-slate-900/60"
                   >
+                    <td className="px-3 py-2 text-[11px] text-slate-300">
+                      {r.year ?? "—"}
+                    </td>
                     <td className="px-3 py-2 text-[11px] text-slate-300">
                       {r.status || "-"}
                     </td>
@@ -134,13 +138,22 @@ export default function MembersRegistrySection({
                       {r.last_name || "-"}
                     </td>
                     <td className="px-3 py-2 text-[11px] text-slate-300">
-                      {r.fiscal_code || "-"}
-                    </td>
-                    <td className="px-3 py-2 text-[11px] text-slate-300">
                       {r.email || "-"}
                     </td>
                     <td className="px-3 py-2 text-[11px] text-slate-300">
                       {r.phone || "-"}
+                    </td>
+                    <td className="px-3 py-2 text-[11px] text-slate-300">
+                      {r.qualification || "-"}
+                    </td>
+                    <td className="px-3 py-2">
+                      <button
+                        type="button"
+                        onClick={() => onOpenRegistryEntry(r)}
+                        className="rounded-full border border-cyan-400/70 bg-cyan-500/10 px-3 py-1 text-[10px] text-cyan-100 hover:bg-cyan-500/25"
+                      >
+                        Apri scheda
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -148,7 +161,7 @@ export default function MembersRegistrySection({
             </table>
           </div>
 
-          {/* Barra paginazione */}
+          {/* paginazione */}
           <div className="mt-2 flex flex-col items-center justify-between gap-2 text-[10px] text-slate-400 sm:flex-row">
             <span>
               Mostrati{" "}
