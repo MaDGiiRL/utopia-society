@@ -142,9 +142,6 @@ export default function MembersRegistrySection({
                     <td className="px-3 py-2 text-[11px] text-slate-300">
                       {r.phone || "-"}
                     </td>
-                    <td className="px-3 py-2 text-[11px] text-slate-300">
-                      {r.qualification || "-"}
-                    </td>
                   </tr>
                 ))}
               </tbody>
