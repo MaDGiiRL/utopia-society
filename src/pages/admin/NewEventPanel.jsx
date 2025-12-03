@@ -277,7 +277,7 @@ export default function NewEventPanel() {
             <input
               type="checkbox"
               name="send_newsletter"
-              className="mt-[2px] h-3.5 w-3.5 rounded border-slate-500 bg-slate-950 text-cyan-400 focus:ring-cyan-400"
+              className="mt-0.5 h-3.5 w-3.5 rounded border-slate-500 bg-slate-950 text-cyan-400 focus:ring-cyan-400"
               defaultChecked
             />
             <span>
@@ -312,7 +312,7 @@ export default function NewEventPanel() {
           <button
             type="submit"
             disabled={sending}
-            className={`inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-cyan-400 to-fuchsia-500 px-5 py-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-black shadow-[0_0_24px_rgba(56,189,248,0.8)] hover:brightness-110 transition ${
+            className={`inline-flex items-center gap-2 rounded-full bg-linear-to-r from-cyan-400 to-fuchsia-500 px-5 py-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-black shadow-[0_0_24px_rgba(56,189,248,0.8)] hover:brightness-110 transition ${
               sending ? "opacity-60 cursor-not-allowed" : ""
             }`}
           >

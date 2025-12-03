@@ -120,7 +120,7 @@ export default function FeaturedEventBanner() {
             {/* Immagine a SINISTRA (se presente) */}
             {hasImage && (
               <div className="relative order-1 min-h-[180px] border-b border-slate-800/70 md:border-b-0 md:border-r">
-                <div className="absolute inset-0 bg-gradient-to-tr from-cyan-500/10 via-transparent to-fuchsia-500/15" />
+                <div className="absolute inset-0 bg-linear-to-tr from-cyan-500/10 via-transparent to-fuchsia-500/15" />
                 <img
                   src={banner_image_url}
                   alt={banner_title || title}
