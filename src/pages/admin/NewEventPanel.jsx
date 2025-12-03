@@ -1,4 +1,3 @@
-// src/components/admin/events/NewEventPanel.jsx
 import { useEffect, useState } from "react";
 import {
   CalendarDays,
@@ -9,6 +8,7 @@ import {
   Trash2,
   Edit3,
   Star,
+  X,
 } from "lucide-react";
 
 const API_BASE = import.meta.env.VITE_ADMIN_API_URL || "";
@@ -27,6 +27,20 @@ export default function NewEventPanel() {
   const [events, setEvents] = useState([]);
   const [eventsLoading, setEventsLoading] = useState(false);
   const [eventsError, setEventsError] = useState("");
+
+  // 🔹 stato modale edit
+  const [editingEvent, setEditingEvent] = useState(null);
+  const [editForm, setEditForm] = useState({
+    title: "",
+    event_date: "",
+    banner_title: "",
+    banner_subtitle: "",
+    banner_cta_label: "",
+    banner_cta_url: "",
+    is_featured: false,
+  });
+  const [editSaving, setEditSaving] = useState(false);
+  const [editError, setEditError] = useState("");
 
   // ---- upload immagine banner ----
   const handleBannerChange = async (e) => {
@@ -190,35 +204,62 @@ export default function NewEventPanel() {
     }
   };
 
-  // ---- quick edit (titolo + data + featured) ----
-  const handleQuickEdit = async (ev) => {
-    const newTitle = window.prompt("Titolo evento", ev.title || "");
-    if (newTitle === null) return;
+  // ---- apri modale edit ----
+  const handleOpenEditModal = (ev) => {
+    setEditingEvent(ev);
+    setEditError("");
 
-    const currentDate = ev.event_date ? ev.event_date.slice(0, 10) : "";
-    const newDate = window.prompt(
-      "Data evento (YYYY-MM-DD)",
-      currentDate || ""
-    );
-    if (newDate === null) return;
+    setEditForm({
+      title: ev.title || "",
+      event_date: ev.event_date ? ev.event_date.slice(0, 10) : "",
+      banner_title: ev.banner_title || "",
+      banner_subtitle: ev.banner_subtitle || "",
+      banner_cta_label: ev.banner_cta_label || "",
+      banner_cta_url: ev.banner_cta_url || "",
+      is_featured: !!ev.is_featured,
+    });
+  };
 
-    const makeFeatured = window.confirm(
-      "Vuoi impostare questo evento come banner in homepage?"
-    );
+  const handleCloseEditModal = () => {
+    if (editSaving) return;
+    setEditingEvent(null);
+    setEditError("");
+  };
+
+  const handleEditFieldChange = (field, value) => {
+    setEditForm((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  // ---- salva modifiche dalla modale ----
+  const handleSaveEdit = async () => {
+    if (!editingEvent) return;
+
+    setEditError("");
+    setEditSaving(true);
 
     const payload = {
-      title: newTitle,
-      event_date: newDate,
-      is_featured: makeFeatured,
+      title: editForm.title,
+      event_date: editForm.event_date || null,
+      banner_title: editForm.banner_title,
+      banner_subtitle: editForm.banner_subtitle,
+      banner_cta_label: editForm.banner_cta_label,
+      banner_cta_url: editForm.banner_cta_url,
+      is_featured: editForm.is_featured,
     };
 
     try {
-      const res = await fetch(`${API_BASE}/api/admin/events/${ev.id}`, {
-        method: "PATCH",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+      const res = await fetch(
+        `${API_BASE}/api/admin/events/${editingEvent.id}`,
+        {
+          method: "PATCH",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        }
+      );
 
       const data = await res.json().catch(() => ({}));
 
@@ -228,14 +269,21 @@ export default function NewEventPanel() {
         );
       }
 
-      setEvents((prev) => prev.map((e) => (e.id === ev.id ? data.event : e)));
+      // aggiorna lista in memoria
+      setEvents((prev) =>
+        prev.map((e) => (e.id === editingEvent.id ? data.event : e))
+      );
+
+      setEditingEvent(null);
     } catch (err) {
       console.error(err);
-      alert(
+      setEditError(
         err instanceof Error
           ? err.message
           : "Errore imprevisto durante l'aggiornamento"
       );
+    } finally {
+      setEditSaving(false);
     }
   };
 
@@ -561,7 +609,7 @@ export default function NewEventPanel() {
                   <div className="flex items-center gap-2 pt-1 sm:pt-0">
                     <button
                       type="button"
-                      onClick={() => handleQuickEdit(ev)}
+                      onClick={() => handleOpenEditModal(ev)}
                       className="inline-flex items-center gap-1 rounded-full border border-slate-600/70 px-2 py-1 text-[10px] uppercase tracking-[0.16em] text-slate-200 hover:border-cyan-400/70 hover:text-cyan-100 transition"
                     >
                       <Edit3 className="h-3 w-3" />
@@ -582,6 +630,178 @@ export default function NewEventPanel() {
           </ul>
         )}
       </div>
+
+      {/* ✨ EDIT MODAL */}
+      {editingEvent && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-slate-950/70 backdrop-blur-sm">
+          <div className="mx-3 w-full max-w-lg rounded-2xl border border-white/15 bg-slate-950/95 p-4 shadow-[0_0_40px_rgba(56,189,248,0.35)]">
+            {/* header modale */}
+            <div className="mb-3 flex items-center justify-between gap-2">
+              <div>
+                <div className="flex items-center gap-2">
+                  <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-cyan-500/20 text-cyan-200">
+                    <Edit3 className="h-4 w-4" />
+                  </div>
+                  <h3 className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-100">
+                    Edit event
+                  </h3>
+                </div>
+                <p className="mt-1 text-[11px] text-slate-400">
+                  Aggiorna rapidamente le info evento e il banner in homepage.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handleCloseEditModal}
+                className="rounded-full bg-slate-900/80 p-1 text-slate-400 hover:text-slate-100 hover:bg-slate-800 transition"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
+
+            <div className="space-y-3 max-h-[70vh] overflow-auto pr-1">
+              {/* titolo + data */}
+              <div className="grid gap-3 md:grid-cols-[1.5fr_1fr]">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-medium uppercase tracking-[0.16em] text-slate-300">
+                    Title
+                  </label>
+                  <input
+                    value={editForm.title}
+                    onChange={(e) =>
+                      handleEditFieldChange("title", e.target.value)
+                    }
+                    className="w-full rounded-xl border border-white/10 bg-slate-950/90 px-3 py-1.5 text-[11px] text-slate-100 outline-none ring-0 focus:border-cyan-400/80"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-medium uppercase tracking-[0.16em] text-slate-300">
+                    Date
+                  </label>
+                  <input
+                    type="date"
+                    value={editForm.event_date}
+                    onChange={(e) =>
+                      handleEditFieldChange("event_date", e.target.value)
+                    }
+                    className="w-full rounded-xl border border-white/10 bg-slate-950/90 px-3 py-1.5 text-[11px] text-slate-100 outline-none ring-0 focus:border-cyan-400/80"
+                  />
+                </div>
+              </div>
+
+              {/* banner title/subtitle */}
+              <div className="space-y-1">
+                <label className="text-[10px] font-medium uppercase tracking-[0.16em] text-slate-300">
+                  Banner title
+                </label>
+                <input
+                  value={editForm.banner_title}
+                  onChange={(e) =>
+                    handleEditFieldChange("banner_title", e.target.value)
+                  }
+                  className="w-full rounded-xl border border-white/10 bg-slate-950/90 px-3 py-1.5 text-[11px] text-slate-100 outline-none ring-0 focus:border-cyan-400/80"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-medium uppercase tracking-[0.16em] text-slate-300">
+                  Banner subtitle
+                </label>
+                <textarea
+                  rows={3}
+                  value={editForm.banner_subtitle}
+                  onChange={(e) =>
+                    handleEditFieldChange("banner_subtitle", e.target.value)
+                  }
+                  className="w-full rounded-xl border border-white/10 bg-slate-950/90 px-3 py-1.5 text-[11px] text-slate-100 outline-none ring-0 focus:border-cyan-400/80"
+                />
+              </div>
+
+              {/* CTA */}
+              <div className="grid gap-3 md:grid-cols-2">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-medium uppercase tracking-[0.16em] text-slate-300">
+                    CTA label
+                  </label>
+                  <input
+                    value={editForm.banner_cta_label}
+                    onChange={(e) =>
+                      handleEditFieldChange("banner_cta_label", e.target.value)
+                    }
+                    className="w-full rounded-xl border border-white/10 bg-slate-950/90 px-3 py-1.5 text-[11px] text-slate-100 outline-none ring-0 focus:border-cyan-400/80"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-medium uppercase tracking-[0.16em] text-slate-300">
+                    CTA link
+                  </label>
+                  <input
+                    value={editForm.banner_cta_url}
+                    onChange={(e) =>
+                      handleEditFieldChange("banner_cta_url", e.target.value)
+                    }
+                    className="w-full rounded-xl border border-white/10 bg-slate-950/90 px-3 py-1.5 text-[11px] text-slate-100 outline-none ring-0 focus:border-cyan-400/80"
+                  />
+                </div>
+              </div>
+
+              {/* featured toggle */}
+              <div className="rounded-xl border border-cyan-500/30 bg-slate-950/90 px-3 py-2">
+                <label className="inline-flex items-center gap-2 text-[11px] text-slate-100">
+                  <input
+                    type="checkbox"
+                    checked={editForm.is_featured}
+                    onChange={(e) =>
+                      handleEditFieldChange("is_featured", e.target.checked)
+                    }
+                    className="h-3.5 w-3.5 rounded border-slate-500 bg-slate-950 text-cyan-400 focus:ring-cyan-400"
+                  />
+                </label>
+                <p className="mt-1 text-[10px] text-slate-400">
+                  Se attivo, questo evento verrà usato come banner in homepage.
+                  (Il backend può gestire che ce ne sia solo uno alla volta.)
+                </p>
+              </div>
+
+              {editError && (
+                <div className="rounded-lg border border-rose-500/40 bg-rose-500/10 px-3 py-2 text-[11px] text-rose-200">
+                  {editError}
+                </div>
+              )}
+            </div>
+
+            {/* footer modale */}
+            <div className="mt-4 flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={handleCloseEditModal}
+                disabled={editSaving}
+                className="inline-flex items-center gap-1 rounded-full border border-slate-600/70 px-3 py-1.5 text-[11px] uppercase tracking-[0.18em] text-slate-300 hover:border-slate-400 hover:text-slate-100 transition disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveEdit}
+                disabled={editSaving}
+                className="inline-flex items-center gap-2 rounded-full bg-linear-to-r from-cyan-400 to-fuchsia-500 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-black shadow-[0_0_20px_rgba(56,189,248,0.8)] hover:brightness-110 transition disabled:opacity-60"
+              >
+                {editSaving ? (
+                  <>
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    <span>Saving...</span>
+                  </>
+                ) : (
+                  <>
+                    <Edit3 className="h-3.5 w-3.5" />
+                    <span>Save changes</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
