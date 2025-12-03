@@ -19,7 +19,6 @@ export default function MembersRegistrySection({
   onOpenRegistryEntry,
   yearFilter,
   setYearFilter,
-  // 🔹 nuovi
   registryStatusFilter,
   setRegistryStatusFilter,
 }) {
@@ -53,7 +52,7 @@ export default function MembersRegistrySection({
               onChange={(e) => setYearFilter(e.target.value)}
             >
               <option value="ALL">Tutti</option>
-              {/* puoi aggiungere qui anni fissi se vuoi */}
+              {/* opzionale: anni fissi */}
               {/* <option value="2024">2024</option> */}
             </select>
           </div>
@@ -140,23 +139,22 @@ export default function MembersRegistrySection({
           <table className="min-w-full text-left text-[11px] text-slate-200">
             <thead>
               <tr className="border-b border-slate-800/80 bg-slate-900/80 text-[10px] uppercase tracking-[0.16em] text-slate-400">
+                {/* solo campi essenziali */}
                 <th className="px-2 py-2">Anno</th>
                 <th className="px-2 py-2">Stato</th>
                 <th className="px-2 py-2">Cognome</th>
                 <th className="px-2 py-2">Nome</th>
-                <th className="px-2 py-2">Tessera</th>
-                <th className="px-2 py-2">Cod. Fiscale</th>
                 <th className="px-2 py-2">Email</th>
                 <th className="px-2 py-2">Cellulare</th>
-                <th className="px-2 py-2">Valida dal</th>
-                <th className="px-2 py-2">Valida al</th>
+                <th className="px-2 py-2">Città / Club</th>
+                <th className="px-2 py-2">Tessera</th>
               </tr>
             </thead>
             <tbody>
               {filteredRegistry.length === 0 && (
                 <tr>
                   <td
-                    colSpan={10}
+                    colSpan={8}
                     className="px-2 py-4 text-center text-xs text-slate-400"
                   >
                     Nessun risultato.
@@ -176,21 +174,40 @@ export default function MembersRegistrySection({
                       className="cursor-pointer border-b border-slate-800/60 hover:bg-slate-800/50"
                       onClick={() => onOpenRegistryEntry(entry)}
                     >
-                      <td className="px-2 py-1">{entry.year ?? "-"}</td>
-                      <td className="px-2 py-1">{entry.status || "-"}</td>
-                      <td className="px-2 py-1">{entry.last_name || "-"}</td>
-                      <td className="px-2 py-1">{entry.first_name || "-"}</td>
-                      <td className="px-2 py-1 text-slate-300">
+                      <td className="px-2 py-1 align-middle text-[11px] text-slate-300">
+                        {entry.year ?? "-"}
+                      </td>
+                      <td className="px-2 py-1 align-middle text-[11px]">
+                        <span
+                          className={`inline-flex rounded-full px-2 py-[1px] text-[10px] uppercase tracking-[0.14em] ${
+                            (entry.status || "")
+                              .toString()
+                              .toLowerCase()
+                              .startsWith("attiv")
+                              ? "bg-emerald-500/10 text-emerald-300 border border-emerald-500/40"
+                              : "bg-slate-700/40 text-slate-200 border border-slate-600/60"
+                          }`}
+                        >
+                          {entry.status || "-"}
+                        </span>
+                      </td>
+                      <td className="px-2 py-1 align-middle text-[11px]">
+                        {entry.last_name || "-"}
+                      </td>
+                      <td className="px-2 py-1 align-middle text-[11px]">
+                        {entry.first_name || "-"}
+                      </td>
+                      <td className="px-2 py-1 align-middle text-[11px]">
+                        {entry.email || "-"}
+                      </td>
+                      <td className="px-2 py-1 align-middle text-[11px]">
+                        {entry.phone || "-"}
+                      </td>
+                      <td className="px-2 py-1 align-middle text-[11px]">
+                        {entry.club_name || entry.city || "-"}
+                      </td>
+                      <td className="px-2 py-1 align-middle text-[11px] text-slate-300">
                         {entry.card_number || "-"}
-                      </td>
-                      <td className="px-2 py-1">{entry.fiscal_code || "-"}</td>
-                      <td className="px-2 py-1">{entry.email || "-"}</td>
-                      <td className="px-2 py-1">{entry.phone || "-"}</td>
-                      <td className="px-2 py-1 text-slate-300">
-                        {entry.valid_from || "-"}
-                      </td>
-                      <td className="px-2 py-1 text-slate-300">
-                        {entry.valid_to || "-"}
                       </td>
                     </tr>
                   ))}

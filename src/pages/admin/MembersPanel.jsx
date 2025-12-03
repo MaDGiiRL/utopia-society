@@ -10,7 +10,7 @@ import MemberModal, {
 } from "../../components/admin/registry/MemberModal";
 
 const API_BASE = import.meta.env.VITE_ADMIN_API_URL || "";
-const REGISTRY_PAGE_SIZE = 20;
+const REGISTRY_PAGE_SIZE = 50; // 👈 paginazione storico da 50
 
 export default function MembersPanel() {
   const { t } = useTranslation();
@@ -19,7 +19,7 @@ export default function MembersPanel() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // 🔹 filtro export per la PRIMA tabella (membri)
+  // filtro export per la PRIMA tabella (membri)
   const [membersExportFilter, setMembersExportFilter] =
     useState("non_exported");
 
@@ -37,13 +37,13 @@ export default function MembersPanel() {
   // anno da usare per l'import XLSX storico
   const [registryYear, setRegistryYear] = useState("");
 
-  // 🔹 filtro anno SOLO per lo storico
+  // filtro anno SOLO per lo storico
   const [yearFilter, setYearFilter] = useState("ALL");
 
-  // 🔹 filtro stato SOLO per lo storico (ALL | ACTIVE)
+  // filtro stato SOLO per lo storico (ALL | ACTIVE)
   const [registryStatusFilter, setRegistryStatusFilter] = useState("ALL");
 
-  // modale socio "nuovo"
+  // modale socio
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState(null);
   const [loadingMember, setLoadingMember] = useState(false);
@@ -52,7 +52,7 @@ export default function MembersPanel() {
   const [registryModalOpen, setRegistryModalOpen] = useState(false);
   const [selectedRegistryEntry, setSelectedRegistryEntry] = useState(null);
 
-  // 👇 handler per il pulsante EXPORT
+  // EXPORT XLSX
   const handleExportXlsx = () => {
     if (membersExportFilter !== "non_exported") return;
     const year = new Date().getFullYear();
@@ -116,7 +116,19 @@ export default function MembersPanel() {
         }
 
         if (!cancelled) {
-          const entries = data.entries || [];
+          const entries = (data.entries || []).slice();
+
+          // 👇 ordina dallo YEAR più recente e poi dalla data di validità
+          entries.sort((a, b) => {
+            const ya = a.year ?? 0;
+            const yb = b.year ?? 0;
+            if (yb !== ya) return yb - ya;
+
+            const da = a.valid_from ? Date.parse(a.valid_from) : 0;
+            const db = b.valid_from ? Date.parse(b.valid_from) : 0;
+            return db - da;
+          });
+
           setRegistryEntries(entries);
         }
       } catch (err) {
@@ -156,11 +168,20 @@ export default function MembersPanel() {
       );
     }
 
+    // 👇 mantieni comunque ordine "dall’ultimo anno"
+    result = result.slice().sort((a, b) => {
+      const ya = a.year ?? 0;
+      const yb = b.year ?? 0;
+      if (yb !== ya) return yb - ya;
+      const da = a.valid_from ? Date.parse(a.valid_from) : 0;
+      const db = b.valid_from ? Date.parse(b.valid_from) : 0;
+      return db - da;
+    });
+
     return result;
   }, [registryEntries, yearFilter, registryStatusFilter]);
 
-  // 🔹 Mappa gli entry "attivi" dello storico in "pseudo members"
-  //    che compaiono nella tabella SOPRA quando il filtro è "Solo esportati"
+  // Mappa gli entry "attivi" dello storico in "pseudo members" per la tabella sopra
   const activeRegistryAsMembers = useMemo(() => {
     return registryEntries
       .filter((r) =>
@@ -173,21 +194,19 @@ export default function MembersPanel() {
             r.id ||
             `registry-${
               r.external_id || r.card_number || r.year || Math.random()
-            }`, // id pseudo
-          created_at: r.valid_from || null, // usato come "Data"
+            }`,
+          created_at: r.valid_from || null,
           full_name: fullName || r.card_number || "Socio ACSI (storico attivo)",
           email: r.email || "",
           phone: r.phone || "",
-          city: r.club_name || "", // o null se non ti interessa
-          source: "members_registry", // per riconoscerli in MembersTable se vuoi
-          is_registry_active: true, // flag comodo
+          city: r.club_name || "",
+          source: "members_registry",
+          is_registry_active: true,
         };
       });
   }, [registryEntries]);
 
-  // 🔹 Lista finale per la tabella MEMBRI:
-  //    - se filtro ≠ "exported": come prima
-  //    - se filtro = "exported": membri esportati + soci attivi da members_registry
+  // Lista per la tabella MEMBRI
   const membersForTable = useMemo(() => {
     if (membersExportFilter !== "exported") return members;
     return [...members, ...activeRegistryAsMembers];
@@ -239,7 +258,6 @@ export default function MembersPanel() {
       return;
     }
 
-    // anno da usare per la colonna "year" dello storico
     const yearForImportRaw =
       registryYear && registryYear.trim().length
         ? registryYear
@@ -297,7 +315,15 @@ export default function MembersPanel() {
         const refRes = await fetch(url, { credentials: "include" });
         const refData = await refRes.json().catch(() => ({}));
         if (refRes.ok && refData.ok) {
-          const entries = refData.entries || [];
+          const entries = (refData.entries || []).slice();
+          entries.sort((a, b) => {
+            const ya = a.year ?? 0;
+            const yb = b.year ?? 0;
+            if (yb !== ya) return yb - ya;
+            const da = a.valid_from ? Date.parse(a.valid_from) : 0;
+            const db = b.valid_from ? Date.parse(b.valid_from) : 0;
+            return db - da;
+          });
           setRegistryEntries(entries);
         }
       } catch (e) {
@@ -324,7 +350,7 @@ export default function MembersPanel() {
         totalCount={membersForTable.length}
       />
 
-      {/* 🔹 Filtro ESPORTATI / NON ESPORTATI + pulsante export XLSX */}
+      {/* Filtro ESPORTATI / NON ESPORTATI + pulsante export XLSX */}
       <div className="mb-1 flex flex-col gap-2 rounded-xl border border-white/5 bg-slate-950/60 p-3 md:flex-row md:items-center md:justify-between">
         <span className="text-xs text-slate-400">
           Filtro esportazione tessere:
@@ -356,7 +382,7 @@ export default function MembersPanel() {
         </div>
       </div>
 
-      {/* 🔹 wrapper con scroll orizzontale per la tabella membri */}
+      {/* Tabella membri (sopra) */}
       <div className="-mx-2 overflow-x-auto rounded-xl border border-slate-800/80 bg-slate-950/60 px-2 py-2 sm:mx-0 sm:px-3">
         <MembersTable
           t={t}
@@ -367,7 +393,7 @@ export default function MembersPanel() {
         />
       </div>
 
-      {/* 🔹 wrapper con scroll orizzontale per lo storico */}
+      {/* Tabella storico (sotto) */}
       <div className="-mx-2 overflow-x-auto rounded-xl border border-slate-800/80 bg-slate-950/60 px-2 py-2 sm:mx-0 sm:px-3">
         <MembersRegistrySection
           registryLoading={registryLoading}
@@ -387,7 +413,6 @@ export default function MembersPanel() {
           onOpenRegistryEntry={handleOpenRegistryEntry}
           yearFilter={yearFilter}
           setYearFilter={setYearFilter}
-          // 🔹 nuovo filtro stato storico
           registryStatusFilter={registryStatusFilter}
           setRegistryStatusFilter={setRegistryStatusFilter}
         />
