@@ -16,18 +16,9 @@ export async function adminLogout() {
   return res.data;
 }
 
-/**
- * fetchMembers
- *
- * exportFilter può essere:
- *  - "non_exported" (default) → exported=false
- *  - "exported"               → exported=true
- *  - "all"                    → exported=all
- *
- * Il backend deve leggere req.query.exported e filtrare di conseguenza.
- */
+// ✅ versione con filtro
 export async function fetchMembers(exportFilter = "non_exported") {
-  let exportedParam = "false";
+  let exportedParam = "false"; // default: solo non esportati
 
   if (exportFilter === "exported") {
     exportedParam = "true";

@@ -57,6 +57,19 @@ export default function MembersPanel() {
   const [registryModalOpen, setRegistryModalOpen] = useState(false);
   const [selectedRegistryEntry, setSelectedRegistryEntry] = useState(null);
 
+  // 👇 handler per il pulsante EXPORT
+  const handleExportXlsx = () => {
+    // sicurezza extra: non fare nulla se il filtro non è "non_exported"
+    if (membersExportFilter !== "non_exported") return;
+
+    // se vuoi puoi in futuro usare un year scelto da UI; per ora uso anno corrente
+    const year = new Date().getFullYear();
+    const url = `${API_BASE}/api/admin/members.xlsx?year=${year}`;
+
+    // trigger download
+    window.location.href = url;
+  };
+
   // Carica membri con filtro exported / non-exported / all
   useEffect(() => {
     let cancelled = false;
@@ -325,20 +338,36 @@ export default function MembersPanel() {
         availableYears={availableYears}
       />
 
-      {/* 🔹 Filtro ESPORTATI / NON ESPORTATI sulla PRIMA tabella */}
+      {/* 🔹 Filtro ESPORTATI / NON ESPORTATI + pulsante export XLSX */}
       <div className="flex items-center justify-between gap-2 mb-1">
         <span className="text-xs text-slate-400">
           Filtro esportazione tessere:
         </span>
-        <select
-          className="bg-slate-900/60 border border-slate-700 text-xs rounded px-2 py-1"
-          value={membersExportFilter}
-          onChange={(e) => setMembersExportFilter(e.target.value)}
-        >
-          <option value="non_exported">Solo non esportati</option>
-          <option value="exported">Solo esportati</option>
-          <option value="all">Tutti</option>
-        </select>
+
+        <div className="flex items-center gap-2">
+          <select
+            className="bg-slate-900/60 border border-slate-700 text-xs rounded px-2 py-1"
+            value={membersExportFilter}
+            onChange={(e) => setMembersExportFilter(e.target.value)}
+          >
+            <option value="non_exported">Solo non esportati</option>
+            <option value="exported">Solo esportati</option>
+            <option value="all">Tutti</option>
+          </select>
+
+          <button
+            type="button"
+            onClick={handleExportXlsx}
+            disabled={membersExportFilter !== "non_exported"}
+            className={`rounded-full border px-3 py-1 text-[10px] uppercase tracking-[0.16em] ${
+              membersExportFilter !== "non_exported"
+                ? "border-slate-600 text-slate-500 bg-slate-900/60 cursor-not-allowed opacity-60"
+                : "border-cyan-400/70 bg-cyan-500/10 text-cyan-100 hover:bg-cyan-500/25"
+            }`}
+          >
+            Esporta XLSX ACSI
+          </button>
+        </div>
       </div>
 
       <MembersTable

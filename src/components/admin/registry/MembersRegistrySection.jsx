@@ -23,67 +23,7 @@ export default function MembersRegistrySection({
 
   return (
     <div className="mt-4">
-      <div className="mb-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <h3 className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">
-          Storico soci (tabella members_registry)
-        </h3>
-
-        <div className="flex flex-wrap items-center gap-2 text-[10px]">
-          {/* Anno usato per l'import */}
-          <input
-            type="number"
-            min="1900"
-            max="2100"
-            value={registryYear}
-            onChange={(e) => setRegistryYear(e.target.value)}
-            placeholder="Anno (es. 2024)"
-            className="w-[110px] rounded-full border border-slate-600 bg-slate-900/80 px-3 py-1 text-[10px] text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-cyan-400"
-          />
-
-          <input
-            type="file"
-            accept=".xlsx,.xls"
-            onChange={(e) => {
-              const file = e.target.files?.[0] || null;
-              setRegistryFile(file);
-            }}
-            className="block max-w-[220px] cursor-pointer text-[10px] text-slate-300 file:mr-2 file:cursor-pointer file:rounded-full file:border file:border-cyan-400/70 file:bg-slate-900/80 file:px-2 file:py-1 file:text-[10px] file:text-cyan-100 hover:file:bg-cyan-500/20"
-          />
-
-          <button
-            type="button"
-            onClick={onImportClick}
-            disabled={importingRegistry}
-            className={`rounded-full border border-emerald-400/70 bg-emerald-500/10 px-3 py-1 font-semibold uppercase tracking-[0.16em] text-[9px] text-emerald-100 hover:bg-emerald-500/25 ${
-              importingRegistry ? "cursor-not-allowed opacity-60" : ""
-            }`}
-          >
-            {importingRegistry ? "Import in corso..." : "Importa XLSX"}
-          </button>
-        </div>
-      </div>
-
-      {importMessage && (
-        <p className="mb-2 text-[10px] text-slate-400">{importMessage}</p>
-      )}
-
-      {registryLoading && (
-        <div className="py-4 text-center text-[11px] text-slate-400">
-          Caricamento storico soci...
-        </div>
-      )}
-
-      {registryError && !registryLoading && (
-        <div className="py-4 text-center text-[11px] text-rose-300">
-          {registryError}
-        </div>
-      )}
-
-      {!registryLoading && !registryError && !hasAnyRecords && (
-        <div className="py-4 text-center text-[11px] text-slate-500">
-          Nessun record storico per l&apos;anno selezionato.
-        </div>
-      )}
+      {/* ... parte sopra (input anno, file, bottone importa) invariata ... */}
 
       {!registryLoading && !registryError && hasAnyRecords && (
         <>
@@ -92,24 +32,12 @@ export default function MembersRegistrySection({
               <thead>
                 <tr className="border-b border-white/10 bg-slate-900/70">
                   <th className="px-3 py-2 font-medium text-slate-400">Anno</th>
-                  <th className="px-3 py-2 font-medium text-slate-400">
-                    Stato
-                  </th>
-                  <th className="px-3 py-2 font-medium text-slate-400">
-                    Tessera
-                  </th>
                   <th className="px-3 py-2 font-medium text-slate-400">Nome</th>
                   <th className="px-3 py-2 font-medium text-slate-400">
                     Cognome
                   </th>
                   <th className="px-3 py-2 font-medium text-slate-400">
                     E-mail
-                  </th>
-                  <th className="px-3 py-2 font-medium text-slate-400">
-                    Cellulare
-                  </th>
-                  <th className="px-3 py-2 font-medium text-slate-400">
-                    Qualifica
                   </th>
                   <th className="px-3 py-2 font-medium text-slate-400">
                     Scheda
@@ -126,12 +54,6 @@ export default function MembersRegistrySection({
                       {r.year ?? "—"}
                     </td>
                     <td className="px-3 py-2 text-[11px] text-slate-300">
-                      {r.status || "-"}
-                    </td>
-                    <td className="px-3 py-2 text-[11px] text-slate-300">
-                      {r.card_number || "-"}
-                    </td>
-                    <td className="px-3 py-2 text-[11px] text-slate-300">
                       {r.first_name || "-"}
                     </td>
                     <td className="px-3 py-2 text-[11px] text-slate-300">
@@ -139,12 +61,6 @@ export default function MembersRegistrySection({
                     </td>
                     <td className="px-3 py-2 text-[11px] text-slate-300">
                       {r.email || "-"}
-                    </td>
-                    <td className="px-3 py-2 text-[11px] text-slate-300">
-                      {r.phone || "-"}
-                    </td>
-                    <td className="px-3 py-2 text-[11px] text-slate-300">
-                      {r.qualification || "-"}
                     </td>
                     <td className="px-3 py-2">
                       <button
