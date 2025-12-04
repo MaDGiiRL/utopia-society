@@ -6,7 +6,7 @@ export default function MembershipIntro() {
   const { t } = useTranslation();
 
   return (
-    <motion.div {...fadeUp()} className="space-y-4 text-center lg:text-left">
+    <motion.div {...fadeUp()} className="space-y-6 text-center lg:text-left">
       <p className="text-[0.7rem] uppercase tracking-[0.4em] text-cyan-300">
         {t("membership.badge")}
       </p>
@@ -29,7 +29,7 @@ export default function MembershipIntro() {
           ease: [0.25, 0.1, 0.25, 1],
         }}
         viewport={{ once: true, amount: 0.5 }}
-        className="text-2xl md:text-4xl lg:text-5xl font-semibold tracking-[0.18em] uppercase"
+        className="text-3xl md:text-4xl lg:text-5xl font-semibold tracking-[0.18em] uppercase"
       >
         <Trans
           i18nKey="membership.title"
