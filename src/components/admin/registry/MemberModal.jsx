@@ -43,7 +43,7 @@ export default function MemberModal({
 
   return (
     <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/70 px-3">
-      <div className="max-h-[90vh] w-full max-w-lg overflow-auto rounded-2xl border border-white/15 bg-slate-950/95 p-4 sm:p-5 text-[11px] text-slate-100 shadow-2xl">
+      <div className="max-h-[70vh] w-full max-w-lg overflow-auto rounded-2xl border border-white/15 bg-slate-950/95 p-4 sm:p-5 text-[11px] text-slate-100 shadow-2xl">
         <div className="mb-3 flex items-center justify-between">
           <div>
             <h3 className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-200">
@@ -264,7 +264,7 @@ export function RegistryEntryModal({ open, onClose, entry }) {
 
   return (
     <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/70 px-3">
-      <div className="max-h-[90vh] w-full max-w-3xl overflow-auto rounded-2xl border border-white/15 bg-slate-950/95 p-4 sm:p-5 text-[11px] text-slate-100 shadow-2xl">
+      <div className="max-h-[70vh] w-full max-w-3xl overflow-auto rounded-2xl border border-white/15 bg-slate-950/95 p-4 sm:p-5 text-[11px] text-slate-100 shadow-2xl">
         <div className="mb-3 flex items-center justify-between">
           <div>
             <h3 className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-200">

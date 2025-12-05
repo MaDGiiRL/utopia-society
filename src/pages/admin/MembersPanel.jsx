@@ -80,7 +80,7 @@ export default function MembersPanel() {
   }, [t, exportFilter]);
 
   // -----------------------------------------------------
-  // FILTRI SU members (ANNO + STATO)
+  // FILTRI SU members (ANNO + STATO + LOGICA EXPORT)
   // -----------------------------------------------------
   const filteredMembers = useMemo(() => {
     const yearInt =
@@ -100,8 +100,13 @@ export default function MembersPanel() {
           if (fromYear !== yearInt) return false;
         }
 
-        // stato: “ACTIVE” = stringa che inizia per “attiv”
-        if (statusFilter === "ACTIVE") {
+        // stato:
+        //  - se exportFilter === "exported" → MOSTRA SOLO ATTIVI (status che inizia per "attiv")
+        //  - altrimenti usa il filtro normale "Stato"
+        if (exportFilter === "exported") {
+          const statusText = (m.status || "").toString().toLowerCase();
+          if (!statusText.startsWith("attiv")) return false;
+        } else if (statusFilter === "ACTIVE") {
           const statusText = (m.status || "").toString().toLowerCase();
           if (!statusText.startsWith("attiv")) return false;
         }
@@ -140,7 +145,7 @@ export default function MembersPanel() {
 
         return bTime - aTime;
       });
-  }, [members, yearFilter, statusFilter]);
+  }, [members, yearFilter, statusFilter, exportFilter]); // 👈 aggiunto exportFilter
 
   // -----------------------------------------------------
   // PAGINAZIONE
