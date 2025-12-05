@@ -103,7 +103,7 @@ export default function NewEventPanel() {
       banner_cta_url: formData.get("banner_cta_url") || "",
       banner_image_url: bannerImageUrl || "",
       send_newsletter: formData.get("send_newsletter") === "on",
-      event_type: formData.get("event_type") || "current", // 👈 nuovo
+      event_type: formData.get("event_type") || "current", // 👈 importantissimo
     };
 
     try {
@@ -245,7 +245,7 @@ export default function NewEventPanel() {
       banner_cta_label: ev.banner_cta_label || "",
       banner_cta_url: ev.banner_cta_url || "",
       is_featured: !!ev.is_featured,
-      event_type: ev.event_type || "current", // 👈 nuovo
+      event_type: ev.event_type || "current",
     });
   };
 
@@ -277,7 +277,7 @@ export default function NewEventPanel() {
       banner_cta_label: editForm.banner_cta_label,
       banner_cta_url: editForm.banner_cta_url,
       is_featured: editForm.is_featured,
-      event_type: editForm.event_type, // 👈 nuovo
+      event_type: editForm.event_type,
     };
 
     try {
@@ -368,31 +368,30 @@ export default function NewEventPanel() {
           </div>
         </div>
 
-        {/* Tipo evento: in atto / prossimo */}
-        <div className="space-y-1.5 rounded-2xl border border-white/10 bg-slate-950/70 p-3">
-          <label className="flex items-center gap-1 text-[11px] font-medium uppercase tracking-[0.16em] text-slate-300">
-            <Sparkles className="h-3 w-3 text-emerald-300" />
+        {/* Tipo evento */}
+        <div className="space-y-1.5">
+          <label className="text-[11px] font-medium uppercase tracking-[0.16em] text-slate-300">
             Tipo evento
           </label>
-          <div className="flex flex-wrap gap-4 text-[11px] text-slate-200">
-            <label className="inline-flex items-center gap-1">
+          <div className="flex flex-col gap-1.5 text-[11px] text-slate-200 sm:flex-row sm:items-center sm:gap-4">
+            <label className="inline-flex items-center gap-1.5">
               <input
                 type="radio"
                 name="event_type"
                 value="current"
                 defaultChecked
-                className="h-3.5 w-3.5 rounded border-slate-500 bg-slate-950 text-cyan-400 focus:ring-cyan-400"
+                className="h-3 w-3 rounded border-slate-500 bg-slate-950 text-cyan-400 focus:ring-cyan-400"
               />
-              <span>Evento in atto (banner principale)</span>
+              <span>Evento in atto (banner principale / featured)</span>
             </label>
-            <label className="inline-flex items-center gap-1">
+            <label className="inline-flex items-center gap-1.5">
               <input
                 type="radio"
                 name="event_type"
                 value="upcoming"
-                className="h-3.5 w-3.5 rounded border-slate-500 bg-slate-950 text-cyan-400 focus:ring-cyan-400"
+                className="h-3 w-3 rounded border-slate-500 bg-slate-950 text-cyan-400 focus:ring-cyan-400"
               />
-              <span>Prossimo evento (carosello)</span>
+              <span>Prossimo evento (solo carosello)</span>
             </label>
           </div>
         </div>
@@ -431,7 +430,7 @@ export default function NewEventPanel() {
                 <textarea
                   name="banner_subtitle"
                   rows={3}
-                  placeholder="Special guest, visual, luci e suono. Ingressso riservato ai soci in regola con il tesseramento."
+                  placeholder="Special guest, visual, luci e suono. Ingresso riservato ai soci in regola con il tesseramento."
                   className="w-full rounded-xl border border-white/10 bg-slate-950/80 px-3 py-2 text-sm text-slate-100 outline-none ring-0 focus:border-cyan-400/80"
                 />
               </div>
@@ -600,7 +599,7 @@ export default function NewEventPanel() {
           </div>
         )}
 
-        <div className="-mx-2 max-h-[420px] overflow-x-auto overflow-y-auto rounded-xl border border-slate-800/80 bg-slate-950/70 px-2 py-1 sm:mx-0">
+        <div className="-mx-2 max-h+[420px] overflow-x-auto overflow-y-auto rounded-xl border border-slate-800/80 bg-slate-950/70 px-2 py-1 sm:mx-0">
           {eventsLoading ? (
             <div className="flex h-24 items-center justify-center text-[11px] text-slate-400">
               Caricamento eventi...
@@ -620,8 +619,7 @@ export default function NewEventPanel() {
                     })
                   : "-";
 
-                const typeLabel =
-                  ev.event_type === "upcoming" ? "PROSSIMO" : "IN ATTO";
+                const type = ev.event_type || "current";
 
                 return (
                   <li
@@ -633,16 +631,25 @@ export default function NewEventPanel() {
                         <span className="text-[11px] font-semibold text-slate-100">
                           {ev.title}
                         </span>
-                        {/* tipo evento */}
-                        <span className="inline-flex items-center gap-1 rounded-full bg-slate-900/80 px-2 py-0.5 text-[9px] uppercase tracking-[0.16em] text-slate-200 border border-slate-700/80">
-                          {typeLabel}
+
+                        {/* Tipo evento */}
+                        <span
+                          className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] uppercase tracking-[0.16em] border ${
+                            type === "current"
+                              ? "bg-emerald-500/10 text-emerald-200 border-emerald-400/70"
+                              : "bg-sky-500/10 text-sky-200 border-sky-400/70"
+                          }`}
+                        >
+                          {type === "current" ? "In atto" : "Prossimo"}
                         </span>
-                        {ev.is_featured && (
+
+                        {ev.is_featured && type === "current" && (
                           <span className="inline-flex items-center gap-1 rounded-full bg-cyan-500/15 px-2 py-0.5 text-[9px] uppercase tracking-[0.16em] text-cyan-200 border border-cyan-400/70">
                             <Star className="h-3 w-3 fill-cyan-400/70 text-cyan-900" />
                             Featured
                           </span>
                         )}
+
                         {ev.status && (
                           <span className="inline-flex items-center gap-1 rounded-full bg-slate-900/80 px-2 py-0.5 text-[9px] uppercase tracking-[0.16em] text-slate-300 border border-slate-700/80">
                             {ev.status}
@@ -758,32 +765,34 @@ export default function NewEventPanel() {
               </div>
 
               {/* tipo evento */}
-              <div className="space-y-1 rounded-xl border border-slate-700/80 bg-slate-950/90 px-3 py-2">
+              <div className="space-y-1">
                 <label className="text-[10px] font-medium uppercase tracking-[0.16em] text-slate-300">
-                  Event type
+                  Tipo evento
                 </label>
-                <div className="mt-1 flex flex-wrap gap-3 text-[11px] text-slate-200">
-                  <label className="inline-flex items-center gap-1">
+                <div className="flex flex-col gap-1.5 text-[11px] text-slate-200">
+                  <label className="inline-flex items-center gap-1.5">
                     <input
                       type="radio"
+                      value="current"
                       checked={editForm.event_type === "current"}
                       onChange={() =>
                         handleEditFieldChange("event_type", "current")
                       }
-                      className="h-3.5 w-3.5 rounded border-slate-500 bg-slate-950 text-cyan-400 focus:ring-cyan-400"
+                      className="h-3 w-3 rounded border-slate-500 bg-slate-950 text-cyan-400 focus:ring-cyan-400"
                     />
-                    <span>Evento in atto</span>
+                    <span>In atto (può essere featured)</span>
                   </label>
-                  <label className="inline-flex items-center gap-1">
+                  <label className="inline-flex items-center gap-1.5">
                     <input
                       type="radio"
+                      value="upcoming"
                       checked={editForm.event_type === "upcoming"}
                       onChange={() =>
                         handleEditFieldChange("event_type", "upcoming")
                       }
-                      className="h-3.5 w-3.5 rounded border-slate-500 bg-slate-950 text-cyan-400 focus:ring-cyan-400"
+                      className="h-3 w-3 rounded border-slate-500 bg-slate-950 text-cyan-400 focus:ring-cyan-400"
                     />
-                    <span>Prossimo evento</span>
+                    <span>Prossimo (solo carosello, non featured)</span>
                   </label>
                 </div>
               </div>
@@ -850,16 +859,18 @@ export default function NewEventPanel() {
                   <input
                     type="checkbox"
                     checked={editForm.is_featured}
+                    disabled={editForm.event_type === "upcoming"}
                     onChange={(e) =>
                       handleEditFieldChange("is_featured", e.target.checked)
                     }
-                    className="h-3.5 w-3.5 rounded border-slate-500 bg-slate-950 text-cyan-400 focus:ring-cyan-400"
+                    className="h-3.5 w-3.5 rounded border-slate-500 bg-slate-950 text-cyan-400 focus:ring-cyan-400 disabled:opacity-50"
                   />
                   <span>Usa come evento in evidenza (banner homepage).</span>
                 </label>
                 <p className="mt-1 text-[10px] text-slate-400">
-                  Il backend fa sì che ce ne sia solo uno attivo per volta tra
-                  gli eventi in atto.
+                  Solo gli eventi <span className="font-semibold">in atto</span>{" "}
+                  possono essere featured. Il backend garantisce un solo evento
+                  in evidenza per volta.
                 </p>
               </div>
 

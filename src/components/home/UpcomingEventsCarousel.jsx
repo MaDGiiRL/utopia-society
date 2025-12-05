@@ -13,7 +13,8 @@ export default function UpcomingEventsCarousel() {
       setError("");
       setLoading(true);
       try {
-        const res = await fetch(`${API_BASE}/api/events/home`, {
+        const res = await fetch(`${API_BASE}/api/admin/events/home`, {
+          // endpoint pubblico, le credenziali non sono strettamente necessarie
           credentials: "include",
         });
         const data = await res.json().catch(() => ({}));

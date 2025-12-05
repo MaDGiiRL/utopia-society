@@ -4,7 +4,7 @@ import AboutSection from "../components/AboutSection";
 import ContactSection from "../components/ContactSection";
 import EventsGallery from "../components/EventsGallery";
 import FeaturedEventBanner from "../components/home/FeaturedEventBanner";
-import UpcomingEventsCarousel from "../components/home/UpcomingEventsCarousel"; // 👈 nuovo
+import UpcomingEventsCarousel from "../components/home/UpcomingEventsCarousel";
 
 function Home() {
   return (
@@ -16,7 +16,7 @@ function Home() {
       <div className="relative z-10">
         <HeroSection />
         <FeaturedEventBanner />
-        <UpcomingEventsCarousel /> {/* 👈 carosello prossimi eventi */}
+        <UpcomingEventsCarousel /> {/* 👈 nuovo */}
         <AboutSection />
         <EventsGallery />
         <ContactSection />

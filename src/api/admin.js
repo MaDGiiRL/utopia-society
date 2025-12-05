@@ -48,3 +48,31 @@ export async function sendContactMessage(payload) {
   const res = await api.post("/api/admin/contact", payload);
   return res.data;
 }
+
+/* -------- Eventi (admin + home) -------- */
+
+export async function fetchAdminEvents() {
+  const res = await api.get("/api/admin/events");
+  return res.data;
+}
+
+export async function createAdminEvent(payload) {
+  const res = await api.post("/api/admin/events", payload);
+  return res.data;
+}
+
+export async function updateAdminEvent(id, payload) {
+  const res = await api.patch(`/api/admin/events/${id}`, payload);
+  return res.data;
+}
+
+export async function deleteAdminEvent(id) {
+  const res = await api.delete(`/api/admin/events/${id}`);
+  return res.data;
+}
+
+// endpoint pubblico per homepage (featured + upcoming)
+export async function fetchHomeEvents() {
+  const res = await api.get("/api/admin/events/home");
+  return res.data;
+}
