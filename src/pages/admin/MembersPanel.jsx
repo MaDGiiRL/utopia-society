@@ -1,438 +1,151 @@
-// src/pages/admin/MembersPanel.jsx
-import { useEffect, useMemo, useState } from "react";
-import { useTranslation } from "react-i18next";
-import { fetchMembers, fetchMemberById } from "../../api/admin";
-
-import MembersHeaderFilters from "../../components/admin/registry/MembersHeaderFilters";
-import MembersTable from "../../components/admin/registry/MembersTable";
-import MembersRegistrySection from "../../components/admin/registry/MembersRegistrySection";
-import MemberModal, {
-  RegistryEntryModal,
-} from "../../components/admin/registry/MemberModal";
-
-const API_BASE = import.meta.env.VITE_ADMIN_API_URL || "";
-const REGISTRY_PAGE_SIZE = 50; // paginazione storico
-const MEMBERS_PAGE_SIZE = 50; // paginazione prima tabella
-
-export default function MembersPanel() {
-  const { t } = useTranslation();
-
-  // ---- TAB 1: SOCI "NUOVO SISTEMA" (members) ----
-  const [members, setMembers] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-
-  // filtro export per la PRIMA tabella (membri)
-  const [membersExportFilter, setMembersExportFilter] =
-    useState("non_exported");
-
-  // pagina per la PRIMA tabella
-  const [membersPage, setMembersPage] = useState(1);
-
-  // ---- TAB 2: STORICO ACSI (members_registry) ----
-  const [registryEntries, setRegistryEntries] = useState([]);
-  const [registryLoading, setRegistryLoading] = useState(false);
-  const [registryError, setRegistryError] = useState("");
-
-  const [registryPage, setRegistryPage] = useState(1);
-
-  const [registryFile, setRegistryFile] = useState(null);
-  const [importingRegistry, setImportingRegistry] = useState(false);
-  const [importMessage, setImportMessage] = useState("");
-
-  // anno da usare per l'import XLSX storico
-  const [registryYear, setRegistryYear] = useState("");
-
-  // filtro ANNO SOLO per lo STORICO (seconda tabella)
-  const [yearFilter, setYearFilter] = useState("2026");
-  // filtro STATO solo per storico
-  const [registryStatusFilter, setRegistryStatusFilter] = useState("ACTIVE");
-
-  // modale socio "nuovo"
-  const [modalOpen, setModalOpen] = useState(false);
-  const [selectedMember, setSelectedMember] = useState(null);
-  const [loadingMember, setLoadingMember] = useState(false);
-
-  // modale storico
-  const [registryModalOpen, setRegistryModalOpen] = useState(false);
-  const [selectedRegistryEntry, setSelectedRegistryEntry] = useState(null);
-
-  // mostra/nascondi sezione storico
-  const [showRegistrySection, setShowRegistrySection] = useState(false);
-
-  // 🔹 Carica membri (PRIMA tabella) con filtro exported / non-exported / all
-  useEffect(() => {
-    let cancelled = false;
-
-    async function load() {
-      setLoading(true);
-      setError("");
-      try {
-        const data = await fetchMembers(membersExportFilter);
-        if (!cancelled) {
-          if (!data.ok) {
-            throw new Error(data.message || t("admin.membersPanel.error"));
-          }
-          setMembers(data.members || []);
-          setMembersPage(1); // reset pagina quando cambia il filtro
-        }
-      } catch (err) {
-        console.error(err);
-        if (!cancelled) {
-          setError(t("admin.membersPanel.error"));
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }
-
-    load();
-    return () => {
-      cancelled = true;
-    };
-  }, [t, membersExportFilter]);
-
-  // 🔹 Carica TUTTO lo storico (una volta sola; i filtri li facciamo lato client)
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadRegistry() {
-      setRegistryLoading(true);
-      setRegistryError("");
-      setRegistryPage(1);
-
-      try {
-        const url = `${API_BASE}/api/admin/members-registry`;
-
-        const res = await fetch(url, { credentials: "include" });
-        const data = await res.json().catch(() => ({}));
-
-        if (!res.ok || !data.ok) {
-          throw new Error(data.message || "Errore storico soci");
-        }
-
-        if (!cancelled) {
-          const entries = data.entries || [];
-          setRegistryEntries(entries);
-        }
-      } catch (err) {
-        console.error(err);
-        if (!cancelled) {
-          setRegistryError(
-            err instanceof Error ? err.message : t("admin.membersPanel.error")
-          );
-        }
-      } finally {
-        if (!cancelled) setRegistryLoading(false);
-      }
-    }
-
-    loadRegistry();
-    return () => {
-      cancelled = true;
-    };
-  }, [t]);
-
-  // 🔹 Storico filtrato per anno + stato, ordinato (SECONDA tabella)
-  const filteredRegistry = useMemo(() => {
-    let result = registryEntries;
-
-    if (yearFilter !== "ALL") {
-      const yearInt = parseInt(yearFilter, 10);
-      if (!Number.isNaN(yearInt)) {
-        result = result.filter((r) => r.year === yearInt);
-      }
-    }
-
-    if (registryStatusFilter === "ACTIVE") {
-      result = result.filter((r) =>
-        (r.status || "").toString().toLowerCase().startsWith("attiv")
-      );
-    }
-
-    return result.slice().sort((a, b) => {
-      const ay = a.year || 0;
-      const by = b.year || 0;
-      if (by !== ay) return by - ay;
-
-      const aDate = a.valid_from ? new Date(a.valid_from).getTime() : 0;
-      const bDate = b.valid_from ? new Date(b.valid_from).getTime() : 0;
-      return bDate - aDate;
-    });
-  }, [registryEntries, yearFilter, registryStatusFilter]);
-
-  // 🔹 Lista finale per PRIMA tabella (solo members)
-  const membersForTable = useMemo(() => members, [members]);
-
-  // 🔹 paginazione PRIMA tabella
-  const totalMembersPages = Math.max(
-    1,
-    Math.ceil(membersForTable.length / MEMBERS_PAGE_SIZE)
-  );
-
-  useEffect(() => {
-    if (membersPage > totalMembersPages) {
-      setMembersPage(totalMembersPages);
-    }
-  }, [membersPage, totalMembersPages]);
-
-  const paginatedMembers = useMemo(() => {
-    const start = (membersPage - 1) * MEMBERS_PAGE_SIZE;
-    const end = start + MEMBERS_PAGE_SIZE;
-    return membersForTable.slice(start, end);
-  }, [membersForTable, membersPage]);
-
-  // 🔹 paginazione SECONDA tabella (storico)
-  useEffect(() => {
-    const totalPages = Math.max(
-      1,
-      Math.ceil(filteredRegistry.length / REGISTRY_PAGE_SIZE)
+// src/components/admin/registry/MembersTable.jsx
+export default function MembersTable({
+  t,
+  loading,
+  error,
+  filteredMembers,
+  onOpenMember,
+  onOpenRegistryEntry,
+}) {
+  if (loading) {
+    return (
+      <div className="py-6 text-center text-[11px] text-slate-400">
+        {t("admin.membersPanel.loading")}
+      </div>
     );
-    if (registryPage > totalPages) {
-      setRegistryPage(totalPages);
-    }
-  }, [filteredRegistry, registryPage]);
+  }
 
-  const paginatedRegistry = useMemo(() => {
-    const start = (registryPage - 1) * REGISTRY_PAGE_SIZE;
-    const end = start + REGISTRY_PAGE_SIZE;
-    return filteredRegistry.slice(start, end);
-  }, [filteredRegistry, registryPage]);
+  if (error) {
+    return (
+      <div className="py-6 text-center text-[11px] text-rose-300">{error}</div>
+    );
+  }
 
-  const handleOpenMember = async (id) => {
-    setModalOpen(true);
-    setSelectedMember(null);
-    setLoadingMember(true);
-    try {
-      const data = await fetchMemberById(id);
-      if (!data.ok) throw new Error(data.message || "Errore lettura socio");
-      setSelectedMember(data.member);
-    } catch (err) {
-      console.error(err);
-      setSelectedMember(null);
-    } finally {
-      setLoadingMember(false);
-    }
-  };
-
-  const handleOpenRegistryEntry = (entry) => {
-    setSelectedRegistryEntry(entry);
-    setRegistryModalOpen(true);
-  };
-
-  // Import storico da XLSX
-  const handleImportRegistry = async () => {
-    if (!registryFile) {
-      setImportMessage("Seleziona prima un file .xlsx");
-      return;
-    }
-
-    const yearForImportRaw =
-      registryYear && registryYear.trim().length
-        ? registryYear
-        : yearFilter !== "ALL"
-        ? yearFilter
-        : new Date().getFullYear().toString();
-
-    const yearForImport = parseInt(yearForImportRaw, 10);
-    if (Number.isNaN(yearForImport)) {
-      setImportMessage("Inserisci un anno valido per l'import.");
-      return;
-    }
-
-    setImportingRegistry(true);
-    setImportMessage("");
-
-    try {
-      const formData = new FormData();
-      formData.append("file", registryFile);
-      formData.append("year", yearForImport.toString());
-
-      const res = await fetch(
-        `${API_BASE}/api/admin/members-registry/import-xlsx`,
-        {
-          method: "POST",
-          credentials: "include",
-          body: formData,
-        }
-      );
-
-      const data = await res.json().catch(() => ({}));
-
-      if (!res.ok || !data.ok) {
-        throw new Error(
-          data.message || "Errore durante l'import del file storico"
-        );
-      }
-
-      const inserted = data.inserted ?? data.rows ?? null;
-      setImportMessage(
-        inserted != null
-          ? `Import completato (${inserted} righe inserite).`
-          : "Import completato."
-      );
-      setRegistryFile(null);
-
-      // ricarico TUTTO lo storico
-      try {
-        const url = `${API_BASE}/api/admin/members-registry`;
-        const refRes = await fetch(url, { credentials: "include" });
-        const refData = await refRes.json().catch(() => ({}));
-        if (refRes.ok && refData.ok) {
-          const entries = refData.entries || [];
-          setRegistryEntries(entries);
-        }
-      } catch (e) {
-        console.warn("Errore reload members_registry dopo import:", e);
-      }
-    } catch (err) {
-      console.error(err);
-      setImportMessage(
-        err instanceof Error
-          ? err.message
-          : "Errore imprevisto durante l'import."
-      );
-    } finally {
-      setImportingRegistry(false);
-    }
-  };
+  if (!filteredMembers || !filteredMembers.length) {
+    return (
+      <div className="py-6 text-center text-[11px] text-slate-400">
+        {t("admin.membersPanel.noResults")}
+      </div>
+    );
+  }
 
   return (
-    <div className="flex flex-col gap-3">
-      {/* HEADER: solo titolo + contatore */}
-      <MembersHeaderFilters
-        t={t}
-        filteredCount={membersForTable.length}
-        totalCount={membersForTable.length}
-      />
+    <div className="mb-4 overflow-x-auto">
+      <h3 className="mb-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+        Soci / richieste tessera (unificato)
+      </h3>
 
-      {/* Filtro ESPORTATI / NON ESPORTATI per la PRIMA tabella */}
-      <div className="mb-1 flex flex-col gap-2 rounded-xl border border-white/5 bg-slate-950/60 p-3 md:flex-row md:items-center md:justify-between">
-        <span className="text-xs text-slate-400">
-          Filtro esportazione tessere:
-        </span>
+      <table className="min-w-full text-left text-[11px] text-slate-200">
+        <thead>
+          <tr className="border-b  border-white/10 bg-slate-900/70 text-[10px] uppercase tracking-[0.16em] text-slate-400">
+            <th className="px-3 py-2">Anno</th>
+            <th className="px-3 py-2">Stato</th>
+            <th className="px-3 py-2">Cognome</th>
+            <th className="px-3 py-2">Nome</th>
+            <th className="px-3 py-2 text-right">Azioni</th>
+          </tr>
+        </thead>
 
-        <div className="flex flex-wrap items-center gap-3">
-          <select
-            className="h-8 rounded-lg border border-slate-700 bg-slate-900/80 px-2 text-xs text-slate-100"
-            value={membersExportFilter}
-            onChange={(e) => setMembersExportFilter(e.target.value)}
-          >
-            <option value="non_exported">Solo non esportati</option>
-            <option value="exported">Solo esportati</option>
-            <option value="all">Tutti</option>
-          </select>
-        </div>
-      </div>
+        <tbody>
+          {filteredMembers.map((m) => {
+            const isRegistry =
+              m.source === "members_registry" ||
+              m.is_registry_active ||
+              !!m._registryEntry;
 
-      {/* wrapper tabella membri (solo "members") */}
-      <div className="-mx-2 overflow-x-auto rounded-xl border border-slate-800/80 bg-slate-950/60 px-2 py-2 sm:mx-0 sm:px-3">
-        <MembersTable
-          t={t}
-          loading={loading}
-          error={error}
-          filteredMembers={paginatedMembers}
-          onOpenMember={handleOpenMember}
-          onOpenRegistryEntry={handleOpenRegistryEntry}
-        />
+            const entry = m._registryEntry || (isRegistry ? m : null);
 
-        {/* paginazione prima tabella */}
-        {membersForTable.length > MEMBERS_PAGE_SIZE && (
-          <div className="mt-2 flex items-center justify-between text-[11px] text-slate-300">
-            <span>
-              Pagina {membersPage} di {totalMembersPages}
-            </span>
-            <div className="flex items-center gap-1">
-              <button
-                type="button"
-                onClick={() => setMembersPage((p) => Math.max(1, p - 1))}
-                disabled={membersPage <= 1}
-                className={`rounded-full px-2 py-1 text-[10px] uppercase tracking-[0.14em] ${
-                  membersPage <= 1
-                    ? "cursor-not-allowed bg-slate-800 text-slate-500"
-                    : "bg-slate-700 text-slate-100 hover:bg-slate-600"
-                }`}
+            // ANNO
+            const year =
+              entry?.year ??
+              (entry?.valid_from
+                ? new Date(entry.valid_from).getFullYear()
+                : m.year ??
+                  (m.valid_from
+                    ? new Date(m.valid_from).getFullYear()
+                    : m.created_at
+                    ? new Date(m.created_at).getFullYear()
+                    : null));
+
+            // STATO
+            const status = entry?.status || m.status || "";
+
+            // NOME / COGNOME
+            let firstName = entry?.first_name || m.first_name || "";
+            let lastName = entry?.last_name || m.last_name || "";
+
+            if (!firstName && !lastName && m.full_name) {
+              const parts = m.full_name.trim().split(/\s+/);
+              if (parts.length === 1) {
+                lastName = parts[0];
+              } else {
+                lastName = parts.pop();
+                firstName = parts.join(" ");
+              }
+            }
+
+            return (
+              <tr
+                key={m.id}
+                className="border-b border-white/5 hover:bg-slate-900/60"
               >
-                Prev
-              </button>
-              <button
-                type="button"
-                onClick={() =>
-                  setMembersPage((p) => Math.min(totalMembersPages, p + 1))
-                }
-                disabled={membersPage >= totalMembersPages}
-                className={`rounded-full px-2 py-1 text-[10px] uppercase tracking-[0.14em] ${
-                  membersPage >= totalMembersPages
-                    ? "cursor-not-allowed bg-slate-800 text-slate-500"
-                    : "bg-slate-700 text-slate-100 hover:bg-slate-600"
-                }`}
-              >
-                Next
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
+                {/* ANNO */}
+                <td className="px-3 py-2 text-[11px] text-slate-300">
+                  {year || "-"}
+                </td>
 
-      {/* toggle per storico */}
-      <div className="flex justify-end">
-        <button
-          type="button"
-          onClick={() => setShowRegistrySection((v) => !v)}
-          className="rounded-full border border-slate-600 bg-slate-900/70 px-3 py-1 text-[10px] uppercase tracking-[0.16em] text-slate-100 hover:bg-slate-800"
-        >
-          {showRegistrySection
-            ? "Nascondi storico ACSI"
-            : "Mostra storico ACSI"}
-        </button>
-      </div>
+                {/* STATO */}
+                <td className="px-3 py-2 text-[11px]">
+                  {status ? (
+                    <span
+                      className={`inline-flex rounded-full px-2 py-px text-[10px] uppercase tracking-[0.14em] ${
+                        status.toLowerCase().startsWith("attiv")
+                          ? "bg-emerald-500/10 text-emerald-300 border border-emerald-500/40"
+                          : "bg-slate-700/40 text-slate-200 border border-slate-600/60"
+                      }`}
+                    >
+                      {status}
+                    </span>
+                  ) : (
+                    "-"
+                  )}
+                </td>
 
-      {/* wrapper storico: visibile solo se aperto */}
-      {showRegistrySection && (
-        <div className="-mx-2 overflow-x-auto rounded-xl border border-slate-800/80 bg-slate-950/60 px-2 py-2 sm:mx-0 sm:px-3">
-          <MembersRegistrySection
-            registryLoading={registryLoading}
-            registryError={registryError}
-            filteredRegistry={paginatedRegistry}
-            registryFile={registryFile}
-            setRegistryFile={setRegistryFile}
-            importingRegistry={importingRegistry}
-            importMessage={importMessage}
-            onImportClick={handleImportRegistry}
-            page={registryPage}
-            pageSize={REGISTRY_PAGE_SIZE}
-            total={filteredRegistry.length}
-            onPageChange={setRegistryPage}
-            registryYear={registryYear}
-            setRegistryYear={setRegistryYear}
-            onOpenRegistryEntry={handleOpenRegistryEntry}
-            yearFilter={yearFilter}
-            setYearFilter={setYearFilter}
-            registryStatusFilter={registryStatusFilter}
-            setRegistryStatusFilter={setRegistryStatusFilter}
-          />
-        </div>
-      )}
+                {/* COGNOME */}
+                <td className="px-3 py-2 text-[11px] text-slate-200 uppercase">
+                  {lastName || "-"}
+                </td>
 
-      <MemberModal
-        open={modalOpen}
-        onClose={() => {
-          setModalOpen(false);
-          setSelectedMember(null);
-        }}
-        t={t}
-        loadingMember={loadingMember}
-        selectedMember={selectedMember}
-      />
+                {/* NOME */}
+                <td className="px-3 py-2 text-[11px] text-slate-300 uppercase">
+                  {firstName || "-"}
+                </td>
 
-      <RegistryEntryModal
-        open={registryModalOpen}
-        onClose={() => {
-          setRegistryModalOpen(false);
-          setSelectedRegistryEntry(null);
-        }}
-        entry={selectedRegistryEntry}
-      />
+                {/* AZIONI */}
+                <td className="px-3 py-2 text-right">
+                  {isRegistry && onOpenRegistryEntry ? (
+                    <button
+                      type="button"
+                      onClick={() => onOpenRegistryEntry(entry)}
+                      className="rounded-full border border-slate-500/70 bg-slate-800/60 px-3 py-1 text-[10px] uppercase tracking-[0.16em] text-slate-100 hover:bg-slate-700"
+                    >
+                      Dettagli storico
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => onOpenMember && onOpenMember(m.id)}
+                      className="rounded-full border border-cyan-400/70 bg-cyan-500/10 px-3 py-1 text-[10px] text-cyan-100 hover:bg-cyan-500/25"
+                    >
+                      {t("admin.membersPanel.openCard")}
+                    </button>
+                  )}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
     </div>
   );
 }
