@@ -1,8 +1,6 @@
-// src/components/admin/campaign/CampaignForm.jsx
 import {
   Send,
   Mail,
-  MessageCircle,
   CalendarDays,
   Sparkles,
   Loader2,
@@ -164,25 +162,7 @@ export default function CampaignForm({
         </p>
       </div>
 
-      {/* Testo SMS */}
-      <div className="space-y-1.5">
-        <label className="flex items-center gap-1 text-[11px] font-medium uppercase tracking-[0.16em] text-slate-300">
-          <MessageCircle className="h-3 w-3 text-emerald-300" />
-          {t("admin.campaign.form.smsLabel")}
-        </label>
-        <textarea
-          name="message_sms"
-          rows={3}
-          maxLength={300}
-          placeholder={t("admin.campaign.form.smsPlaceholder")}
-          className="w-full rounded-xl border border-white/10 bg-slate-950/80 px-3 py-2 text-sm text-slate-100 outline-none ring-0 focus:border-cyan-400/80"
-        />
-        <div className="flex justify-between text-[11px] text-slate-500">
-          <span>{t("admin.campaign.form.smsHint")}</span>
-        </div>
-      </div>
-
-      {/* Canali */}
+      {/* Canali (solo email) */}
       <div className="flex flex-wrap items-center gap-4 rounded-2xl border border-white/10 bg-slate-950/70 px-3 py-3 text-xs">
         <span className="text-[10px] uppercase tracking-[0.18em] text-slate-400">
           {t("admin.campaign.form.channelsLabel")}
@@ -199,18 +179,6 @@ export default function CampaignForm({
             <span className="inline-flex items-center gap-1 uppercase tracking-[0.16em] text-slate-200">
               <Mail className="h-3 w-3 text-cyan-300" />
               {t("admin.campaign.form.channelEmail")}
-            </span>
-          </label>
-
-          <label className="inline-flex items-center gap-2">
-            <input
-              type="checkbox"
-              name="send_sms"
-              className="h-3.5 w-3.5 rounded border-slate-500 bg-slate-950 text-cyan-400 focus:ring-cyan-400"
-            />
-            <span className="inline-flex items-center gap-1 uppercase tracking-[0.16em] text-slate-200">
-              <MessageCircle className="h-3 w-3 text-emerald-300" />
-              {t("admin.campaign.form.channelSms")}
             </span>
           </label>
         </div>

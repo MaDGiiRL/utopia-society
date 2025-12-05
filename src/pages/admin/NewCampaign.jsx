@@ -1,4 +1,3 @@
-// src/pages/admin/NewCampaign.jsx
 import React, { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import { useTranslation } from "react-i18next";
@@ -72,12 +71,10 @@ export default function NewCampaign() {
       title: form.get("title"),
       event_date: form.get("event_date"),
       message_email: form.get("message_email"),
-      message_sms: form.get("message_sms"),
       channels: {
         email: form.get("send_email") === "on",
-        sms: form.get("send_sms") === "on",
       },
-      // 🔹 nuovo: URL immagine hero (stringa, NON base64)
+      // URL immagine hero (stringa, NON base64)
       hero_image_url: form.get("hero_image_url") || null,
     };
 
