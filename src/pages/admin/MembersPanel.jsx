@@ -1,5 +1,5 @@
 // src/pages/admin/MembersPanel.jsx
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { fetchMembers, fetchMemberById } from "../../api/admin";
 
@@ -26,7 +26,8 @@ export default function MembersPanel() {
   const [statusFilter, setStatusFilter] = useState("ALL"); // ACTIVE | ALL
 
   // FILTRO EXPORT (non esportati / esportati / tutti)
-  const [exportFilter, setExportFilter] = useState("non_exported");
+  // 🔹 DI DEFAULT: vedi TUTTI
+  const [exportFilter, setExportFilter] = useState("all");
   // valori ammessi: "non_exported" | "exported" | "all"
 
   // ---- PAGINAZIONE ----
@@ -44,40 +45,47 @@ export default function MembersPanel() {
   const [loadingMember, setLoadingMember] = useState(false);
 
   // -----------------------------------------------------
+  // FUNZIONE UNICA DI CARICAMENTO SOCI
+  // -----------------------------------------------------
+  const loadMembers = useCallback(
+    async (filter) => {
+      setLoading(true);
+      setError("");
+
+      try {
+        const data = await fetchMembers(filter);
+
+        if (!data.ok) {
+          throw new Error(data.message || t("admin.membersPanel.error"));
+        }
+
+        setMembers(data.members || []);
+        setPage(1); // reset pagina ogni volta che ricarichi da backend
+      } catch (err) {
+        console.error(err);
+        setError(t("admin.membersPanel.error"));
+      } finally {
+        setLoading(false);
+      }
+    },
+    [t]
+  );
+
+  // -----------------------------------------------------
   // CARICAMENTO SOCI (solo tabella members)
   // -----------------------------------------------------
   useEffect(() => {
     let cancelled = false;
 
-    async function load() {
-      setLoading(true);
-      setError("");
-      try {
-        // prendo i soci dal backend in base al filtro export
-        const data = await fetchMembers(exportFilter);
-        if (!cancelled) {
-          if (!data.ok) {
-            throw new Error(data.message || t("admin.membersPanel.error"));
-          }
-          setMembers(data.members || []);
-          // reset pagina se cambia la sorgente
-          setPage(1);
-        }
-      } catch (err) {
-        console.error(err);
-        if (!cancelled) {
-          setError(t("admin.membersPanel.error"));
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }
+    (async () => {
+      if (cancelled) return;
+      await loadMembers(exportFilter);
+    })();
 
-    load();
     return () => {
       cancelled = true;
     };
-  }, [t, exportFilter]);
+  }, [loadMembers, exportFilter]);
 
   // -----------------------------------------------------
   // FILTRI SU members (ANNO + STATO)
@@ -230,15 +238,8 @@ export default function MembersPanel() {
       );
       setImportFile(null);
 
-      // ricarico i members con lo stesso filtro export corrente
-      try {
-        const reload = await fetchMembers(exportFilter);
-        if (reload.ok) {
-          setMembers(reload.members || []);
-        }
-      } catch (e) {
-        console.warn("Errore reload members dopo import:", e);
-      }
+      // 🔹 ricarico i members con lo stesso filtro export corrente
+      await loadMembers(exportFilter);
     } catch (err) {
       console.error(err);
       setImportMessage(
