@@ -113,30 +113,35 @@ export default function FeaturedEventBanner() {
           <div className="pointer-events-none absolute -right-10 bottom-0 h-32 w-32 rounded-full bg-fuchsia-500/25 blur-3xl" />
 
           <div
-            className={`relative grid gap-4 ${
-              hasImage ? "md:grid-cols-2" : "md:grid-cols-1"
+            className={`relative grid gap-4 md:gap-5 ${
+              hasImage
+                ? "md:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]"
+                : "md:grid-cols-1"
             }`}
           >
-            {/* Immagine a SINISTRA (se presente) */}
+            {/* 📸 Immagine SINISTRA – formato Instagram verticale */}
             {hasImage && (
-              <div className="relative order-1 min-h-[180px] border-b border-slate-800/70 md:border-b-0 md:border-r">
+              <div className="relative order-1 border-b border-slate-800/70 bg-slate-900 md:border-b-0 md:border-r">
                 <div className="absolute inset-0 bg-linear-to-tr from-cyan-500/10 via-transparent to-fuchsia-500/15" />
-                <img
-                  src={banner_image_url}
-                  alt={banner_title || title}
-                  className="relative block h-full w-full max-h-72 object-cover md:max-h-full"
-                />
+                <div className="relative aspect-[4/5] w-full">
+                  <img
+                    src={banner_image_url}
+                    alt={banner_title || title}
+                    className="absolute inset-0 h-full w-full object-cover"
+                  />
+                </div>
               </div>
             )}
 
-            {/* Testo a DESTRA (o full width se non c'è immagine) */}
+            {/* ➡️ Testi DESTRA, allineati e distribuiti bene */}
             <div
-              className={`flex flex-col justify-between p-5 md:p-6 lg:p-7 ${
+              className={`flex flex-col justify-between gap-5 p-5 md:p-6 lg:p-7 ${
                 hasImage ? "order-2" : "order-1 md:col-span-1"
               }`}
             >
+              {/* blocco alto: pill + titoli */}
               <div className="space-y-3">
-                <div className="inline-flex items-center gap-2 rounded-full border border-cyan-400/50 bg-slate-950/80 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-cyan-100">
+                <div className="inline-flex flex-wrap items-center gap-2 rounded-full border border-cyan-400/50 bg-slate-950/80 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-cyan-100">
                   <span className="inline-flex h-1.5 w-1.5 rounded-full bg-cyan-400" />
                   <span>Evento in evidenza</span>
                   {dateLabel && (
@@ -150,19 +155,21 @@ export default function FeaturedEventBanner() {
                   )}
                 </div>
 
-                <h2 className="text-balance text-xl font-semibold tracking-[0.12em] text-slate-50 sm:text-2xl md:text-3xl">
-                  {banner_title || title}
-                </h2>
+                <div className="space-y-2">
+                  <h2 className="text-balance text-xl font-semibold tracking-[0.12em] text-slate-50 sm:text-2xl md:text-3xl">
+                    {banner_title || title}
+                  </h2>
 
-                {banner_subtitle && (
-                  <p className="text-sm text-slate-300/90 md:text-[15px]">
-                    {banner_subtitle}
-                  </p>
-                )}
+                  {banner_subtitle && (
+                    <p className="text-sm leading-snug text-slate-300/90 md:text-[15px]">
+                      {banner_subtitle}
+                    </p>
+                  )}
+                </div>
               </div>
 
-              <div className="mt-4 flex flex-wrap items-center gap-3">
-                {/* CTA – logga click + apre link */}
+              {/* blocco basso: CTA + info data lunga */}
+              <div className="mt-2 flex flex-wrap items-center gap-3">
                 {banner_cta_label && banner_cta_url && (
                   <a
                     href={banner_cta_url}
