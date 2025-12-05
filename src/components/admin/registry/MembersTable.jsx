@@ -1,11 +1,10 @@
-// src/components/admin/registry/MembersTable.jsx
+ // src/components/admin/registry/MembersTable.jsx
 export default function MembersTable({
   t,
   loading,
   error,
   filteredMembers,
   onOpenMember,
-  onOpenRegistryEntry,
 }) {
   if (loading) {
     return (
@@ -32,7 +31,7 @@ export default function MembersTable({
   return (
     <div className="mb-4 overflow-x-auto">
       <h3 className="mb-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">
-        Soci / richieste tessera (unificato)
+        Soci / richieste tessera
       </h3>
 
       <table className="min-w-full text-left text-[11px] text-slate-200">
@@ -48,31 +47,20 @@ export default function MembersTable({
 
         <tbody>
           {filteredMembers.map((m) => {
-            const isRegistry =
-              m.source === "members_registry" ||
-              m.is_registry_active ||
-              !!m._registryEntry;
-
-            const entry = m._registryEntry || (isRegistry ? m : null);
-
-            // ANNO
+            // YEAR: se esiste field year, altrimenti anno di created_at
             const year =
-              entry?.year ??
-              (entry?.valid_from
-                ? new Date(entry.valid_from).getFullYear()
-                : m.year ??
-                  (m.valid_from
-                    ? new Date(m.valid_from).getFullYear()
-                    : m.created_at
-                    ? new Date(m.created_at).getFullYear()
-                    : null));
+              m.year ??
+              (m.valid_from
+                ? new Date(m.valid_from).getFullYear()
+                : m.created_at
+                ? new Date(m.created_at).getFullYear()
+                : null);
 
-            // STATO
-            const status = entry?.status || m.status || "";
+            const status = m.status || "";
 
-            // NOME / COGNOME
-            let firstName = entry?.first_name || m.first_name || "";
-            let lastName = entry?.last_name || m.last_name || "";
+            // split full_name -> first/last name
+            let firstName = m.first_name || "";
+            let lastName = m.last_name || "";
 
             if (!firstName && !lastName && m.full_name) {
               const parts = m.full_name.trim().split(/\s+/);
@@ -123,23 +111,13 @@ export default function MembersTable({
 
                 {/* AZIONI */}
                 <td className="px-3 py-2 text-right">
-                  {isRegistry && onOpenRegistryEntry ? (
-                    <button
-                      type="button"
-                      onClick={() => onOpenRegistryEntry(entry)}
-                      className="rounded-full border border-slate-500/70 bg-slate-800/60 px-3 py-1 text-[10px] uppercase tracking-[0.16em] text-slate-100 hover:bg-slate-700"
-                    >
-                      Dettagli storico
-                    </button>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => onOpenMember && onOpenMember(m.id)}
-                      className="rounded-full border border-cyan-400/70 bg-cyan-500/10 px-3 py-1 text-[10px] text-cyan-100 hover:bg-cyan-500/25"
-                    >
-                      {t("admin.membersPanel.openCard")}
-                    </button>
-                  )}
+                  <button
+                    type="button"
+                    onClick={() => onOpenMember && onOpenMember(m.id)}
+                    className="rounded-full border border-cyan-400/70 bg-cyan-500/10 px-3 py-1 text-[10px] text-cyan-100 hover:bg-cyan-500/25"
+                  >
+                    {t("admin.membersPanel.openCard")}
+                  </button>
                 </td>
               </tr>
             );

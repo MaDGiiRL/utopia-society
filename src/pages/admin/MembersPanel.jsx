@@ -5,9 +5,7 @@ import { fetchMembers, fetchMemberById } from "../../api/admin";
 
 import MembersHeaderFilters from "../../components/admin/registry/MembersHeaderFilters";
 import MembersTable from "../../components/admin/registry/MembersTable";
-import MemberModal, {
-  RegistryEntryModal,
-} from "../../components/admin/registry/MemberModal";
+import MemberModal from "../../components/admin/registry/MemberModal";
 
 const API_BASE = import.meta.env.VITE_ADMIN_API_URL || "";
 const PAGE_SIZE = 50;
@@ -15,17 +13,12 @@ const PAGE_SIZE = 50;
 export default function MembersPanel() {
   const { t } = useTranslation();
 
-  // ---- SOCI DAL NUOVO SISTEMA (members) ----
+  // ---- SOCI (tabella members) ----
   const [members, setMembers] = useState([]);
-  const [membersLoading, setMembersLoading] = useState(false);
-  const [membersError, setMembersError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  // ---- STORICO ACSI (members_registry) ----
-  const [registryEntries, setRegistryEntries] = useState([]);
-  const [registryLoading, setRegistryLoading] = useState(false);
-  const [registryError, setRegistryError] = useState("");
-
-  // ---- FILTRI GLOBALI (per l'unica tabella) ----
+  // ---- FILTRI GLOBALI ----
   const currentYear = new Date().getFullYear().toString();
   const [yearFilter, setYearFilter] = useState(currentYear); // default anno corrente
   const [statusFilter, setStatusFilter] = useState("ACTIVE"); // ACTIVE | ALL
@@ -33,31 +26,28 @@ export default function MembersPanel() {
   // ---- PAGINAZIONE ----
   const [page, setPage] = useState(1);
 
-  // ---- IMPORT STORICO ACSI ----
-  const [registryFile, setRegistryFile] = useState(null);
-  const [importingRegistry, setImportingRegistry] = useState(false);
+  // ---- IMPORT SOCI (XLSX) ----
+  const [importFile, setImportFile] = useState(null);
+  const [importing, setImporting] = useState(false);
   const [importMessage, setImportMessage] = useState("");
-  const [registryYear, setRegistryYear] = useState(""); // anno da usare per import
+  const [importYear, setImportYear] = useState("");
 
-  // ---- MODALI ----
+  // ---- MODALE SOCIO ----
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState(null);
   const [loadingMember, setLoadingMember] = useState(false);
 
-  const [registryModalOpen, setRegistryModalOpen] = useState(false);
-  const [selectedRegistryEntry, setSelectedRegistryEntry] = useState(null);
-
   // -----------------------------------------------------
-  // CARICAMENTO SOCI "NUOVO SISTEMA"
+  // CARICAMENTO SOCI (solo tabella members)
   // -----------------------------------------------------
   useEffect(() => {
     let cancelled = false;
 
-    async function loadMembers() {
-      setMembersLoading(true);
-      setMembersError("");
+    async function load() {
+      setLoading(true);
+      setError("");
       try {
-        // prendo TUTTI i soci; il filtro lo facciamo client-side
+        // prendo TUTTI i soci, poi filtro lato client per anno/stato
         const data = await fetchMembers("all");
         if (!cancelled) {
           if (!data.ok) {
@@ -68,151 +58,50 @@ export default function MembersPanel() {
       } catch (err) {
         console.error(err);
         if (!cancelled) {
-          setMembersError(t("admin.membersPanel.error"));
+          setError(t("admin.membersPanel.error"));
         }
       } finally {
-        if (!cancelled) setMembersLoading(false);
+        if (!cancelled) setLoading(false);
       }
     }
 
-    loadMembers();
+    load();
     return () => {
       cancelled = true;
     };
   }, [t]);
 
   // -----------------------------------------------------
-  // CARICAMENTO STORICO ACSI
+  // FILTRI SU members (ANNO + STATO)
   // -----------------------------------------------------
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadRegistry() {
-      setRegistryLoading(true);
-      setRegistryError("");
-
-      try {
-        const url = `${API_BASE}/api/admin/members-registry`;
-        const res = await fetch(url, { credentials: "include" });
-        const data = await res.json().catch(() => ({}));
-
-        if (!res.ok || !data.ok) {
-          throw new Error(data.message || "Errore storico soci");
-        }
-
-        if (!cancelled) {
-          setRegistryEntries(data.entries || []);
-        }
-      } catch (err) {
-        console.error(err);
-        if (!cancelled) {
-          setRegistryError(
-            err instanceof Error ? err.message : t("admin.membersPanel.error")
-          );
-        }
-      } finally {
-        if (!cancelled) setRegistryLoading(false);
-      }
-    }
-
-    loadRegistry();
-    return () => {
-      cancelled = true;
-    };
-  }, [t]);
-
-  // -----------------------------------------------------
-  // NORMALIZZAZIONE DATI PER L'UNICA TABELLA
-  // -----------------------------------------------------
-
-  // Trasformo le righe di registry in pseudo-members
-  const registryAsMembers = useMemo(() => {
-    return registryEntries.map((r) => {
-      const fullName = `${r.first_name || ""} ${r.last_name || ""}`.trim();
-
-      return {
-        // campi "base" tipo members
-        id:
-          r.id ||
-          `registry-${
-            r.external_id || r.card_number || r.year || Math.random()
-          }`,
-        created_at: r.valid_from || null,
-        full_name:
-          fullName || r.card_number || "Socio ACSI (storico registrato)",
-        email: r.email || "",
-        phone: r.phone || "",
-        city: r.club_name || r.city || "",
-        source: "members_registry",
-        // info ACSI principali
-        year: r.year,
-        status: r.status,
-        valid_from: r.valid_from,
-        valid_to: r.valid_to,
-        // info per badge "attivo"
-        is_registry_active: (r.status || "")
-          .toString()
-          .toLowerCase()
-          .startsWith("attiv"),
-        // tengo il record originale per la modale
-        _registryEntry: r,
-        // fields utili per MembersTable (nome/cognome separati)
-        first_name: r.first_name,
-        last_name: r.last_name,
-      };
-    });
-  }, [registryEntries]);
-
-  // Unisco soci "nuovi" + storici ACSI
-  const allRows = useMemo(() => {
-    // i members del nuovo sistema li lascio così come sono
-    const normalizedMembers = members.map((m) => ({
-      ...m,
-      _registryEntry: null,
-      is_registry_active: false,
-    }));
-
-    return [...normalizedMembers, ...registryAsMembers];
-  }, [members, registryAsMembers]);
-
-  // -----------------------------------------------------
-  // FILTRI GLOBALI (ANNO + STATO)
-  // -----------------------------------------------------
-  const filteredRows = useMemo(() => {
+  const filteredMembers = useMemo(() => {
     const yearInt =
       yearFilter && yearFilter !== "ALL" ? parseInt(yearFilter, 10) : null;
 
-    return allRows
-      .filter((row) => {
-        // filtro per anno
+    return members
+      .filter((m) => {
+        // anno: uso m.year se c'è; altrimenti prendo anno da created_at
         if (yearInt) {
           const fromYear =
-            row.year ??
-            (row.valid_from
-              ? new Date(row.valid_from).getFullYear()
-              : row.created_at
-              ? new Date(row.created_at).getFullYear()
+            m.year ??
+            (m.valid_from
+              ? new Date(m.valid_from).getFullYear()
+              : m.created_at
+              ? new Date(m.created_at).getFullYear()
               : null);
-
           if (fromYear !== yearInt) return false;
         }
 
-        // filtro per stato
+        // stato: “ACTIVE” = stringa che inizia per “attiv”
         if (statusFilter === "ACTIVE") {
-          const statusText = (
-            row._registryEntry?.status ||
-            row.status ||
-            ""
-          ).toString();
-          if (!statusText.toLowerCase().startsWith("attiv")) {
-            return false;
-          }
+          const statusText = (m.status || "").toString().toLowerCase();
+          if (!statusText.startsWith("attiv")) return false;
         }
 
         return true;
       })
       .sort((a, b) => {
-        // ordino per anno desc, poi per data valid_from/created_at desc
+        // ordino per anno desc, poi per data desc
         const ay =
           a.year ??
           (a.valid_from
@@ -243,12 +132,12 @@ export default function MembersPanel() {
 
         return bTime - aTime;
       });
-  }, [allRows, yearFilter, statusFilter]);
+  }, [members, yearFilter, statusFilter]);
 
   // -----------------------------------------------------
   // PAGINAZIONE
   // -----------------------------------------------------
-  const totalPages = Math.max(1, Math.ceil(filteredRows.length / PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(filteredMembers.length / PAGE_SIZE));
 
   useEffect(() => {
     if (page > totalPages) {
@@ -256,14 +145,14 @@ export default function MembersPanel() {
     }
   }, [page, totalPages]);
 
-  const paginatedRows = useMemo(() => {
+  const paginatedMembers = useMemo(() => {
     const start = (page - 1) * PAGE_SIZE;
     const end = start + PAGE_SIZE;
-    return filteredRows.slice(start, end);
-  }, [filteredRows, page]);
+    return filteredMembers.slice(start, end);
+  }, [filteredMembers, page]);
 
   // -----------------------------------------------------
-  // HANDLER MODALI
+  // MODALE SOCIO
   // -----------------------------------------------------
   const handleOpenMember = async (id) => {
     setModalOpen(true);
@@ -281,23 +170,18 @@ export default function MembersPanel() {
     }
   };
 
-  const handleOpenRegistryEntry = (entry) => {
-    setSelectedRegistryEntry(entry);
-    setRegistryModalOpen(true);
-  };
-
   // -----------------------------------------------------
-  // IMPORT XLSX STORICO ACSI
+  // IMPORT SOCI DA XLSX (collegato a /api/admin/members/...)
   // -----------------------------------------------------
-  const handleImportRegistry = async () => {
-    if (!registryFile) {
+  const handleImportMembers = async () => {
+    if (!importFile) {
       setImportMessage("Seleziona prima un file .xlsx");
       return;
     }
 
     const yearForImportRaw =
-      registryYear && registryYear.trim().length
-        ? registryYear
+      importYear && importYear.trim().length
+        ? importYear
         : yearFilter !== "ALL"
         ? yearFilter
         : new Date().getFullYear().toString();
@@ -308,28 +192,26 @@ export default function MembersPanel() {
       return;
     }
 
-    setImportingRegistry(true);
+    setImporting(true);
     setImportMessage("");
 
     try {
       const formData = new FormData();
-      formData.append("file", registryFile);
+      formData.append("file", importFile);
       formData.append("year", yearForImport.toString());
 
-      const res = await fetch(
-        `${API_BASE}/api/admin/members-registry/import-xlsx`,
-        {
-          method: "POST",
-          credentials: "include",
-          body: formData,
-        }
-      );
+      // ⬇️ QUI DEVI AVERE IL TUO ENDPOINT BACKEND PER L'IMPORT
+      const res = await fetch(`${API_BASE}/api/admin/members/import-xlsx`, {
+        method: "POST",
+        credentials: "include",
+        body: formData,
+      });
 
       const data = await res.json().catch(() => ({}));
 
       if (!res.ok || !data.ok) {
         throw new Error(
-          data.message || "Errore durante l'import del file storico"
+          data.message || "Errore durante l'import del file soci"
         );
       }
 
@@ -339,18 +221,16 @@ export default function MembersPanel() {
           ? `Import completato (${inserted} righe inserite).`
           : "Import completato."
       );
-      setRegistryFile(null);
+      setImportFile(null);
 
-      // ricarico lo storico
+      // ricarico i members
       try {
-        const url = `${API_BASE}/api/admin/members-registry`;
-        const refRes = await fetch(url, { credentials: "include" });
-        const refData = await refRes.json().catch(() => ({}));
-        if (refRes.ok && refData.ok) {
-          setRegistryEntries(refData.entries || []);
+        const reload = await fetchMembers("all");
+        if (reload.ok) {
+          setMembers(reload.members || []);
         }
       } catch (e) {
-        console.warn("Errore reload members_registry dopo import:", e);
+        console.warn("Errore reload members dopo import:", e);
       }
     } catch (err) {
       console.error(err);
@@ -360,26 +240,20 @@ export default function MembersPanel() {
           : "Errore imprevisto durante l'import."
       );
     } finally {
-      setImportingRegistry(false);
+      setImporting(false);
     }
   };
-
-  // -----------------------------------------------------
-  // STATO GLOBALE (loading / error) PER LA TABELLA
-  // -----------------------------------------------------
-  const globalLoading = membersLoading || registryLoading;
-  const globalError = membersError || registryError;
 
   return (
     <div className="flex flex-col gap-3">
       {/* HEADER: titolo + contatore */}
       <MembersHeaderFilters
         t={t}
-        filteredCount={filteredRows.length}
-        totalCount={allRows.length}
+        filteredCount={filteredMembers.length}
+        totalCount={members.length}
       />
 
-      {/* FILTRI GLOBALI + IMPORT XLSX STORICO */}
+      {/* FILTRI + IMPORT */}
       <div className="mb-1 flex flex-col gap-3 rounded-xl border border-white/5 bg-slate-950/60 p-3 md:flex-row md:items-start md:justify-between">
         {/* Filtri anno + stato */}
         <div className="flex flex-wrap items-center gap-3 text-xs text-slate-300">
@@ -399,7 +273,6 @@ export default function MembersPanel() {
                   {y}
                 </option>
               ))}
-              {/* aggiungo anche l'anno corrente se non è nella lista */}
               {!["2026", "2025", "2024", "2023", "2022"].includes(
                 currentYear
               ) && <option value={currentYear}>{currentYear}</option>}
@@ -422,33 +295,33 @@ export default function MembersPanel() {
           </div>
         </div>
 
-        {/* Import storico ACSI */}
+        {/* Import soci */}
         <div className="flex flex-col gap-2 text-xs text-slate-300 md:items-end">
           <div className="flex flex-wrap items-center gap-2 text-[11px]">
             <input
               type="file"
               accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-              onChange={(e) => setRegistryFile(e.target.files?.[0] || null)}
+              onChange={(e) => setImportFile(e.target.files?.[0] || null)}
               className="block w-48 cursor-pointer text-[10px] text-slate-300 file:mr-2 file:rounded-md file:border-0 file:bg-slate-700 file:px-2 file:py-1 file:text-[10px] file:uppercase file:tracking-[0.14em] file:text-slate-100 hover:file:bg-slate-600"
             />
             <input
               type="text"
               placeholder="Anno per import (es. 2025)"
-              value={registryYear}
-              onChange={(e) => setRegistryYear(e.target.value)}
+              value={importYear}
+              onChange={(e) => setImportYear(e.target.value)}
               className="h-8 w-36 rounded-md border border-slate-700 bg-slate-900/80 px-2 text-[10px] text-slate-100 placeholder:text-slate-500"
             />
             <button
               type="button"
-              onClick={handleImportRegistry}
-              disabled={importingRegistry}
+              onClick={handleImportMembers}
+              disabled={importing}
               className={`rounded-full border px-3 py-1 text-[10px] uppercase tracking-[0.16em] ${
-                importingRegistry
+                importing
                   ? "cursor-not-allowed border-slate-600 bg-slate-800 text-slate-400"
                   : "border-emerald-400/70 bg-emerald-500/10 text-emerald-100 hover:bg-emerald-500/25"
               }`}
             >
-              {importingRegistry ? "Import in corso…" : "Import XLSX storico"}
+              {importing ? "Import in corso…" : "Import soci XLSX"}
             </button>
           </div>
           {importMessage && (
@@ -457,19 +330,18 @@ export default function MembersPanel() {
         </div>
       </div>
 
-      {/* TABELLA UNICA */}
+      {/* TABELLA UNICA basata SOLO su members */}
       <div className="-mx-2 overflow-x-auto rounded-xl border border-slate-800/80 bg-slate-950/60 px-2 py-2 sm:mx-0 sm:px-3">
         <MembersTable
           t={t}
-          loading={globalLoading}
-          error={globalError}
-          filteredMembers={paginatedRows}
+          loading={loading}
+          error={error}
+          filteredMembers={paginatedMembers}
           onOpenMember={handleOpenMember}
-          onOpenRegistryEntry={handleOpenRegistryEntry}
         />
 
         {/* Paginazione */}
-        {filteredRows.length > PAGE_SIZE && (
+        {filteredMembers.length > PAGE_SIZE && (
           <div className="mt-2 flex items-center justify-between text-[11px] text-slate-300">
             <span>
               Pagina {page} di {totalPages}
@@ -504,7 +376,7 @@ export default function MembersPanel() {
         )}
       </div>
 
-      {/* MODALI */}
+      {/* MODALE SOCIO */}
       <MemberModal
         open={modalOpen}
         onClose={() => {
@@ -514,15 +386,6 @@ export default function MembersPanel() {
         t={t}
         loadingMember={loadingMember}
         selectedMember={selectedMember}
-      />
-
-      <RegistryEntryModal
-        open={registryModalOpen}
-        onClose={() => {
-          setRegistryModalOpen(false);
-          setSelectedRegistryEntry(null);
-        }}
-        entry={selectedRegistryEntry}
       />
     </div>
   );
