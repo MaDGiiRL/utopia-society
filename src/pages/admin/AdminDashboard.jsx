@@ -119,9 +119,9 @@ export default function AdminDashboard() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       const today = new Date().toISOString().slice(0, 10);
+
       a.href = url;
       a.download = `utopia_acsi_${today}.xlsx`;
-
       document.body.appendChild(a);
       a.click();
       a.remove();

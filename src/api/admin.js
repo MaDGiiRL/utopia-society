@@ -16,7 +16,7 @@ export async function adminLogout() {
   return res.data;
 }
 
-// ✅ versione con filtro
+// ✅ versione con filtro exported / non_exported / all
 export async function fetchMembers(exportFilter = "non_exported") {
   let exportedParam = "false"; // default: solo non esportati
 

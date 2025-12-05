@@ -38,6 +38,9 @@ export default function MemberModal({
 }) {
   if (!open) return null;
 
+  const formatDate = (value) =>
+    value ? new Date(value).toLocaleDateString("it-IT") : "-";
+
   return (
     <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/70 px-3">
       <div className="max-h-[90vh] w-full max-w-lg overflow-auto rounded-2xl border border-white/15 bg-slate-950/95 p-4 sm:p-5 text-[11px] text-slate-100 shadow-2xl">
@@ -68,70 +71,159 @@ export default function MemberModal({
         )}
 
         {!loadingMember && selectedMember && (
-          <div className="space-y-2">
-            <Row
-              label={t("admin.membersPanel.modal.name")}
-              value={selectedMember.full_name}
-            />
-            <Row
-              label={t("admin.membersPanel.modal.email")}
-              value={selectedMember.email}
-            />
-            <Row
-              label={t("admin.membersPanel.modal.phone")}
-              value={selectedMember.phone}
-            />
-            <Row
-              label={t("admin.membersPanel.modal.city")}
-              value={selectedMember.city}
-            />
-            <Row
-              label={t("admin.membersPanel.modal.birthPlace")}
-              value={selectedMember.birth_place}
-            />
-            <Row
-              label={t("admin.membersPanel.modal.birthDate")}
-              value={
-                selectedMember.date_of_birth
-                  ? new Date(selectedMember.date_of_birth).toLocaleDateString(
-                      "it-IT"
-                    )
-                  : "-"
-              }
-            />
-            <Row
-              label={t("admin.membersPanel.modal.fiscalCode")}
-              value={selectedMember.fiscal_code}
-            />
-            <Row
-              label={t("admin.membersPanel.modal.privacy")}
-              value={selectedMember.accept_privacy ? "✓" : "✗"}
-            />
-            <Row
-              label={t("admin.membersPanel.modal.marketing")}
-              value={
-                selectedMember.accept_marketing
-                  ? t("admin.membersPanel.marketingYes")
-                  : t("admin.membersPanel.marketingNo")
-              }
-            />
-            <Row
-              label={t("admin.membersPanel.modal.insertedAt")}
-              value={
-                selectedMember.created_at
-                  ? new Date(selectedMember.created_at).toLocaleString("it-IT")
-                  : "-"
-              }
-            />
-            <Row
-              label={t("admin.membersPanel.modal.notes")}
-              value={selectedMember.note || "—"}
-            />
-            <Row
-              label={t("admin.membersPanel.modal.source")}
-              value={selectedMember.source || "—"}
-            />
+          <div className="space-y-3">
+            {/* DATI BASE */}
+            <div className="space-y-2">
+              <Row
+                label={t("admin.membersPanel.modal.name")}
+                value={selectedMember.full_name}
+              />
+              <Row
+                label={t("admin.membersPanel.modal.email")}
+                value={selectedMember.email}
+              />
+              <Row
+                label={t("admin.membersPanel.modal.phone")}
+                value={selectedMember.phone}
+              />
+              <Row
+                label={t("admin.membersPanel.modal.city")}
+                value={selectedMember.city}
+              />
+              <Row
+                label={t("admin.membersPanel.modal.birthPlace")}
+                value={selectedMember.birth_place}
+              />
+              <Row
+                label={t("admin.membersPanel.modal.birthDate")}
+                value={formatDate(selectedMember.date_of_birth)}
+              />
+              <Row
+                label={t("admin.membersPanel.modal.fiscalCode")}
+                value={selectedMember.fiscal_code}
+              />
+              <Row
+                label={t("admin.membersPanel.modal.privacy")}
+                value={selectedMember.accept_privacy ? "✓" : "✗"}
+              />
+              <Row
+                label={t("admin.membersPanel.modal.marketing")}
+                value={
+                  selectedMember.accept_marketing
+                    ? t("admin.membersPanel.marketingYes")
+                    : t("admin.membersPanel.marketingNo")
+                }
+              />
+              <Row
+                label={t("admin.membersPanel.modal.insertedAt")}
+                value={
+                  selectedMember.created_at
+                    ? new Date(selectedMember.created_at).toLocaleString(
+                        "it-IT"
+                      )
+                    : "-"
+                }
+              />
+              <Row
+                label={t("admin.membersPanel.modal.notes")}
+                value={selectedMember.note || "—"}
+              />
+              <Row
+                label={t("admin.membersPanel.modal.source")}
+                value={selectedMember.source || "—"}
+              />
+            </div>
 
+            {/* DATI TESSERA ACSI (se presenti) */}
+            <div className="border-t border-white/10 pt-3">
+              <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+                Dati tessera ACSI
+              </p>
+              <div className="space-y-2">
+                <Row label="Stato tessera" value={selectedMember.status} />
+                <Row
+                  label="Numero tessera"
+                  value={selectedMember.card_number}
+                />
+                <Row label="Anno tesseramento" value={selectedMember.year} />
+                <Row
+                  label="Anno di affiliazione"
+                  value={selectedMember.affiliation_year}
+                />
+                <Row label="Id sodalizio" value={selectedMember.club_id} />
+                <Row label="Id annualità" value={selectedMember.season_id} />
+                <Row label="Sodalizio" value={selectedMember.club_name} />
+                <Row
+                  label="Tipologia sodalizio"
+                  value={selectedMember.club_type}
+                />
+                <Row
+                  label="Codice fiscale sodalizio"
+                  value={selectedMember.club_fiscal_code}
+                />
+                <Row label="Affiliazione" value={selectedMember.affiliation} />
+                <Row
+                  label="Valida dal"
+                  value={formatDate(selectedMember.valid_from)}
+                />
+                <Row
+                  label="Valida al"
+                  value={formatDate(selectedMember.valid_to)}
+                />
+                <Row label="Assicurazione" value={selectedMember.insurance} />
+                <Row
+                  label="Valid insurance flag"
+                  value={selectedMember.valid_insurance_flag}
+                />
+                <Row label="Sesso" value={selectedMember.gender} />
+                <Row
+                  label="Persona con disabilità"
+                  value={selectedMember.has_disability}
+                />
+                <Row
+                  label="Data iscrizione CONI"
+                  value={formatDate(selectedMember.coni_registration_date)}
+                />
+                <Row
+                  label="Data iscrizione REGISTRO"
+                  value={formatDate(selectedMember.register_registration_date)}
+                />
+                <Row
+                  label="Anomalia codice fiscale"
+                  value={selectedMember.fiscal_code_issue}
+                />
+                <Row
+                  label="Anomalia discipline"
+                  value={selectedMember.disciplines_issue}
+                />
+                <Row label="Privacy 2.4" value={selectedMember.privacy_24} />
+                <Row label="Privacy 2.5" value={selectedMember.privacy_25} />
+                <Row
+                  label="Privacy foto/video"
+                  value={selectedMember.privacy_photo}
+                />
+                <Row
+                  label="Discipline/attività ACSI"
+                  value={selectedMember.acsi_disciplines}
+                />
+                <Row
+                  label="Discipline CONI"
+                  value={selectedMember.coni_disciplines}
+                />
+                <Row
+                  label="Exportata nel registro ACSI"
+                  value={
+                    selectedMember.exported_to_registry === true
+                      ? "Sì"
+                      : selectedMember.exported_to_registry === false
+                      ? "No"
+                      : "—"
+                  }
+                />
+              </div>
+            </div>
+
+            {/* DOCUMENTI */}
             <div className="mt-3 border-t border-white/10 pt-3">
               <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">
                 {t("admin.membersPanel.modal.documents")}

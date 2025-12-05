@@ -5,5 +5,5 @@ const baseURL = import.meta.env.VITE_ADMIN_API_URL;
 
 export const api = axios.create({
   baseURL,
-  withCredentials: true, 
+  withCredentials: true,
 });

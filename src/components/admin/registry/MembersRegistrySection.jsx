@@ -1,3 +1,4 @@
+// src/components/admin/registry/MembersRegistrySection.jsx
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -24,18 +25,15 @@ export default function MembersRegistrySection({
 }) {
   const { t } = useTranslation();
 
-  // 🔹 calcolo pagine totali in base al totale passato dal parent
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
-
-  // 🔹 slice dei risultati in base alla pagina corrente
   const startIndex = (page - 1) * pageSize;
   const endIndex = startIndex + pageSize;
   const pageEntries = filteredRegistry.slice(startIndex, endIndex);
 
   return (
     <div className="space-y-3">
-      {/* HEADER + filtri */}
-      <div className="flex flex-col gap-2 border-b border-slate-800/80 pb-2 md:flex-row md:items-center md:justify-between">
+      {/* HEADER + filtri + import storico */}
+      <div className="flex flex-col gap-3 border-b border-slate-800/80 pb-3 md:flex-row md:items-start md:justify-between">
         <div className="space-y-1">
           <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-200">
             Storico soci ACSI
@@ -47,36 +45,70 @@ export default function MembersRegistrySection({
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3 text-xs text-slate-300">
-          {/* ANNO */}
-          <div className="flex items-center gap-1">
-            <span>Anno:</span>
-            <select
-              className="h-7 rounded-md border border-slate-700 bg-slate-900/80 px-2 text-xs text-slate-100"
-              value={yearFilter}
-              onChange={(e) => setYearFilter(e.target.value)}
-            >
-              <option value="ALL">Tutti</option>
-              {["2026", "2025", "2024", "2023", "2022"].map((y) => (
-                <option key={y} value={y}>
-                  {y}
-                </option>
-              ))}
-            </select>
+        <div className="flex flex-col gap-2 text-xs text-slate-300 md:items-end">
+          <div className="flex flex-wrap items-center gap-3">
+            {/* ANNO filtro */}
+            <div className="flex items-center gap-1">
+              <span>Anno:</span>
+              <select
+                className="h-7 rounded-md border border-slate-700 bg-slate-900/80 px-2 text-xs text-slate-100"
+                value={yearFilter}
+                onChange={(e) => setYearFilter(e.target.value)}
+              >
+                <option value="ALL">Tutti</option>
+                {["2026", "2025", "2024", "2023", "2022"].map((y) => (
+                  <option key={y} value={y}>
+                    {y}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* STATO filtro */}
+            <div className="flex items-center gap-1">
+              <span>Stato:</span>
+              <select
+                className="h-7 rounded-md border border-slate-700 bg-slate-900/80 px-2 text-xs text-slate-100"
+                value={registryStatusFilter}
+                onChange={(e) => setRegistryStatusFilter(e.target.value)}
+              >
+                <option value="ALL">Tutti</option>
+                <option value="ACTIVE">Solo attivi</option>
+              </select>
+            </div>
           </div>
 
-          {/* STATO */}
-          <div className="flex items-center gap-1">
-            <span>Stato:</span>
-            <select
-              className="h-7 rounded-md border border-slate-700 bg-slate-900/80 px-2 text-xs text-slate-100"
-              value={registryStatusFilter}
-              onChange={(e) => setRegistryStatusFilter(e.target.value)}
+          {/* Import XLSX storico */}
+          <div className="flex flex-wrap items-center gap-2 text-[11px]">
+            <input
+              type="file"
+              accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+              onChange={(e) => setRegistryFile(e.target.files?.[0] || null)}
+              className="block w-48 cursor-pointer text-[10px] text-slate-300 file:mr-2 file:rounded-md file:border-0 file:bg-slate-700 file:px-2 file:py-1 file:text-[10px] file:uppercase file:tracking-[0.14em] file:text-slate-100 hover:file:bg-slate-600"
+            />
+            <input
+              type="text"
+              placeholder="Anno per import (es. 2025)"
+              value={registryYear}
+              onChange={(e) => setRegistryYear(e.target.value)}
+              className="h-7 w-36 rounded-md border border-slate-700 bg-slate-900/80 px-2 text-[10px] text-slate-100 placeholder:text-slate-500"
+            />
+            <button
+              type="button"
+              onClick={onImportClick}
+              disabled={importingRegistry}
+              className={`rounded-full border px-3 py-1 text-[10px] uppercase tracking-[0.16em] ${
+                importingRegistry
+                  ? "cursor-not-allowed border-slate-600 bg-slate-800 text-slate-400"
+                  : "border-emerald-400/70 bg-emerald-500/10 text-emerald-100 hover:bg-emerald-500/25"
+              }`}
             >
-              <option value="ALL">Tutti</option>
-              <option value="ACTIVE">Solo attivi</option>
-            </select>
+              {importingRegistry ? "Import in corso…" : "Import XLSX storico"}
+            </button>
           </div>
+          {importMessage && (
+            <p className="text-[10px] text-slate-300">{importMessage}</p>
+          )}
         </div>
       </div>
 
