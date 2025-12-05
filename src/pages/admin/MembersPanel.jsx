@@ -19,15 +19,12 @@ export default function MembersPanel() {
   const [error, setError] = useState("");
 
   // ---- FILTRI GLOBALI ----
-  const currentYear = new Date().getFullYear().toString();
-
-  // MOSTRA TUTTO DI DEFAULT
-  const [yearFilter, setYearFilter] = useState("ALL"); // "ALL" oppure anno specifico
-  const [statusFilter, setStatusFilter] = useState("ALL"); // ACTIVE | ALL
+  const [yearFilter, setYearFilter] = useState("ALL"); // "ALL" oppure anno specifico (string)
+  const [statusFilter, setStatusFilter] = useState("ALL"); // "ALL" | "ACTIVE" | "TERMINATED"
 
   // FILTRO EXPORT (non esportati / esportati / tutti)
-  // 🔹 DI DEFAULT: vedi TUTTI
-  const [exportFilter, setExportFilter] = useState("all");
+  // 🔹 DI DEFAULT: MOSTRA SOLO "DA ESPORTARE"
+  const [exportFilter, setExportFilter] = useState("non_exported");
   // valori ammessi: "non_exported" | "exported" | "all"
 
   // ---- PAGINAZIONE ----
@@ -45,7 +42,7 @@ export default function MembersPanel() {
   const [loadingMember, setLoadingMember] = useState(false);
 
   // -----------------------------------------------------
-  // FUNZIONE UNICA DI CARICAMENTO SOCI
+  // FUNZIONE UNICA DI CARICAMENTO SOCI (dal backend)
   // -----------------------------------------------------
   const loadMembers = useCallback(
     async (filter) => {
@@ -53,7 +50,7 @@ export default function MembersPanel() {
       setError("");
 
       try {
-        const data = await fetchMembers(filter);
+        const data = await fetchMembers(filter); // filter = "non_exported" | "exported" | "all"
 
         if (!data.ok) {
           throw new Error(data.message || t("admin.membersPanel.error"));
@@ -72,7 +69,7 @@ export default function MembersPanel() {
   );
 
   // -----------------------------------------------------
-  // CARICAMENTO SOCI (solo tabella members)
+  // CARICAMENTO SOCI (tabella members)
   // -----------------------------------------------------
   useEffect(() => {
     let cancelled = false;
@@ -88,16 +85,34 @@ export default function MembersPanel() {
   }, [loadMembers, exportFilter]);
 
   // -----------------------------------------------------
-  // FILTRI SU members (ANNO + STATO)
+  // ANNI DISPONIBILI (dinamici dal DB)
+  // -----------------------------------------------------
+  const availableYears = useMemo(() => {
+    const years = new Set();
+
+    for (const m of members) {
+      const y =
+        m.year ??
+        (m.valid_from
+          ? new Date(m.valid_from).getFullYear()
+          : m.created_at
+          ? new Date(m.created_at).getFullYear()
+          : null);
+
+      if (y) years.add(y);
+    }
+
+    return Array.from(years).sort((a, b) => b - a); // dal più recente al più vecchio
+  }, [members]);
+
+  // -----------------------------------------------------
+  // FILTRI SU members (ANNO + STATO, il resto lo fa già il backend)
   // -----------------------------------------------------
   const filteredMembers = useMemo(() => {
-    const yearInt =
-      yearFilter && yearFilter !== "ALL" ? parseInt(yearFilter, 10) : null;
-
     return members
       .filter((m) => {
-        // anno: uso m.year se c'è; altrimenti prendo anno da valid_from o created_at
-        if (yearInt) {
+        // ---- ANNO ----
+        if (yearFilter !== "ALL") {
           const fromYear =
             m.year ??
             (m.valid_from
@@ -105,14 +120,18 @@ export default function MembersPanel() {
               : m.created_at
               ? new Date(m.created_at).getFullYear()
               : null);
-          if (fromYear !== yearInt) return false;
+
+          if (!fromYear || String(fromYear) !== String(yearFilter)) {
+            return false;
+          }
         }
 
-        // stato: “ACTIVE” = stringa che inizia per “attiv”
-        if (statusFilter === "ACTIVE") {
-          const statusText = (m.status || "").toString().toLowerCase();
-          if (!statusText.startsWith("attiv")) return false;
-        }
+        // ---- STATO (ATTIVO / TERMINATO) ----
+        const statusText = (m.status || "").toString().toLowerCase();
+        const isActive = statusText.startsWith("attiv"); // "ATTIVO", "ATTIVA", ecc.
+
+        if (statusFilter === "ACTIVE" && !isActive) return false;
+        if (statusFilter === "TERMINATED" && isActive) return false;
 
         return true;
       })
@@ -187,7 +206,7 @@ export default function MembersPanel() {
   };
 
   // -----------------------------------------------------
-  // IMPORT SOCI DA XLSX (collegato a /api/admin/members/import-xlsx)
+  // IMPORT SOCI DA XLSX (→ /api/admin/members/import-xlsx)
   // -----------------------------------------------------
   const handleImportMembers = async () => {
     if (!importFile) {
@@ -265,7 +284,7 @@ export default function MembersPanel() {
       <div className="mb-1 flex flex-col gap-3 rounded-xl border border-white/5 bg-slate-950/60 p-3 md:flex-row md:items-start md:justify-between">
         {/* Filtri anno + stato + export */}
         <div className="flex flex-wrap items-center gap-3 text-xs text-slate-300">
-          {/* ANNO */}
+          {/* ANNO (dinamico dal DB) */}
           <div className="flex items-center gap-1">
             <span>Anno:</span>
             <select
@@ -277,18 +296,15 @@ export default function MembersPanel() {
               }}
             >
               <option value="ALL">Tutti</option>
-              {["2026", "2025", "2024", "2023", "2022"].map((y) => (
-                <option key={y} value={y}>
+              {availableYears.map((y) => (
+                <option key={y} value={String(y)}>
                   {y}
                 </option>
               ))}
-              {!["2026", "2025", "2024", "2023", "2022"].includes(
-                currentYear
-              ) && <option value={currentYear}>{currentYear}</option>}
             </select>
           </div>
 
-          {/* STATO */}
+          {/* STATO (attivo / terminato) */}
           <div className="flex items-center gap-1">
             <span>Stato:</span>
             <select
@@ -301,10 +317,11 @@ export default function MembersPanel() {
             >
               <option value="ALL">Tutti</option>
               <option value="ACTIVE">Solo attivi</option>
+              <option value="TERMINATED">Terminati / non attivi</option>
             </select>
           </div>
 
-          {/* EXPORT */}
+          {/* EXPORT (da esportare / già esportati / tutti) */}
           <div className="flex items-center gap-1">
             <span>Export:</span>
             <select
