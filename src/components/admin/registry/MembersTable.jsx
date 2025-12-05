@@ -1,4 +1,4 @@
- // src/components/admin/registry/MembersTable.jsx
+// src/components/admin/registry/MembersTable.jsx
 export default function MembersTable({
   t,
   loading,
@@ -39,6 +39,7 @@ export default function MembersTable({
           <tr className="border-b  border-white/10 bg-slate-900/70 text-[10px] uppercase tracking-[0.16em] text-slate-400">
             <th className="px-3 py-2">Anno</th>
             <th className="px-3 py-2">Stato</th>
+            <th className="px-3 py-2">Export ACSI</th>
             <th className="px-3 py-2">Cognome</th>
             <th className="px-3 py-2">Nome</th>
             <th className="px-3 py-2 text-right">Azioni</th>
@@ -58,7 +59,7 @@ export default function MembersTable({
 
             const status = m.status || "";
 
-            // split full_name -> first/last name
+            // split full_name -> first/last name con preferenza ai campi separati
             let firstName = m.first_name || "";
             let lastName = m.last_name || "";
 
@@ -71,6 +72,8 @@ export default function MembersTable({
                 firstName = parts.join(" ");
               }
             }
+
+            const exported = !!m.exported_to_registry;
 
             return (
               <tr
@@ -97,6 +100,19 @@ export default function MembersTable({
                   ) : (
                     "-"
                   )}
+                </td>
+
+                {/* EXPORT ACSI */}
+                <td className="px-3 py-2 text-[11px]">
+                  <span
+                    className={`inline-flex rounded-full px-2 py-px text-[10px] uppercase tracking-[0.14em] ${
+                      exported
+                        ? "bg-cyan-500/10 text-cyan-200 border border-cyan-500/40"
+                        : "bg-amber-500/10 text-amber-200 border border-amber-500/40"
+                    }`}
+                  >
+                    {exported ? "ESPORTATO" : "DA ESPORTARE"}
+                  </span>
                 </td>
 
                 {/* COGNOME */}

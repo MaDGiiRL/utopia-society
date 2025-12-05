@@ -20,8 +20,14 @@ export default function MembersPanel() {
 
   // ---- FILTRI GLOBALI ----
   const currentYear = new Date().getFullYear().toString();
-  const [yearFilter, setYearFilter] = useState(currentYear); // default anno corrente
-  const [statusFilter, setStatusFilter] = useState("ACTIVE"); // ACTIVE | ALL
+
+  // MOSTRA TUTTO DI DEFAULT
+  const [yearFilter, setYearFilter] = useState("ALL"); // "ALL" oppure anno specifico
+  const [statusFilter, setStatusFilter] = useState("ALL"); // ACTIVE | ALL
+
+  // FILTRO EXPORT (non esportati / esportati / tutti)
+  const [exportFilter, setExportFilter] = useState("non_exported");
+  // valori ammessi: "non_exported" | "exported" | "all"
 
   // ---- PAGINAZIONE ----
   const [page, setPage] = useState(1);
@@ -47,13 +53,15 @@ export default function MembersPanel() {
       setLoading(true);
       setError("");
       try {
-        // prendo TUTTI i soci, poi filtro lato client per anno/stato
-        const data = await fetchMembers("all");
+        // prendo i soci dal backend in base al filtro export
+        const data = await fetchMembers(exportFilter);
         if (!cancelled) {
           if (!data.ok) {
             throw new Error(data.message || t("admin.membersPanel.error"));
           }
           setMembers(data.members || []);
+          // reset pagina se cambia la sorgente
+          setPage(1);
         }
       } catch (err) {
         console.error(err);
@@ -69,7 +77,7 @@ export default function MembersPanel() {
     return () => {
       cancelled = true;
     };
-  }, [t]);
+  }, [t, exportFilter]);
 
   // -----------------------------------------------------
   // FILTRI SU members (ANNO + STATO)
@@ -80,7 +88,7 @@ export default function MembersPanel() {
 
     return members
       .filter((m) => {
-        // anno: uso m.year se c'è; altrimenti prendo anno da created_at
+        // anno: uso m.year se c'è; altrimenti prendo anno da valid_from o created_at
         if (yearInt) {
           const fromYear =
             m.year ??
@@ -171,7 +179,7 @@ export default function MembersPanel() {
   };
 
   // -----------------------------------------------------
-  // IMPORT SOCI DA XLSX (collegato a /api/admin/members/...)
+  // IMPORT SOCI DA XLSX (collegato a /api/admin/members/import-xlsx)
   // -----------------------------------------------------
   const handleImportMembers = async () => {
     if (!importFile) {
@@ -200,7 +208,6 @@ export default function MembersPanel() {
       formData.append("file", importFile);
       formData.append("year", yearForImport.toString());
 
-      // ⬇️ QUI DEVI AVERE IL TUO ENDPOINT BACKEND PER L'IMPORT
       const res = await fetch(`${API_BASE}/api/admin/members/import-xlsx`, {
         method: "POST",
         credentials: "include",
@@ -223,9 +230,9 @@ export default function MembersPanel() {
       );
       setImportFile(null);
 
-      // ricarico i members
+      // ricarico i members con lo stesso filtro export corrente
       try {
-        const reload = await fetchMembers("all");
+        const reload = await fetchMembers(exportFilter);
         if (reload.ok) {
           setMembers(reload.members || []);
         }
@@ -255,8 +262,9 @@ export default function MembersPanel() {
 
       {/* FILTRI + IMPORT */}
       <div className="mb-1 flex flex-col gap-3 rounded-xl border border-white/5 bg-slate-950/60 p-3 md:flex-row md:items-start md:justify-between">
-        {/* Filtri anno + stato */}
+        {/* Filtri anno + stato + export */}
         <div className="flex flex-wrap items-center gap-3 text-xs text-slate-300">
+          {/* ANNO */}
           <div className="flex items-center gap-1">
             <span>Anno:</span>
             <select
@@ -279,6 +287,7 @@ export default function MembersPanel() {
             </select>
           </div>
 
+          {/* STATO */}
           <div className="flex items-center gap-1">
             <span>Stato:</span>
             <select
@@ -289,8 +298,25 @@ export default function MembersPanel() {
                 setPage(1);
               }}
             >
-              <option value="ACTIVE">Solo attivi</option>
               <option value="ALL">Tutti</option>
+              <option value="ACTIVE">Solo attivi</option>
+            </select>
+          </div>
+
+          {/* EXPORT */}
+          <div className="flex items-center gap-1">
+            <span>Export:</span>
+            <select
+              className="h-8 rounded-md border border-slate-700 bg-slate-900/80 px-2 text-xs text-slate-100"
+              value={exportFilter}
+              onChange={(e) => {
+                setExportFilter(e.target.value);
+                setPage(1);
+              }}
+            >
+              <option value="non_exported">Da esportare</option>
+              <option value="exported">Già esportati</option>
+              <option value="all">Tutti</option>
             </select>
           </div>
         </div>
