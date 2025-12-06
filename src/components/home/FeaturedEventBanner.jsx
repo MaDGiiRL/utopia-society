@@ -123,12 +123,11 @@ export default function FeaturedEventBanner() {
             {hasImage && (
               <div className="relative order-1 border-b border-slate-800/70 bg-slate-900 md:border-b-0 md:border-r">
                 <div className="absolute inset-0 bg-linear-to-tr from-cyan-500/10 via-transparent to-fuchsia-500/15" />
-
-                <div className="relative aspect-[4/5] w-full flex items-center justify-center bg-slate-950/90">
+                <div className="relative aspect-[4/5] w-full">
                   <img
                     src={banner_image_url}
                     alt={banner_title || title}
-                    className="max-h-full max-w-full object-contain"
+                    className="absolute inset-0 h-full w-full object-cover"
                   />
                 </div>
               </div>
