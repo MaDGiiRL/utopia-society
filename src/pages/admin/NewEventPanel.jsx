@@ -92,7 +92,10 @@ export default function NewEventPanel() {
     setSentCount(null);
     setSending(true);
 
-    const formData = new FormData(e.currentTarget);
+    // 👇 salvi il riferimento al form PRIMA dell'await
+    const form = e.currentTarget;
+
+    const formData = new FormData(form);
 
     const payload = {
       title: formData.get("title") || "",
@@ -103,7 +106,7 @@ export default function NewEventPanel() {
       banner_cta_url: formData.get("banner_cta_url") || "",
       banner_image_url: bannerImageUrl || "",
       send_newsletter: formData.get("send_newsletter") === "on",
-      event_type: formData.get("event_type") || "current", // 👈 importantissimo
+      event_type: formData.get("event_type") || "current",
     };
 
     try {
@@ -129,7 +132,9 @@ export default function NewEventPanel() {
 
       // ricarica lista eventi
       loadEvents();
-      e.currentTarget.reset();
+
+      // 👇 usa il ref salvato, non l’evento
+      form.reset();
       setBannerImageUrl("");
     } catch (err) {
       console.error(err);
