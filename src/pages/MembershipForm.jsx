@@ -7,7 +7,6 @@ import ScrollScene3D from "../components/ScrollScene3D";
 import MembershipIntro from "../components/membership/MembershipIntro";
 import MembershipFormHeader from "../components/membership/MembershipFormHeader";
 import MembershipDocumentsSection from "../components/membership/MembershipDocumentsSection";
-import MembershipNotesSection from "../components/membership/MembershipNotesSection";
 import MembershipConsentsSection from "../components/membership/MembershipConsentsSection";
 import MembershipMessages from "../components/membership/MembershipMessages";
 import MembershipSubmitRow from "../components/membership/MembershipSubmitRow";
@@ -351,10 +350,9 @@ function MembershipForm() {
   return (
     <div className="relative min-h-[90vh]">
       {/* Glow */}
-      <div className="pointer-events-none absolute inset-0 m-0 bg-[radial-gradient(circle_at_top,rgba(236,72,153,0.18),transparent_60%),radial-gradient(circle_at_bottom,rgba(56,189,248,0.18),transparent_60%)]" />
-
-      <ScrollScene3D />
-
+      <div className="pointer-events-none absolute inset-0 m-0 bg-[radial-gradient(circle_at_top,rgba(236,72,153,0.18),transparent_60%),radial-gradient(circle_at_bottom,rgba(56,189,248,0.18),transparent_60%)]">
+        <ScrollScene3D />
+      </div>
       <section className="relative overflow-hidden py-24">
         <div className="relative mx-auto flex max-w-6xl flex-col gap-12 px-4 lg:grid lg:grid-cols-[1.05fr_minmax(0,1.1fr)] lg:items-start">
           {/* COLONNA TESTO */}
@@ -506,7 +504,6 @@ function MembershipForm() {
                 handleFileChange(e, setBackPreview, setBackName)
               }
             />
-
 
             {/* FIRMA DIGITALE */}
             <div className="space-y-3 border-t border-white/5 pt-4">
