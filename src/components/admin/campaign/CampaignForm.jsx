@@ -5,6 +5,7 @@ import {
   Sparkles,
   Loader2,
   Image as ImageIcon,
+  MessageCircle, // 👈 aggiunto
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useState } from "react";
@@ -23,6 +24,7 @@ export default function CampaignForm({
   const [heroImageUrl, setHeroImageUrl] = useState("");
   const [heroUploading, setHeroUploading] = useState(false);
   const [heroError, setHeroError] = useState("");
+  const [channel, setChannel] = useState("email"); // 👈 email / sms
 
   const handleHeroChange = async (e) => {
     const file = e.target.files?.[0];
@@ -162,23 +164,42 @@ export default function CampaignForm({
         </p>
       </div>
 
-      {/* Canali (solo email) */}
+      {/* Canale: EMAIL o SMS */}
       <div className="flex flex-wrap items-center gap-4 rounded-2xl border border-white/10 bg-slate-950/70 px-3 py-3 text-xs">
         <span className="text-[10px] uppercase tracking-[0.18em] text-slate-400">
           {t("admin.campaign.form.channelsLabel")}
         </span>
 
         <div className="flex flex-wrap gap-4">
+          {/* Email */}
           <label className="inline-flex items-center gap-2">
             <input
-              type="checkbox"
-              name="send_email"
-              defaultChecked
+              type="radio"
+              name="channel"
+              value="email"
+              checked={channel === "email"}
+              onChange={() => setChannel("email")}
               className="h-3.5 w-3.5 rounded border-slate-500 bg-slate-950 text-cyan-400 focus:ring-cyan-400"
             />
             <span className="inline-flex items-center gap-1 uppercase tracking-[0.16em] text-slate-200">
               <Mail className="h-3 w-3 text-cyan-300" />
               {t("admin.campaign.form.channelEmail")}
+            </span>
+          </label>
+
+          {/* SMS / WhatsApp */}
+          <label className="inline-flex items-center gap-2">
+            <input
+              type="radio"
+              name="channel"
+              value="sms"
+              checked={channel === "sms"}
+              onChange={() => setChannel("sms")}
+              className="h-3.5 w-3.5 rounded border-slate-500 bg-slate-950 text-cyan-400 focus:ring-cyan-400"
+            />
+            <span className="inline-flex items-center gap-1 uppercase tracking-[0.16em] text-slate-200">
+              <MessageCircle className="h-3 w-3 text-emerald-300" />
+              SMS / WhatsApp
             </span>
           </label>
         </div>

@@ -67,12 +67,15 @@ export default function NewCampaign() {
 
     const form = new FormData(e.target);
 
+    const channel = form.get("channel") || "email"; // 👈 letto dalla form
+
     const payload = {
       title: form.get("title"),
       event_date: form.get("event_date"),
       message_email: form.get("message_email"),
       channels: {
-        email: form.get("send_email") === "on",
+        email: channel === "email",
+        sms: channel === "sms",
       },
       // URL immagine hero (stringa, NON base64)
       hero_image_url: form.get("hero_image_url") || null,
