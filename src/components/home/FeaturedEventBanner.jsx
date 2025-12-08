@@ -4,6 +4,15 @@ import { CalendarDays, ArrowRight } from "lucide-react";
 
 const API_BASE = import.meta.env.VITE_ADMIN_API_URL || "";
 
+// 🔹 helper: mantiene gli "invii" e permette HTML nel sottotitolo
+function subtitleToHtml(text) {
+  if (!text) return { __html: "" };
+
+  return {
+    __html: String(text).replace(/\r\n/g, "\n").replace(/\n/g, "<br />"),
+  };
+}
+
 export default function FeaturedEventBanner() {
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -164,9 +173,10 @@ export default function FeaturedEventBanner() {
                   </h2>
 
                   {banner_subtitle && (
-                    <p className="text-sm leading-snug text-slate-300/90 md:text-[15px]">
-                      {banner_subtitle}
-                    </p>
+                    <div
+                      className="text-sm leading-snug text-slate-300/90 md:text-[15px]"
+                      dangerouslySetInnerHTML={subtitleToHtml(banner_subtitle)}
+                    />
                   )}
                 </div>
               </div>

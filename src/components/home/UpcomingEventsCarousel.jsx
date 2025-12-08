@@ -1,7 +1,17 @@
+// src/components/home/UpcomingEventsCarousel.jsx
 import { useEffect, useState } from "react";
 import { CalendarDays, Loader2 } from "lucide-react";
 
 const API_BASE = import.meta.env.VITE_ADMIN_API_URL || "";
+
+// 🔹 stesso helper per il sottotitolo nel carosello
+function subtitleToHtml(text) {
+  if (!text) return { __html: "" };
+
+  return {
+    __html: String(text).replace(/\r\n/g, "\n").replace(/\n/g, "<br />"),
+  };
+}
 
 export default function UpcomingEventsCarousel() {
   const [events, setEvents] = useState([]);
@@ -109,9 +119,12 @@ export default function UpcomingEventsCarousel() {
                     {ev.banner_title || ev.title}
                   </h3>
                   {ev.banner_subtitle && (
-                    <p className="mb-2 line-clamp-3 text-[10px] text-slate-400">
-                      {ev.banner_subtitle}
-                    </p>
+                    <div
+                      className="mb-2 line-clamp-3 text-[10px] text-slate-400"
+                      dangerouslySetInnerHTML={subtitleToHtml(
+                        ev.banner_subtitle
+                      )}
+                    />
                   )}
                   {ev.banner_cta_label && ev.banner_cta_url && (
                     <a
