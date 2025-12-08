@@ -83,7 +83,7 @@ function MembershipForm() {
   const [frontName, setFrontName] = useState("");
   const [backName, setBackName] = useState("");
 
-  // Setup eventi di disegno per la firma (sempre visibile)
+  // Setup eventi di disegno per la firma
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -111,8 +111,11 @@ function MembershipForm() {
       };
     };
 
+    const isTouchEvent = (e) => "touches" in e || "changedTouches" in e;
+
     const handleStart = (e) => {
-      e.preventDefault();
+      // blocca il default SOLO per il touch (per evitare scroll mentre firmi)
+      if (isTouchEvent(e)) e.preventDefault();
       drawing.current = true;
       const { x, y } = getPos(e);
       ctx.beginPath();
@@ -121,25 +124,27 @@ function MembershipForm() {
 
     const handleMove = (e) => {
       if (!drawing.current) return;
-      e.preventDefault();
+      if (isTouchEvent(e)) e.preventDefault();
       const { x, y } = getPos(e);
       ctx.lineTo(x, y);
       ctx.stroke();
       setHasSigned(true);
     };
 
-    const handleEnd = (e) => {
-      e?.preventDefault();
+    const handleEnd = () => {
+      // niente preventDefault qui, importante per non rompere i tap sugli input
       drawing.current = false;
     };
 
+    // mouse
     canvas.addEventListener("mousedown", handleStart);
     canvas.addEventListener("mousemove", handleMove);
     window.addEventListener("mouseup", handleEnd);
 
-    canvas.addEventListener("touchstart", handleStart);
-    canvas.addEventListener("touchmove", handleMove);
-    window.addEventListener("touchend", handleEnd);
+    // touch (solo sul canvas, NON sul window)
+    canvas.addEventListener("touchstart", handleStart, { passive: false });
+    canvas.addEventListener("touchmove", handleMove, { passive: false });
+    canvas.addEventListener("touchend", handleEnd);
 
     return () => {
       canvas.removeEventListener("mousedown", handleStart);
@@ -148,7 +153,7 @@ function MembershipForm() {
 
       canvas.removeEventListener("touchstart", handleStart);
       canvas.removeEventListener("touchmove", handleMove);
-      window.removeEventListener("touchend", handleEnd);
+      canvas.removeEventListener("touchend", handleEnd);
     };
   }, []);
 
