@@ -5,7 +5,7 @@ import {
   Sparkles,
   Loader2,
   Image as ImageIcon,
-  MessageCircle, // 👈 aggiunto
+  MessageCircle,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useState } from "react";
@@ -24,7 +24,7 @@ export default function CampaignForm({
   const [heroImageUrl, setHeroImageUrl] = useState("");
   const [heroUploading, setHeroUploading] = useState(false);
   const [heroError, setHeroError] = useState("");
-  const [channel, setChannel] = useState("email"); // 👈 email / sms
+  const [channel, setChannel] = useState("email"); // "email" | "sms"
 
   const handleHeroChange = async (e) => {
     const file = e.target.files?.[0];
@@ -49,6 +49,7 @@ export default function CampaignForm({
         throw new Error(data.message || "Errore upload immagine campagna");
       }
 
+      // URL pubblico dal bucket "public-assets"
       setHeroImageUrl(data.url);
     } catch (err) {
       console.error("Errore upload immagine campagna:", err);
@@ -61,13 +62,36 @@ export default function CampaignForm({
     }
   };
 
-  return (
-    <form onSubmit={onSubmit} className="space-y-5">
-      {/* se c'è URL immagine lo passiamo al parent via input nascosto */}
-      {heroImageUrl && (
-        <input type="hidden" name="hero_image_url" value={heroImageUrl} />
-      )}
+  const handleSubmit = (e) => {
+    e.preventDefault();
 
+    const formData = new FormData(e.currentTarget);
+
+    const payload = {
+      title: formData.get("title")?.toString().trim() || "",
+      event_date: formData.get("event_date") || null,
+      message_email: formData.get("message_email")?.toString() || "",
+      hero_image_url: heroImageUrl || null, // URL pubblico per la newsletter
+      channels: {
+        email: channel === "email",
+        sms: channel === "sms", // "sms" frontend = WhatsApp nel backend
+      },
+    };
+
+    if (typeof onSubmit === "function") {
+      onSubmit(payload, {
+        reset: () => {
+          e.currentTarget.reset();
+          setHeroImageUrl("");
+          setHeroError("");
+          setChannel("email");
+        },
+      });
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-5">
       {/* Dati evento */}
       <div className="grid gap-4 md:grid-cols-[2fr_1.1fr]">
         <div className="space-y-1.5">
@@ -110,7 +134,7 @@ export default function CampaignForm({
             onChange={handleHeroChange}
             className="text-[11px] text-slate-200 file:mr-3 file:rounded-full file:border-0 file:bg-cyan-400 file:px-3 file:py-1 file:text-[10px] file:font-semibold file:uppercase file:tracking-[0.16em] file:text-black file:hover:brightness-110"
           />
-          <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between text-[11px] text-slate-500">
+          <div className="flex flex-col gap-1 text-[11px] text-slate-500 sm:flex-row sm:items-center sm:justify-between">
             <span>
               Puoi caricare un'immagine che apparirà sotto al titolo della
               newsletter.
@@ -164,7 +188,7 @@ export default function CampaignForm({
         </p>
       </div>
 
-      {/* Canale: EMAIL o SMS */}
+      {/* Canale: EMAIL o SMS / WhatsApp */}
       <div className="flex flex-wrap items-center gap-4 rounded-2xl border border-white/10 bg-slate-950/70 px-3 py-3 text-xs">
         <span className="text-[10px] uppercase tracking-[0.18em] text-slate-400">
           {t("admin.campaign.form.channelsLabel")}
