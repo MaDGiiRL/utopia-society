@@ -36,6 +36,38 @@ export default function CampaignHistoryPanel({
     return (logs || []).slice(start, start + PAGE_SIZE_LOGS);
   }, [logs, logPage]);
 
+  // 🔹 aggrego i log per campagna e canale (email / whatsapp)
+  const statsByCampaignId = useMemo(() => {
+    const map = {};
+
+    for (const l of logs || []) {
+      if (!l.campaign_id) continue;
+      const id = l.campaign_id;
+
+      if (!map[id]) {
+        map[id] = {
+          emailSent: 0,
+          emailFailed: 0,
+          whatsappSent: 0,
+          whatsappFailed: 0,
+        };
+      }
+
+      const isSent = l.status === "sent";
+
+      if (l.channel === "email") {
+        if (isSent) map[id].emailSent += 1;
+        else map[id].emailFailed += 1;
+      } else if (l.channel === "whatsapp" || l.channel === "sms") {
+        // nel backend è "whatsapp", ma gestisco anche "sms" per sicurezza
+        if (isSent) map[id].whatsappSent += 1;
+        else map[id].whatsappFailed += 1;
+      }
+    }
+
+    return map;
+  }, [logs]);
+
   const statusLabel = (status) => {
     if (status === "sent") return t("admin.campaign.status.sent");
     if (status === "sending") return t("admin.campaign.status.sending");
@@ -44,7 +76,8 @@ export default function CampaignHistoryPanel({
 
   const logStatusLabel = (status) => {
     if (status === "sent") return t("admin.campaign.logs.status.sent");
-    if (status === "error") return t("admin.campaign.logs.status.error");
+    if (status === "error" || status === "failed")
+      return t("admin.campaign.logs.status.error");
     return status;
   };
 
@@ -74,7 +107,7 @@ export default function CampaignHistoryPanel({
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
         {/* Tabella campagne */}
-        <div className="flex flex-col max-h-64 rounded-xl border border-white/5 bg-slate-950/70">
+        <div className="flex max-h-64 flex-col rounded-xl border border-white/5 bg-slate-950/70">
           <div className="flex-1 overflow-auto">
             <div className="min-w-full overflow-x-auto">
               <table className="min-w-full text-[11px]">
@@ -89,6 +122,10 @@ export default function CampaignHistoryPanel({
                     <th className="px-3 py-2 text-left">
                       {t("admin.campaign.history.table.eventDate")}
                     </th>
+                    {/* nuovo: colonne invii */}
+                    <th className="px-3 py-2 text-left">
+                      {t("admin.campaign.history.table.deliveries") || "Invii"}
+                    </th>
                     <th className="px-3 py-2 text-left">
                       {t("admin.campaign.history.table.status")}
                     </th>
@@ -98,48 +135,132 @@ export default function CampaignHistoryPanel({
                   {historyLoading ? (
                     <tr>
                       <td
-                        colSpan={4}
+                        colSpan={5}
                         className="px-3 py-4 text-center text-xs text-slate-400"
                       >
                         {t("admin.campaign.history.loading")}
                       </td>
                     </tr>
                   ) : pagedCampaigns.length ? (
-                    pagedCampaigns.map((c) => (
-                      <tr
-                        key={c.id}
-                        className="border-t border-white/5 bg-slate-950/40 hover:bg-slate-900/70"
-                      >
-                        <td className="px-3 py-2 text-[10px] text-slate-400">
-                          {c.created_at
-                            ? new Date(c.created_at).toLocaleString("it-IT")
-                            : "-"}
-                        </td>
-                        <td className="px-3 py-2">{c.title || "-"}</td>
-                        <td className="px-3 py-2 text-[10px] text-slate-300">
-                          {c.event_date
-                            ? new Date(c.event_date).toLocaleDateString("it-IT")
-                            : "—"}
-                        </td>
-                        <td className="px-3 py-2">
-                          <span
-                            className={`inline-flex rounded-full px-2 py-0.5 text-[10px] uppercase tracking-[0.16em] ${
-                              c.status === "sent"
-                                ? "bg-emerald-500/15 text-emerald-300 border border-emerald-500/40"
-                                : c.status === "sending"
-                                ? "bg-amber-500/15 text-amber-300 border border-amber-500/40"
-                                : "bg-slate-700/40 text-slate-200 border border-slate-500/40"
-                            }`}
-                          >
-                            {statusLabel(c.status)}
-                          </span>
-                        </td>
-                      </tr>
-                    ))
+                    pagedCampaigns.map((c) => {
+                      const stats = statsByCampaignId[c.id] || {
+                        emailSent: 0,
+                        emailFailed: 0,
+                        whatsappSent: 0,
+                        whatsappFailed: 0,
+                      };
+
+                      // chi la pubblica / edita (se hai questi campi in tabella campaigns)
+                      const createdByLabel =
+                        c.created_by_name ||
+                        c.created_by_email ||
+                        c.created_by ||
+                        "—";
+                      const updatedByLabel =
+                        c.updated_by_name ||
+                        c.updated_by_email ||
+                        c.updated_by ||
+                        createdByLabel;
+
+                      const hasUpdatedAt =
+                        c.updated_at && c.updated_at !== c.created_at;
+
+                      return (
+                        <tr
+                          key={c.id}
+                          className="border-t border-white/5 bg-slate-950/40 hover:bg-slate-900/70"
+                        >
+                          <td className="px-3 py-2 text-[10px] text-slate-400">
+                            <div className="flex flex-col gap-0.5">
+                              <span>
+                                {c.created_at
+                                  ? new Date(c.created_at).toLocaleString(
+                                      "it-IT"
+                                    )
+                                  : "-"}
+                              </span>
+                              {hasUpdatedAt && (
+                                <span className="text-[9px] text-slate-500">
+                                  Ultima modifica:{" "}
+                                  {new Date(c.updated_at).toLocaleString(
+                                    "it-IT"
+                                  )}
+                                </span>
+                              )}
+                            </div>
+                          </td>
+
+                          <td className="px-3 py-2">
+                            <div className="flex flex-col gap-0.5">
+                              <span className="text-[11px] text-slate-100">
+                                {c.title || "-"}
+                              </span>
+                              {createdByLabel !== "—" && (
+                                <span className="text-[9px] text-slate-500">
+                                  Pubblicata da {createdByLabel}
+                                  {updatedByLabel &&
+                                    updatedByLabel !== createdByLabel && (
+                                      <> · Modificata da {updatedByLabel}</>
+                                    )}
+                                </span>
+                              )}
+                            </div>
+                          </td>
+
+                          <td className="px-3 py-2 text-[10px] text-slate-300">
+                            {c.event_date
+                              ? new Date(c.event_date).toLocaleDateString(
+                                  "it-IT"
+                                )
+                              : "—"}
+                          </td>
+
+                          {/* Invii email / WhatsApp */}
+                          <td className="px-3 py-2 text-[10px]">
+                            <div className="flex flex-col gap-1">
+                              <div className="flex items-center gap-1">
+                                <span className="rounded-full bg-slate-800/80 px-1.5 py-px text-[9px] uppercase tracking-[0.16em] text-slate-100">
+                                  📧 Email: {stats.emailSent}
+                                </span>
+                                {stats.emailFailed > 0 && (
+                                  <span className="text-[9px] text-rose-300">
+                                    ({stats.emailFailed} errate)
+                                  </span>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <span className="rounded-full bg-slate-800/80 px-1.5 py-px text-[9px] uppercase tracking-[0.16em] text-slate-100">
+                                  💬 WhatsApp: {stats.whatsappSent}
+                                </span>
+                                {stats.whatsappFailed > 0 && (
+                                  <span className="text-[9px] text-rose-300">
+                                    ({stats.whatsappFailed} errate)
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </td>
+
+                          <td className="px-3 py-2">
+                            <span
+                              className={`inline-flex rounded-full px-2 py-0.5 text-[10px] uppercase tracking-[0.16em] ${
+                                c.status === "sent"
+                                  ? "border border-emerald-500/40 bg-emerald-500/15 text-emerald-300"
+                                  : c.status === "sending"
+                                  ? "border border-amber-500/40 bg-amber-500/15 text-amber-300"
+                                  : "border border-slate-500/40 bg-slate-700/40 text-slate-200"
+                              }`}
+                            >
+                              {statusLabel(c.status)}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })
                   ) : (
                     <tr>
                       <td
-                        colSpan={4}
+                        colSpan={5}
                         className="px-3 py-4 text-center text-xs text-slate-500"
                       >
                         {t("admin.campaign.history.empty")}
@@ -168,7 +289,7 @@ export default function CampaignHistoryPanel({
                   disabled={campaignPage === 1}
                   className={`inline-flex items-center gap-1 rounded-full border px-2 py-1 ${
                     campaignPage === 1
-                      ? "border-slate-700 text-slate-600 cursor-not-allowed"
+                      ? "cursor-not-allowed border-slate-700 text-slate-600"
                       : "border-slate-500/60 text-slate-100 hover:bg-slate-800"
                   }`}
                 >
@@ -183,7 +304,7 @@ export default function CampaignHistoryPanel({
                   disabled={campaignPage === totalCampaignPages}
                   className={`inline-flex items-center gap-1 rounded-full border px-2 py-1 ${
                     campaignPage === totalCampaignPages
-                      ? "border-slate-700 text-slate-600 cursor-not-allowed"
+                      ? "cursor-not-allowed border-slate-700 text-slate-600"
                       : "border-slate-500/60 text-slate-100 hover:bg-slate-800"
                   }`}
                 >
@@ -196,7 +317,7 @@ export default function CampaignHistoryPanel({
         </div>
 
         {/* Tabella log */}
-        <div className="flex flex-col max-h-64 rounded-xl border border-white/5 bg-slate-950/70">
+        <div className="flex max-h-64 flex-col rounded-xl border border-white/5 bg-slate-950/70">
           <div className="flex items-center gap-2 px-3 pt-2 text-[10px] uppercase tracking-[0.16em] text-slate-400">
             <ListOrdered className="h-3 w-3" />
             {t("admin.campaign.logs.title")}
@@ -295,7 +416,7 @@ export default function CampaignHistoryPanel({
                   disabled={logPage === 1}
                   className={`inline-flex items-center gap-1 rounded-full border px-2 py-1 ${
                     logPage === 1
-                      ? "border-slate-700 text-slate-600 cursor-not-allowed"
+                      ? "cursor-not-allowed border-slate-700 text-slate-600"
                       : "border-slate-500/60 text-slate-100 hover:bg-slate-800"
                   }`}
                 >
@@ -310,7 +431,7 @@ export default function CampaignHistoryPanel({
                   disabled={logPage === totalLogPages}
                   className={`inline-flex items-center gap-1 rounded-full border px-2 py-1 ${
                     logPage === totalLogPages
-                      ? "border-slate-700 text-slate-600 cursor-not-allowed"
+                      ? "cursor-not-allowed border-slate-700 text-slate-600"
                       : "border-slate-500/60 text-slate-100 hover:bg-slate-800"
                   }`}
                 >
