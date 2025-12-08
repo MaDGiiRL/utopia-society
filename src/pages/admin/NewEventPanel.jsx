@@ -39,7 +39,7 @@ export default function NewEventPanel() {
     banner_cta_label: "",
     banner_cta_url: "",
     is_featured: false,
-    event_type: "current", // 👈 nuovo
+    event_type: "current",
   });
   const [editSaving, setEditSaving] = useState(false);
   const [editError, setEditError] = useState("");
@@ -92,10 +92,11 @@ export default function NewEventPanel() {
     setSentCount(null);
     setSending(true);
 
-    // 👇 salvi il riferimento al form PRIMA dell'await
     const form = e.currentTarget;
-
     const formData = new FormData(form);
+
+    const sendEmail = formData.get("send_email") === "on";
+    const sendWhatsapp = formData.get("send_whatsapp") === "on";
 
     const payload = {
       title: formData.get("title") || "",
@@ -105,8 +106,14 @@ export default function NewEventPanel() {
       banner_cta_label: formData.get("banner_cta_label") || "",
       banner_cta_url: formData.get("banner_cta_url") || "",
       banner_image_url: bannerImageUrl || "",
-      send_newsletter: formData.get("send_newsletter") === "on",
+      // retro-compatibilità: true se almeno un canale è selezionato
+      send_newsletter: sendEmail || sendWhatsapp,
       event_type: formData.get("event_type") || "current",
+      // nuovo oggetto channels, come per le campagne
+      channels: {
+        email: sendEmail,
+        sms: sendWhatsapp, // WhatsApp lato backend
+      },
     };
 
     try {
@@ -133,7 +140,6 @@ export default function NewEventPanel() {
       // ricarica lista eventi
       loadEvents();
 
-      // 👇 usa il ref salvato, non l’evento
       form.reset();
       setBannerImageUrl("");
     } catch (err) {
@@ -187,12 +193,12 @@ export default function NewEventPanel() {
       text: `Vuoi davvero cancellare l'evento "${ev.title}"?`,
       icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: "#ef4444", // rosso
-      cancelButtonColor: "#64748b", // slate
+      confirmButtonColor: "#ef4444",
+      cancelButtonColor: "#64748b",
       confirmButtonText: "Sì, elimina",
       cancelButtonText: "Annulla",
-      background: "#020617", // slate-950
-      color: "#e5e7eb", // slate-200
+      background: "#020617",
+      color: "#e5e7eb",
     });
 
     if (!result.isConfirmed) return;
@@ -217,7 +223,7 @@ export default function NewEventPanel() {
         title: "Eliminato",
         text: "L'evento è stato cancellato correttamente.",
         icon: "success",
-        confirmButtonColor: "#22c55e", // emerald
+        confirmButtonColor: "#22c55e",
         background: "#020617",
         color: "#e5e7eb",
       });
@@ -304,7 +310,6 @@ export default function NewEventPanel() {
         );
       }
 
-      // aggiorna lista in memoria
       setEvents((prev) =>
         prev.map((e) => (e.id === editingEvent.id ? data.event : e))
       );
@@ -335,8 +340,8 @@ export default function NewEventPanel() {
               Nuovo evento
             </div>
             <p className="text-xs text-slate-400">
-              Crea un evento con banner in homepage e (opzionalmente) invia una
-              newsletter automatica ai soci.
+              Crea un evento con banner in homepage e (opzionalmente) invia
+              comunicazioni ai soci.
             </p>
           </div>
         </div>
@@ -410,7 +415,7 @@ export default function NewEventPanel() {
               </div>
               <p className="text-[11px] text-slate-400">
                 I testi che inserisci qui vengono usati sia nel banner della
-                home, sia nella newsletter automatica.
+                home, sia nelle eventuali comunicazioni email/WhatsApp.
               </p>
             </div>
           </div>
@@ -510,23 +515,45 @@ export default function NewEventPanel() {
           </div>
         </div>
 
-        {/* Opzione: invio newsletter automatico */}
-        <div className="rounded-2xl border border-white/10 bg-slate-950/70 p-4">
-          <label className="inline-flex items-start gap-2 text-[11px] text-slate-200">
-            <input
-              type="checkbox"
-              name="send_newsletter"
-              className="mt-0.5 h-3.5 w-3.5 rounded border-slate-500 bg-slate-950 text-cyan-400 focus:ring-cyan-400"
-              defaultChecked
-            />
-            <span>
-              Invia automaticamente una newsletter ai soci marketing usando{" "}
-              <span className="font-semibold text-cyan-300">
-                titolo, data, descrizione e immagine
-              </span>{" "}
-              di questo evento.
-            </span>
-          </label>
+        {/* Opzione: canali invio (Email / WhatsApp) */}
+        <div className="rounded-2xl border border-white/10 bg-slate-950/70 p-4 space-y-2">
+          <div className="text-[10px] uppercase tracking-[0.2em] text-slate-300">
+            Invio comunicazioni ai soci
+          </div>
+          <p className="text-[11px] text-slate-400">
+            Puoi scegliere se inviare solo email, solo WhatsApp o entrambi i
+            canali ai soci che hanno dato il consenso marketing.
+          </p>
+
+          <div className="mt-2 flex flex-col gap-2 text-[11px] text-slate-200 sm:flex-row sm:items-center sm:gap-4">
+            <label className="inline-flex items-center gap-2">
+              <input
+                type="checkbox"
+                name="send_email"
+                defaultChecked
+                className="h-3.5 w-3.5 rounded border-slate-500 bg-slate-950 text-cyan-400 focus:ring-cyan-400"
+              />
+              <span>
+                Invia <span className="font-semibold text-cyan-300">email</span>{" "}
+                automatica usando titolo, data, descrizione e immagine.
+              </span>
+            </label>
+
+            <label className="inline-flex items-center gap-2">
+              <input
+                type="checkbox"
+                name="send_whatsapp"
+                className="h-3.5 w-3.5 rounded border-emerald-500 bg-slate-950 text-emerald-400 focus:ring-emerald-400"
+              />
+              <span>
+                Invia anche un{" "}
+                <span className="font-semibold text-emerald-300">
+                  messaggio WhatsApp
+                </span>{" "}
+                ai soci (tramite Meta Cloud API).
+              </span>
+            </label>
+          </div>
         </div>
 
         {/* Stato invio */}
@@ -540,7 +567,7 @@ export default function NewEventPanel() {
             Evento creato correttamente.
             {sentCount != null && (
               <span className="ml-1 text-emerald-300/90">
-                Newsletter inviata a {sentCount} destinatari marketing.
+                Comunicazione email inviata a {sentCount} destinatari marketing.
               </span>
             )}
           </div>

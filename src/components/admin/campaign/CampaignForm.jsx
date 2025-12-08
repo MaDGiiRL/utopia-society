@@ -199,7 +199,7 @@ export default function CampaignForm({
             />
             <span className="inline-flex items-center gap-1 uppercase tracking-[0.16em] text-slate-200">
               <MessageCircle className="h-3 w-3 text-emerald-300" />
-              SMS / WhatsApp
+              WhatsApp
             </span>
           </label>
         </div>
