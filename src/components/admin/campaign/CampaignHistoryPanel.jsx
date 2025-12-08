@@ -9,8 +9,8 @@ const PAGE_SIZE_LOGS = 5;
 export default function CampaignHistoryPanel({
   historyLoading,
   historyError,
-  campaigns,
-  logs,
+  campaigns = [],
+  logs = [],
 }) {
   const { t } = useTranslation();
 
@@ -19,28 +19,25 @@ export default function CampaignHistoryPanel({
 
   const totalCampaignPages = Math.max(
     1,
-    Math.ceil((campaigns?.length || 0) / PAGE_SIZE_CAMPAIGNS)
+    Math.ceil(campaigns.length / PAGE_SIZE_CAMPAIGNS)
   );
-  const totalLogPages = Math.max(
-    1,
-    Math.ceil((logs?.length || 0) / PAGE_SIZE_LOGS)
-  );
+  const totalLogPages = Math.max(1, Math.ceil(logs.length / PAGE_SIZE_LOGS));
 
   const pagedCampaigns = useMemo(() => {
     const start = (campaignPage - 1) * PAGE_SIZE_CAMPAIGNS;
-    return (campaigns || []).slice(start, start + PAGE_SIZE_CAMPAIGNS);
+    return campaigns.slice(start, start + PAGE_SIZE_CAMPAIGNS);
   }, [campaigns, campaignPage]);
 
   const pagedLogs = useMemo(() => {
     const start = (logPage - 1) * PAGE_SIZE_LOGS;
-    return (logs || []).slice(start, start + PAGE_SIZE_LOGS);
+    return logs.slice(start, start + PAGE_SIZE_LOGS);
   }, [logs, logPage]);
 
   // 🔹 aggrego i log per campagna e canale (email / whatsapp)
   const statsByCampaignId = useMemo(() => {
     const map = {};
 
-    for (const l of logs || []) {
+    for (const l of logs) {
       if (!l.campaign_id) continue;
       const id = l.campaign_id;
 
@@ -59,7 +56,6 @@ export default function CampaignHistoryPanel({
         if (isSent) map[id].emailSent += 1;
         else map[id].emailFailed += 1;
       } else if (l.channel === "whatsapp" || l.channel === "sms") {
-        // nel backend è "whatsapp", ma gestisco anche "sms" per sicurezza
         if (isSent) map[id].whatsappSent += 1;
         else map[id].whatsappFailed += 1;
       }
@@ -122,9 +118,8 @@ export default function CampaignHistoryPanel({
                     <th className="px-3 py-2 text-left">
                       {t("admin.campaign.history.table.eventDate")}
                     </th>
-                    {/* nuovo: colonne invii */}
                     <th className="px-3 py-2 text-left">
-                      {t("admin.campaign.history.table.deliveries") || "Invii"}
+                      {t("admin.campaign.history.table.deliveries")}
                     </th>
                     <th className="px-3 py-2 text-left">
                       {t("admin.campaign.history.table.status")}
@@ -150,16 +145,21 @@ export default function CampaignHistoryPanel({
                         whatsappFailed: 0,
                       };
 
-                      // chi la pubblica / edita (se hai questi campi in tabella campaigns)
+                      const emailSent =
+                        typeof c.recipients_email === "number"
+                          ? c.recipients_email
+                          : stats.emailSent;
+
+                      const whatsappSent =
+                        typeof c.recipients_whatsapp === "number"
+                          ? c.recipients_whatsapp
+                          : stats.whatsappSent;
+
                       const createdByLabel =
-                        c.created_by_name ||
-                        c.created_by_email ||
-                        c.created_by ||
-                        "—";
+                        c.created_by_email || c.created_by_admin_id || "—";
                       const updatedByLabel =
-                        c.updated_by_name ||
                         c.updated_by_email ||
-                        c.updated_by ||
+                        c.updated_by_admin_id ||
                         createdByLabel;
 
                       const hasUpdatedAt =
@@ -181,7 +181,10 @@ export default function CampaignHistoryPanel({
                               </span>
                               {hasUpdatedAt && (
                                 <span className="text-[9px] text-slate-500">
-                                  Ultima modifica:{" "}
+                                  {t(
+                                    "admin.campaign.history.lastUpdateLabel",
+                                    "Ultima modifica:"
+                                  )}{" "}
                                   {new Date(c.updated_at).toLocaleString(
                                     "it-IT"
                                   )}
@@ -197,10 +200,21 @@ export default function CampaignHistoryPanel({
                               </span>
                               {createdByLabel !== "—" && (
                                 <span className="text-[9px] text-slate-500">
-                                  Pubblicata da {createdByLabel}
+                                  {t(
+                                    "admin.campaign.history.publishedBy",
+                                    "Pubblicata da"
+                                  )}{" "}
+                                  {createdByLabel}
                                   {updatedByLabel &&
                                     updatedByLabel !== createdByLabel && (
-                                      <> · Modificata da {updatedByLabel}</>
+                                      <>
+                                        {" · "}
+                                        {t(
+                                          "admin.campaign.history.editedBy",
+                                          "Modificata da"
+                                        )}{" "}
+                                        {updatedByLabel}
+                                      </>
                                     )}
                                 </span>
                               )}
@@ -220,7 +234,7 @@ export default function CampaignHistoryPanel({
                             <div className="flex flex-col gap-1">
                               <div className="flex items-center gap-1">
                                 <span className="rounded-full bg-slate-800/80 px-1.5 py-px text-[9px] uppercase tracking-[0.16em] text-slate-100">
-                                  📧 Email: {stats.emailSent}
+                                  📧 Email: {emailSent}
                                 </span>
                                 {stats.emailFailed > 0 && (
                                   <span className="text-[9px] text-rose-300">
@@ -230,7 +244,7 @@ export default function CampaignHistoryPanel({
                               </div>
                               <div className="flex items-center gap-1">
                                 <span className="rounded-full bg-slate-800/80 px-1.5 py-px text-[9px] uppercase tracking-[0.16em] text-slate-100">
-                                  💬 WhatsApp: {stats.whatsappSent}
+                                  💬 WhatsApp: {whatsappSent}
                                 </span>
                                 {stats.whatsappFailed > 0 && (
                                   <span className="text-[9px] text-rose-300">
