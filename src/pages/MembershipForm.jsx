@@ -348,13 +348,18 @@ function MembershipForm() {
   };
 
   return (
-    <div className="relative min-h-[90vh]">
-      {/* Glow */}
-      <div className="pointer-events-none absolute inset-0 m-0 bg-[radial-gradient(circle_at_top,rgba(236,72,153,0.18),transparent_60%),radial-gradient(circle_at_bottom,rgba(56,189,248,0.18),transparent_60%)]">
+    <div className="relative min-h-[90vh] overflow-hidden">
+      {/* 3D background SOLO da md in su, completamente non interattivo */}
+      <div className="pointer-events-none fixed inset-0 -z-10 hidden md:block">
         <ScrollScene3D />
       </div>
-      <section className="relative overflow-hidden py-24">
-        <div className="relative mx-auto flex max-w-6xl flex-col gap-12 px-4 lg:grid lg:grid-cols-[1.05fr_minmax(0,1.1fr)] lg:items-start">
+
+      {/* Glow sopra il 3D ma sempre dietro al contenuto */}
+      <div className="pointer-events-none absolute inset-0 -z-10 m-0 bg-[radial-gradient(circle_at_top,rgba(236,72,153,0.18),transparent_60%),radial-gradient(circle_at_bottom,rgba(56,189,248,0.18),transparent_60%)]" />
+
+      {/* CONTENUTO PRINCIPALE */}
+      <section className="relative z-10 py-24">
+        <div className="relative mx-auto flex max-w-6xl flex-col gap-12 px-4 lg:grid lg:grid-cols-[1.05fr_minmax(0,1.1fr)] lg:items-start pointer-events-auto">
           {/* COLONNA TESTO */}
           <MembershipIntro />
 
@@ -545,7 +550,6 @@ function MembershipForm() {
               ok={ok}
               successText={t("membership.successInline")}
             />
-
             <MembershipSubmitRow
               loading={loading}
               submitLabel={t("membership.submitIdle")}
