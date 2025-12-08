@@ -234,7 +234,8 @@
                     "date": "Date",
                     "title": "Title",
                     "eventDate": "Event",
-                    "status": "Status"
+                    "status": "Status",
+                    "deliveries": "Deliveries"
                 }
             },
             "logs": {

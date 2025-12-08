@@ -234,7 +234,8 @@
                     "date": "Data",
                     "title": "Titolo",
                     "eventDate": "Evento",
-                    "status": "Stato"
+                    "status": "Stato",
+                    "deliveries": "Invii"
                 }
             },
             "logs": {
