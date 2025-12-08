@@ -1,3 +1,4 @@
+// src/components/admin/campaign/CampaignForm.jsx
 import {
   Send,
   Mail,
@@ -136,7 +137,7 @@ export default function CampaignForm({
           />
           <div className="flex flex-col gap-1 text-[11px] text-slate-500 sm:flex-row sm:items-center sm:justify-between">
             <span>
-              Puoi caricare un'immagine che apparirà sotto al titolo della
+              Puoi caricare un&apos;immagine che apparirà sotto al titolo della
               newsletter.
             </span>
             {heroUploading && (

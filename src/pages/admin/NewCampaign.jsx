@@ -1,3 +1,4 @@
+// src/pages/admin/NewCampaign.jsx
 import React, { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import { useTranslation } from "react-i18next";
@@ -58,28 +59,20 @@ export default function NewCampaign() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  /**
+   * onSubmit chiamato da <CampaignForm />
+   * payload contiene già:
+   *  - title
+   *  - event_date
+   *  - message_email
+   *  - hero_image_url (URL pubblico dal bucket public-assets)
+   *  - channels { email, sms }
+   */
+  const handleSubmit = async (payload, helpers) => {
     setLoading(true);
     setOk(false);
     setError("");
     setRecipientsCount(null);
-
-    const form = new FormData(e.target);
-
-    const channel = form.get("channel") || "email"; // 👈 letto dalla form
-
-    const payload = {
-      title: form.get("title"),
-      event_date: form.get("event_date"),
-      message_email: form.get("message_email"),
-      channels: {
-        email: channel === "email",
-        sms: channel === "sms",
-      },
-      // URL immagine hero (stringa, NON base64)
-      hero_image_url: form.get("hero_image_url") || null,
-    };
 
     try {
       const res = await fetch(`${API_BASE}/api/admin/send-campaign`, {
@@ -97,7 +90,11 @@ export default function NewCampaign() {
 
       setOk(true);
       setRecipientsCount(data.recipients ?? null);
-      e.target.reset();
+
+      // reset del form (fornito dal child)
+      if (helpers?.reset) {
+        helpers.reset();
+      }
 
       // ricarica storico
       loadHistory();
