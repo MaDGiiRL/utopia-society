@@ -17,7 +17,10 @@ export default function FeaturedEventBanner() {
         setLoading(true);
         setError("");
 
-        const res = await fetch(`${API_BASE}/api/admin/events/featured`);
+        // 👇 ora usiamo /events/home e leggiamo data.featured
+        const res = await fetch(`${API_BASE}/api/admin/events/home`, {
+          credentials: "include",
+        });
         const data = await res.json().catch(() => ({}));
 
         if (!res.ok || !data.ok) {
@@ -25,7 +28,7 @@ export default function FeaturedEventBanner() {
         }
 
         if (!cancelled) {
-          setEvent(data.event);
+          setEvent(data.featured || null);
         }
       } catch (err) {
         console.error("[FeaturedEventBanner]", err);

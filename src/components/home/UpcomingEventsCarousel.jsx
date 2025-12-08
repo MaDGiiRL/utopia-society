@@ -25,6 +25,7 @@ export default function UpcomingEventsCarousel() {
           );
         }
 
+        // 👇 il backend ora restituisce { featured, upcoming }
         setEvents(data.upcoming || []);
       } catch (err) {
         console.error(err);
