@@ -178,15 +178,6 @@ export default function CampaignForm({
           placeholder={t("admin.campaign.form.emailPlaceholder")}
           className="w-full rounded-xl border border-white/10 bg-slate-950/80 px-3 py-2 text-sm text-slate-100 outline-none ring-0 focus:border-cyan-400/80"
         />
-        <p className="mt-1 flex items-center gap-2 text-[11px] text-slate-500">
-          <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-slate-800 text-[9px] text-slate-200">
-            ?
-          </span>
-          {t("admin.campaign.form.emailHint", {
-            namePlaceholder: "{{ nome }}",
-            datePlaceholder: "{{ data_evento }}",
-          })}
-        </p>
       </div>
 
       {/* Canale: EMAIL o SMS / WhatsApp */}
