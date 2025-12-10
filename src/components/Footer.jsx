@@ -140,8 +140,8 @@ const Footer = () => {
           </p>
 
           <p className="text-center md:text-right">
-            Developed with ❤️ by{" "}
-            <span className="text-fuchsia-400">❤️</span> {t("footer.by")}{" "}
+            Developed with {" "}
+            <span className="text-fuchsia-400">❤️</span> by{" "}
             <a
               href="https://www.linkedin.com/in/sofia-vidotto-junior-developer/"
               target="_blank"
