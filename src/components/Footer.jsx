@@ -140,7 +140,7 @@ const Footer = () => {
           </p>
 
           <p className="text-center md:text-right">
-            {t("footer.developedWith")}{" "}
+            Developed with ❤️ by{" "}
             <span className="text-fuchsia-400">❤️</span> {t("footer.by")}{" "}
             <a
               href="https://www.linkedin.com/in/sofia-vidotto-junior-developer/"
