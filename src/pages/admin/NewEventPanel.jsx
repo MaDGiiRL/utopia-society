@@ -44,6 +44,19 @@ export default function NewEventPanel() {
   const [editSaving, setEditSaving] = useState(false);
   const [editError, setEditError] = useState("");
 
+  // ✅ helper: evento passato (usa solo event_date)
+  const isPastEvent = (event_date) => {
+    if (!event_date) return false;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const evDate = new Date(event_date);
+    evDate.setHours(0, 0, 0, 0);
+
+    return evDate < today;
+  };
+
   // ---- upload immagine banner ----
   const handleBannerChange = async (e) => {
     const file = e.target.files?.[0];
@@ -120,9 +133,7 @@ export default function NewEventPanel() {
       const res = await fetch(`${API_BASE}/api/admin/events`, {
         method: "POST",
         credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
@@ -137,7 +148,6 @@ export default function NewEventPanel() {
       setOk(true);
       setSentCount(data.recipients ?? null);
 
-      // ricarica lista eventi
       loadEvents();
 
       form.reset();
@@ -267,15 +277,15 @@ export default function NewEventPanel() {
   };
 
   const handleEditFieldChange = (field, value) => {
-    setEditForm((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+    setEditForm((prev) => ({ ...prev, [field]: value }));
   };
 
   // ---- salva modifiche dalla modale ----
   const handleSaveEdit = async () => {
     if (!editingEvent) return;
+
+    // 🔒 hard stop: evento passato => NON salva e NON chiama PATCH
+    if (isPastEvent(editForm.event_date)) return;
 
     setEditError("");
     setEditSaving(true);
@@ -326,6 +336,10 @@ export default function NewEventPanel() {
       setEditSaving(false);
     }
   };
+
+  // ✅ se passato: modale SOLO LETTURA (non modificabile)
+  const isPastEditing = !!editingEvent && isPastEvent(editForm.event_date);
+  const editDisabled = isPastEditing || editSaving;
 
   return (
     <div className="space-y-6 md:space-y-7 max-w-5xl mx-auto w-full">
@@ -631,7 +645,8 @@ export default function NewEventPanel() {
           </div>
         )}
 
-        <div className="-mx-2 max-h+[420px] overflow-x-auto overflow-y-auto rounded-xl border border-slate-800/80 bg-slate-950/70 px-2 py-1 sm:mx-0">
+        {/* ✅ fix: max-h-[420px] */}
+        <div className="-mx-2 max-h-[420px] overflow-x-auto overflow-y-auto rounded-xl border border-slate-800/80 bg-slate-950/70 px-2 py-1 sm:mx-0">
           {eventsLoading ? (
             <div className="flex h-24 items-center justify-center text-[11px] text-slate-400">
               Caricamento eventi...
@@ -652,6 +667,7 @@ export default function NewEventPanel() {
                   : "-";
 
                 const type = ev.event_type || "current";
+                const isPast = isPastEvent(ev.event_date);
 
                 return (
                   <li
@@ -664,18 +680,28 @@ export default function NewEventPanel() {
                           {ev.title}
                         </span>
 
-                        {/* Tipo evento */}
-                        <span
-                          className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] uppercase tracking-[0.16em] border ${
-                            type === "current"
-                              ? "bg-emerald-500/10 text-emerald-200 border-emerald-400/70"
-                              : "bg-sky-500/10 text-sky-200 border-sky-400/70"
-                          }`}
-                        >
-                          {type === "current" ? "In atto" : "Prossimo"}
-                        </span>
+                        {/* ✅ badge passato automatico */}
+                        {isPast && (
+                          <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] uppercase tracking-[0.16em] border bg-rose-500/10 text-rose-200 border-rose-400/70">
+                            Passato
+                          </span>
+                        )}
 
-                        {ev.is_featured && type === "current" && (
+                        {/* Tipo evento solo se NON passato */}
+                        {!isPast && (
+                          <span
+                            className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] uppercase tracking-[0.16em] border ${
+                              type === "current"
+                                ? "bg-emerald-500/10 text-emerald-200 border-emerald-400/70"
+                                : "bg-sky-500/10 text-sky-200 border-sky-400/70"
+                            }`}
+                          >
+                            {type === "current" ? "In atto" : "Prossimo"}
+                          </span>
+                        )}
+
+                        {/* Featured solo se NON passato */}
+                        {!isPast && ev.is_featured && type === "current" && (
                           <span className="inline-flex items-center gap-1 rounded-full bg-cyan-500/15 px-2 py-0.5 text-[9px] uppercase tracking-[0.16em] text-cyan-200 border border-cyan-400/70">
                             <Star className="h-3 w-3 fill-cyan-400/70 text-cyan-900" />
                             Featured
@@ -688,11 +714,13 @@ export default function NewEventPanel() {
                           </span>
                         )}
                       </div>
+
                       <div className="flex flex-wrap items-center gap-2 text-[10px] text-slate-400">
                         <span>
                           <CalendarDays className="mr-1 inline-block h-3 w-3 text-cyan-300" />
                           {dateLabel}
                         </span>
+
                         {ev.banner_title && (
                           <span className="text-slate-500">
                             Banner:{" "}
@@ -701,6 +729,7 @@ export default function NewEventPanel() {
                             </span>
                           </span>
                         )}
+
                         {ev.recipients_count != null && (
                           <span className="text-slate-500">
                             Newsletter:{" "}
@@ -754,9 +783,18 @@ export default function NewEventPanel() {
                   </h3>
                 </div>
                 <p className="mt-1 text-[11px] text-slate-400">
-                  Aggiorna rapidamente le info evento e il banner in homepage.
+                  {isPastEditing
+                    ? "Evento passato: visualizzazione sola lettura."
+                    : "Aggiorna rapidamente le info evento e il banner in homepage."}
                 </p>
+
+                {isPastEditing && (
+                  <div className="mt-2 inline-flex items-center rounded-full border border-rose-400/70 bg-rose-500/10 px-3 py-1 text-[10px] uppercase tracking-[0.18em] text-rose-200">
+                    Evento passato · sola lettura
+                  </div>
+                )}
               </div>
+
               <button
                 type="button"
                 onClick={handleCloseEditModal}
@@ -775,10 +813,11 @@ export default function NewEventPanel() {
                   </label>
                   <input
                     value={editForm.title}
+                    disabled={editDisabled}
                     onChange={(e) =>
                       handleEditFieldChange("title", e.target.value)
                     }
-                    className="w-full rounded-xl border border-white/10 bg-slate-950/90 px-3 py-1.5 text-[11px] text-slate-100 outline-none ring-0 focus:border-cyan-400/80"
+                    className="w-full rounded-xl border border-white/10 bg-slate-950/90 px-3 py-1.5 text-[11px] text-slate-100 outline-none ring-0 focus:border-cyan-400/80 disabled:opacity-50"
                   />
                 </div>
                 <div className="space-y-1">
@@ -788,10 +827,11 @@ export default function NewEventPanel() {
                   <input
                     type="date"
                     value={editForm.event_date}
+                    disabled={editDisabled}
                     onChange={(e) =>
                       handleEditFieldChange("event_date", e.target.value)
                     }
-                    className="w-full rounded-xl border border-white/10 bg-slate-950/90 px-3 py-1.5 text-[11px] text-slate-100 outline-none ring-0 focus:border-cyan-400/80"
+                    className="w-full rounded-xl border border-white/10 bg-slate-950/90 px-3 py-1.5 text-[11px] text-slate-100 outline-none ring-0 focus:border-cyan-400/80 disabled:opacity-50"
                   />
                 </div>
               </div>
@@ -806,11 +846,12 @@ export default function NewEventPanel() {
                     <input
                       type="radio"
                       value="current"
+                      disabled={editDisabled}
                       checked={editForm.event_type === "current"}
                       onChange={() =>
                         handleEditFieldChange("event_type", "current")
                       }
-                      className="h-3 w-3 rounded border-slate-500 bg-slate-950 text-cyan-400 focus:ring-cyan-400"
+                      className="h-3 w-3 rounded border-slate-500 bg-slate-950 text-cyan-400 focus:ring-cyan-400 disabled:opacity-50"
                     />
                     <span>In atto (può essere featured)</span>
                   </label>
@@ -818,11 +859,12 @@ export default function NewEventPanel() {
                     <input
                       type="radio"
                       value="upcoming"
+                      disabled={editDisabled}
                       checked={editForm.event_type === "upcoming"}
                       onChange={() =>
                         handleEditFieldChange("event_type", "upcoming")
                       }
-                      className="h-3 w-3 rounded border-slate-500 bg-slate-950 text-cyan-400 focus:ring-cyan-400"
+                      className="h-3 w-3 rounded border-slate-500 bg-slate-950 text-cyan-400 focus:ring-cyan-400 disabled:opacity-50"
                     />
                     <span>Prossimo (solo carosello, non featured)</span>
                   </label>
@@ -836,10 +878,11 @@ export default function NewEventPanel() {
                 </label>
                 <input
                   value={editForm.banner_title}
+                  disabled={editDisabled}
                   onChange={(e) =>
                     handleEditFieldChange("banner_title", e.target.value)
                   }
-                  className="w-full rounded-xl border border-white/10 bg-slate-950/90 px-3 py-1.5 text-[11px] text-slate-100 outline-none ring-0 focus:border-cyan-400/80"
+                  className="w-full rounded-xl border border-white/10 bg-slate-950/90 px-3 py-1.5 text-[11px] text-slate-100 outline-none ring-0 focus:border-cyan-400/80 disabled:opacity-50"
                 />
               </div>
 
@@ -850,10 +893,11 @@ export default function NewEventPanel() {
                 <textarea
                   rows={3}
                   value={editForm.banner_subtitle}
+                  disabled={editDisabled}
                   onChange={(e) =>
                     handleEditFieldChange("banner_subtitle", e.target.value)
                   }
-                  className="w-full rounded-xl border border-white/10 bg-slate-950/90 px-3 py-1.5 text-[11px] text-slate-100 outline-none ring-0 focus:border-cyan-400/80"
+                  className="w-full rounded-xl border border-white/10 bg-slate-950/90 px-3 py-1.5 text-[11px] text-slate-100 outline-none ring-0 focus:border-cyan-400/80 disabled:opacity-50"
                 />
               </div>
 
@@ -865,10 +909,11 @@ export default function NewEventPanel() {
                   </label>
                   <input
                     value={editForm.banner_cta_label}
+                    disabled={editDisabled}
                     onChange={(e) =>
                       handleEditFieldChange("banner_cta_label", e.target.value)
                     }
-                    className="w-full rounded-xl border border-white/10 bg-slate-950/90 px-3 py-1.5 text-[11px] text-slate-100 outline-none ring-0 focus:border-cyan-400/80"
+                    className="w-full rounded-xl border border-white/10 bg-slate-950/90 px-3 py-1.5 text-[11px] text-slate-100 outline-none ring-0 focus:border-cyan-400/80 disabled:opacity-50"
                   />
                 </div>
                 <div className="space-y-1">
@@ -877,10 +922,11 @@ export default function NewEventPanel() {
                   </label>
                   <input
                     value={editForm.banner_cta_url}
+                    disabled={editDisabled}
                     onChange={(e) =>
                       handleEditFieldChange("banner_cta_url", e.target.value)
                     }
-                    className="w-full rounded-xl border border-white/10 bg-slate-950/90 px-3 py-1.5 text-[11px] text-slate-100 outline-none ring-0 focus:border-cyan-400/80"
+                    className="w-full rounded-xl border border-white/10 bg-slate-950/90 px-3 py-1.5 text-[11px] text-slate-100 outline-none ring-0 focus:border-cyan-400/80 disabled:opacity-50"
                   />
                 </div>
               </div>
@@ -891,7 +937,7 @@ export default function NewEventPanel() {
                   <input
                     type="checkbox"
                     checked={editForm.is_featured}
-                    disabled={editForm.event_type === "upcoming"}
+                    disabled={editDisabled}
                     onChange={(e) =>
                       handleEditFieldChange("is_featured", e.target.checked)
                     }
@@ -921,26 +967,30 @@ export default function NewEventPanel() {
                 disabled={editSaving}
                 className="inline-flex items-center justify-center gap-1 rounded-full border border-slate-600/70 px-3 py-1.5 text-[11px] uppercase tracking-[0.18em] text-slate-300 hover:border-slate-400 hover:text-slate-100 transition disabled:opacity-50"
               >
-                Cancel
+                Close
               </button>
-              <button
-                type="button"
-                onClick={handleSaveEdit}
-                disabled={editSaving}
-                className="inline-flex items-center justify-center gap-2 rounded-full bg-linear-to-r from-cyan-400 to-fuchsia-500 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-black shadow-[0_0_20px_rgba(56,189,248,0.8)] hover:brightness-110 transition disabled:opacity-60"
-              >
-                {editSaving ? (
-                  <>
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    <span>Saving...</span>
-                  </>
-                ) : (
-                  <>
-                    <Edit3 className="h-3.5 w-3.5" />
-                    <span>Save changes</span>
-                  </>
-                )}
-              </button>
+
+              {/* ✅ Save SOLO se NON passato */}
+              {!isPastEditing && (
+                <button
+                  type="button"
+                  onClick={handleSaveEdit}
+                  disabled={editSaving}
+                  className="inline-flex items-center justify-center gap-2 rounded-full bg-linear-to-r from-cyan-400 to-fuchsia-500 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-black shadow-[0_0_20px_rgba(56,189,248,0.8)] hover:brightness-110 transition disabled:opacity-60"
+                >
+                  {editSaving ? (
+                    <>
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      <span>Saving...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Edit3 className="h-3.5 w-3.5" />
+                      <span>Save changes</span>
+                    </>
+                  )}
+                </button>
+              )}
             </div>
           </div>
         </div>
