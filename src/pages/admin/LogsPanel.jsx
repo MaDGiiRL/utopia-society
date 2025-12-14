@@ -10,6 +10,9 @@ import {
 
 const API_BASE = import.meta.env.VITE_ADMIN_API_URL || "";
 
+// ✅ quante righe prendere dal backend
+const LOGS_LIMIT = 1000;
+
 // Traccia eventi di UI nel sistema di audit log
 async function trackUiEvent(event_type, description, meta) {
   try {
@@ -129,7 +132,7 @@ export default function LogsPanel() {
 
       try {
         const res = await fetch(
-          `${API_BASE}/api/admin/logs?limit=100&offset=0`,
+          `${API_BASE}/api/admin/logs?limit=${LOGS_LIMIT}&offset=0`,
           {
             credentials: "include",
           }
@@ -147,6 +150,7 @@ export default function LogsPanel() {
 
         trackUiEvent("admin_view_logs", "Visualizzazione log attività", {
           count: data.logs?.length || 0,
+          requested_limit: LOGS_LIMIT,
         });
       } catch (err) {
         console.error(err);
@@ -224,7 +228,7 @@ export default function LogsPanel() {
               Log attività
             </h2>
             <p className="text-xs text-slate-400">
-              Ultimi 100 eventi di sistema e UI
+              Ultimi {LOGS_LIMIT} eventi di sistema e UI
             </p>
           </div>
         </div>
