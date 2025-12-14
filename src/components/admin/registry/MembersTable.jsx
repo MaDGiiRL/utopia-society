@@ -5,6 +5,10 @@ export default function MembersTable({
   error,
   filteredMembers,
   onOpenMember,
+  showSelection = false,
+  selectedIds = new Set(),
+  onToggleSelect,
+  onToggleSelectAll,
 }) {
   if (loading) {
     return (
@@ -28,6 +32,10 @@ export default function MembersTable({
     );
   }
 
+  const idsOnPage = filteredMembers.map((m) => m.id);
+  const allSelectedOnPage =
+    idsOnPage.length > 0 && idsOnPage.every((id) => selectedIds.has(id));
+
   return (
     <div className="mb-4 overflow-x-auto">
       <h3 className="mb-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">
@@ -36,7 +44,18 @@ export default function MembersTable({
 
       <table className="min-w-full text-left text-[11px] text-slate-200">
         <thead>
-          <tr className="border-b  border-white/10 bg-slate-900/70 text-[10px] uppercase tracking-[0.16em] text-slate-400">
+          <tr className="border-b border-white/10 bg-slate-900/70 text-[10px] uppercase tracking-[0.16em] text-slate-400">
+            {showSelection && (
+              <th className="px-3 py-2">
+                <input
+                  type="checkbox"
+                  checked={allSelectedOnPage}
+                  onChange={(e) =>
+                    onToggleSelectAll?.(idsOnPage, e.target.checked)
+                  }
+                />
+              </th>
+            )}
             <th className="px-3 py-2">Anno</th>
             <th className="px-3 py-2">Stato</th>
             <th className="px-3 py-2">Export ACSI</th>
@@ -80,6 +99,16 @@ export default function MembersTable({
                 key={m.id}
                 className="border-b border-white/5 hover:bg-slate-900/60"
               >
+                {showSelection && (
+                  <td className="px-3 py-2">
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.has(m.id)}
+                      onChange={() => onToggleSelect?.(m.id)}
+                    />
+                  </td>
+                )}
+
                 {/* ANNO */}
                 <td className="px-3 py-2 text-[11px] text-slate-300">
                   {year || "-"}
