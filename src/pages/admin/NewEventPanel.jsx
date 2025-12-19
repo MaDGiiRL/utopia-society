@@ -98,6 +98,10 @@ export default function NewEventPanel() {
   };
 
   // ---- create nuovo evento ----
+  // ✅ FIX 2 — Frontend (NewEventPanel.jsx)
+  // Modifica SOLO dentro handleSubmit: valida descrizione se WhatsApp è selezionato
+  // + usa bannerSubtitle "pulito" nel payload
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -111,17 +115,31 @@ export default function NewEventPanel() {
     const sendEmail = formData.get("send_email") === "on";
     const sendWhatsapp = formData.get("send_whatsapp") === "on";
 
+    // ✅ descrizione evento = textarea grande
+    const bannerSubtitle = (formData.get("banner_subtitle") || "")
+      .toString()
+      .trim();
+
+    // ✅ hard stop lato UI: WhatsApp richiede descrizione
+    if (sendWhatsapp && !bannerSubtitle) {
+      setSending(false);
+      setError(
+        "Per inviare WhatsApp devi compilare la descrizione evento (textarea grande)."
+      );
+      return;
+    }
+
     const payload = {
-      title: formData.get("title") || "",
+      title: (formData.get("title") || "").toString(),
       event_date: formData.get("event_date") || null,
-      banner_title: formData.get("banner_title") || "",
-      banner_subtitle: formData.get("banner_subtitle") || "",
-      banner_cta_label: formData.get("banner_cta_label") || "",
-      banner_cta_url: formData.get("banner_cta_url") || "",
+      banner_title: (formData.get("banner_title") || "").toString(),
+      banner_subtitle: bannerSubtitle, // ✅ usa sempre la textarea pulita
+      banner_cta_label: (formData.get("banner_cta_label") || "").toString(),
+      banner_cta_url: (formData.get("banner_cta_url") || "").toString(),
       banner_image_url: bannerImageUrl || "",
       // retro-compatibilità: true se almeno un canale è selezionato
       send_newsletter: sendEmail || sendWhatsapp,
-      event_type: formData.get("event_type") || "current",
+      event_type: (formData.get("event_type") || "current").toString(),
       // nuovo oggetto channels, come per le campagne
       channels: {
         email: sendEmail,
