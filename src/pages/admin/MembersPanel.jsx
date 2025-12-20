@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { fetchMembers, fetchMemberById } from "../../api/admin";
+import Swal from "sweetalert2";
 
 import MembersHeaderFilters from "../../components/admin/registry/MembersHeaderFilters";
 import MembersTable from "../../components/admin/registry/MembersTable";
@@ -18,26 +19,14 @@ function toLocalISODate(d) {
   return dateObj.toLocaleDateString("sv-SE"); // YYYY-MM-DD
 }
 
-// ✅ helper: parse "YYYY-MM-DDTHH:mm" from <input datetime-local>
-function parseLocalDateTimeInput(value) {
-  if (!value) return null;
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return null;
-  return d;
-}
-
 // ✅ helper: build a local Date from date ("YYYY-MM-DD") and time ("HH:mm")
 function combineLocalDateAndTime(dateStr, timeStr) {
   if (!dateStr && !timeStr) return null;
 
   const now = new Date();
-
-  // Se manca la data, uso "oggi" (locale)
   const baseDate = dateStr || toLocalISODate(now); // "YYYY-MM-DD"
-  // Se manca l'ora, uso 00:00
   const baseTime = timeStr || "00:00";
 
-  // Costruisco una stringa ISO-like locale: "YYYY-MM-DDTHH:mm"
   const d = new Date(`${baseDate}T${baseTime}`);
   if (Number.isNaN(d.getTime())) return null;
   return d;
@@ -65,7 +54,7 @@ export default function MembersPanel({ reloadToken = 0 }) {
   // 🔎 RICERCA TESTUALE
   const [searchText, setSearchText] = useState("");
 
-  // ✅ SELEZIONE SOCI DA ESPORTARE (solo tab "non_exported")
+  // ✅ SELEZIONE SOCI (usata sia per export che per delete)
   const [selectedIds, setSelectedIds] = useState(() => new Set());
 
   // ---- PAGINAZIONE ----
@@ -82,11 +71,13 @@ export default function MembersPanel({ reloadToken = 0 }) {
     async (filter) => {
       setLoading(true);
       setError("");
+      setUiMessage("");
 
       try {
         const data = await fetchMembers(filter);
-        if (!data.ok)
+        if (!data.ok) {
           throw new Error(data.message || t("admin.membersPanel.error"));
+        }
 
         setMembers(data.members || []);
         setPage(1);
@@ -225,6 +216,7 @@ export default function MembersPanel({ reloadToken = 0 }) {
     setModalOpen(true);
     setSelectedMember(null);
     setLoadingMember(true);
+
     try {
       const data = await fetchMemberById(id);
       if (!data.ok) throw new Error(data.message || "Errore lettura socio");
@@ -237,7 +229,8 @@ export default function MembersPanel({ reloadToken = 0 }) {
     }
   };
 
-  const isSelectingEnabled = exportFilter === "non_exported";
+  // ✅ selezione export: la abiliti SOLO su "non_exported" (come prima)
+  const isSelectingEnabledForExport = exportFilter === "non_exported";
 
   const toggleSelect = (id) => {
     setSelectedIds((prev) => {
@@ -262,6 +255,9 @@ export default function MembersPanel({ reloadToken = 0 }) {
   const handleExportSelectedXlsx = async () => {
     try {
       if (!selectedIds.size) return;
+
+      // Export consentito SOLO su non_exported
+      if (exportFilter !== "non_exported") return;
 
       const ids = Array.from(selectedIds);
       const qs = new URLSearchParams({ ids: ids.join(",") });
@@ -296,6 +292,93 @@ export default function MembersPanel({ reloadToken = 0 }) {
     }
   };
 
+  // ✅ DELETE selezionati (funziona in QUALUNQUE tab)
+  const handleDeleteSelected = async () => {
+    try {
+      if (!selectedIds.size) return;
+
+      const count = selectedIds.size;
+
+      const { isConfirmed, value } = await Swal.fire({
+        title: "Eliminare i soci selezionati?",
+        html: `
+          <div style="text-align:left">
+            <p>Stai per eliminare <b>${count}</b> record.</p>
+            <p style="margin-top:8px;opacity:.85">
+              Questa operazione cancella anche i <b>log</b> collegati.
+            </p>
+            <p style="margin-top:12px">
+              Per confermare digita <b>ELIMINA</b>:
+            </p>
+          </div>
+        `,
+        input: "text",
+        inputPlaceholder: "ELIMINA",
+        inputAttributes: { autocapitalize: "characters" },
+        showCancelButton: true,
+        confirmButtonText: "Elimina",
+        cancelButtonText: "Annulla",
+        confirmButtonColor: "#ef4444",
+        preConfirm: (txt) => {
+          const v = String(txt || "")
+            .trim()
+            .toUpperCase();
+          if (v !== "ELIMINA") {
+            Swal.showValidationMessage("Devi digitare ELIMINA per continuare.");
+            return false;
+          }
+          return v;
+        },
+      });
+
+      if (!isConfirmed) return;
+
+      // UI loading
+      Swal.fire({
+        title: "Eliminazione in corso…",
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        didOpen: () => Swal.showLoading(),
+      });
+
+      const ids = Array.from(selectedIds);
+      const qs = new URLSearchParams({ ids: ids.join(",") });
+
+      const res = await fetch(
+        `${API_BASE}/api/admin/members?${qs.toString()}`,
+        {
+          method: "DELETE",
+          credentials: "include",
+        }
+      );
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok || data?.ok === false) {
+        throw new Error(data.message || "Errore eliminazione soci");
+      }
+
+      // refresh e reset
+      setSelectedIds(new Set());
+      await loadMembers(exportFilter);
+
+      Swal.fire({
+        icon: "success",
+        title: "Eliminati",
+        text: `Eliminati ${count} soci.`,
+        timer: 1400,
+        showConfirmButton: false,
+      });
+    } catch (err) {
+      console.error(err);
+      Swal.fire({
+        icon: "error",
+        title: "Errore",
+        text: err?.message || "Errore eliminazione soci",
+      });
+    }
+  };
+
   const exportMeta = useMemo(() => {
     if (exportFilter === "non_exported") {
       return {
@@ -323,6 +406,8 @@ export default function MembersPanel({ reloadToken = 0 }) {
       dot: "bg-slate-300",
     };
   }, [exportFilter]);
+
+  const selectedCount = selectedIds.size;
 
   return (
     <div className="flex flex-col gap-3">
@@ -536,25 +621,42 @@ export default function MembersPanel({ reloadToken = 0 }) {
                   </span>
                 ) : (
                   <span>
-                    La selezione è disponibile solo su “Da esportare”.
+                    L’export selezionati è disponibile solo su “Da esportare”.
                   </span>
                 )}
               </div>
 
-              {exportFilter === "non_exported" && (
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                {/* ✅ ELIMINA SELEZIONATI (sempre disponibile se c'è selezione) */}
                 <button
                   type="button"
-                  disabled={selectedIds.size === 0}
-                  onClick={handleExportSelectedXlsx}
+                  disabled={selectedCount === 0}
+                  onClick={handleDeleteSelected}
                   className={`h-9 rounded-full border px-3 text-[10px] uppercase tracking-[0.16em] transition ${
-                    selectedIds.size === 0
+                    selectedCount === 0
                       ? "cursor-not-allowed border-slate-700 bg-slate-900/50 text-slate-500"
-                      : "border-cyan-400/70 bg-cyan-500/10 text-cyan-100 hover:bg-cyan-500/20"
+                      : "border-rose-400/70 bg-rose-500/10 text-rose-200 hover:bg-rose-500/20"
                   }`}
                 >
-                  Esporta selezionati ({selectedIds.size})
+                  Elimina selezionati ({selectedCount})
                 </button>
-              )}
+
+                {/* ✅ EXPORT SELEZIONATI (solo non_exported) */}
+                {exportFilter === "non_exported" && (
+                  <button
+                    type="button"
+                    disabled={selectedCount === 0}
+                    onClick={handleExportSelectedXlsx}
+                    className={`h-9 rounded-full border px-3 text-[10px] uppercase tracking-[0.16em] transition ${
+                      selectedCount === 0
+                        ? "cursor-not-allowed border-slate-700 bg-slate-900/50 text-slate-500"
+                        : "border-cyan-400/70 bg-cyan-500/10 text-cyan-100 hover:bg-cyan-500/20"
+                    }`}
+                  >
+                    Esporta selezionati ({selectedCount})
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -568,7 +670,8 @@ export default function MembersPanel({ reloadToken = 0 }) {
           error={error}
           filteredMembers={paginatedMembers}
           onOpenMember={handleOpenMember}
-          showSelection={isSelectingEnabled}
+          // ✅ la selezione ora serve anche per delete, quindi la lasciamo SEMPRE attiva
+          showSelection={true}
           selectedIds={selectedIds}
           onToggleSelect={toggleSelect}
           onToggleSelectAll={toggleSelectAllOnPage}

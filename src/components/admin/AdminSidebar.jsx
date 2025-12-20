@@ -12,6 +12,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import Swal from "sweetalert2";
 
 export default function AdminSidebar({
   tab,
@@ -58,6 +59,30 @@ export default function AdminSidebar({
     });
   };
 
+  // ✅ conferma export xlsx
+  const handleExportXlsxConfirm = async () => {
+    if (xlsxLoading) return;
+
+    const { isConfirmed } = await Swal.fire({
+      icon: "warning",
+      title: t("admin.export.confirmTitle", "Confermi l’export?"),
+      text: t(
+        "admin.export.confirmText",
+        "Verrà generato e scaricato il file ACSI (.xlsx). Vuoi continuare?"
+      ),
+      showCancelButton: true,
+      confirmButtonText: t("common.confirm", "Sì, esporta"),
+      cancelButtonText: t("common.cancel", "Annulla"),
+      confirmButtonColor: "#10b981",
+      cancelButtonColor: "#64748b",
+      background: "#020617",
+      color: "#e5e7eb",
+    });
+
+    if (!isConfirmed) return;
+    await onExportXlsx?.();
+  };
+
   const handleImport = async () => {
     try {
       if (!importFile) {
@@ -87,6 +112,34 @@ export default function AdminSidebar({
     } catch (e) {
       setImportMessage?.(e?.message || "Errore import soci");
     }
+  };
+
+  // ✅ conferma import
+  const handleImportConfirm = async () => {
+    if (importing) return;
+
+    const yearStr = String(importYear || "").trim();
+    const fileName = importFile?.name ? `\n\nFile: ${importFile.name}` : "";
+    const yearLine = yearStr ? `\nAnno: ${yearStr}` : "";
+
+    const { isConfirmed } = await Swal.fire({
+      icon: "warning",
+      title: t("admin.import.confirmTitle", "Confermi l’import?"),
+      text: t(
+        "admin.import.confirmText",
+        `Questa operazione importerà/aggiornerà i soci dal file selezionato.${fileName}${yearLine}`
+      ),
+      showCancelButton: true,
+      confirmButtonText: t("common.confirm", "Sì, importa"),
+      cancelButtonText: t("common.cancel", "Annulla"),
+      confirmButtonColor: "#10b981",
+      cancelButtonColor: "#64748b",
+      background: "#020617",
+      color: "#e5e7eb",
+    });
+
+    if (!isConfirmed) return;
+    await handleImport();
   };
 
   return (
@@ -217,7 +270,7 @@ export default function AdminSidebar({
         <div className="flex w-full flex-col gap-1">
           <button
             type="button"
-            onClick={onExportXlsx}
+            onClick={handleExportXlsxConfirm}
             disabled={xlsxLoading}
             className={`inline-flex items-center justify-center gap-1 rounded-full border border-emerald-400/70 bg-emerald-500/10 px-3 py-1.5 font-semibold uppercase tracking-[0.16em] text-emerald-100 transition hover:bg-emerald-500/25 ${
               xlsxLoading ? "cursor-not-allowed opacity-60" : ""
@@ -325,7 +378,7 @@ export default function AdminSidebar({
                 <div className="flex flex-col gap-2">
                   <button
                     type="button"
-                    onClick={handleImport}
+                    onClick={handleImportConfirm}
                     disabled={importing}
                     className={`inline-flex w-full items-center justify-center gap-1 rounded-full border px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] transition ${
                       importing
