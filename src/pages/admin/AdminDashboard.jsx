@@ -10,7 +10,13 @@ const API_BASE = import.meta.env.VITE_ADMIN_API_URL || "";
 export default function AdminDashboard() {
   const { t } = useTranslation();
 
-  const [tab, setTab] = useState("members"); // "members" | "contacts" | "campaign" | "event" | "logs"
+  const [importing, setImporting] = useState(false);
+  const [importMessage, setImportMessage] = useState("");
+
+  // ✅ token per forzare reload members
+  const [membersReloadToken, setMembersReloadToken] = useState(0);
+
+  const [tab, setTab] = useState("members");
 
   const [xmlError, setXmlError] = useState("");
   const [xmlLoading, setXmlLoading] = useState(false);
@@ -25,7 +31,6 @@ export default function AdminDashboard() {
 
   const navigate = useNavigate();
 
-  // ---- helper tracking UI → /api/admin/logs/track
   const trackUiEvent = async (event_type, description, meta) => {
     try {
       await fetch(`${API_BASE}/api/admin/logs/track`, {
@@ -38,9 +43,7 @@ export default function AdminDashboard() {
           source: "admin_panel_ui",
         }),
       });
-    } catch {
-      // non bloccare mai la UI per un errore di logging
-    }
+    } catch {}
   };
 
   const handleTabChange = (nextTab) => {
@@ -48,6 +51,59 @@ export default function AdminDashboard() {
     trackUiEvent("admin_tab_change", `Cambio tab admin in ${nextTab}`, {
       tab: nextTab,
     });
+  };
+
+  // ✅ IMPORT MEMBERS (usato dalla Sidebar)
+  const handleImportMembers = async ({ file, year }) => {
+    setImportMessage("");
+    setImporting(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("year", String(year));
+
+      const res = await fetch(`${API_BASE}/api/admin/members/import-xlsx`, {
+        method: "POST",
+        credentials: "include",
+        body: formData,
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok || !data.ok) {
+        throw new Error(data.message || "Errore import soci");
+      }
+
+      const inserted = data.inserted ?? data.rows ?? null;
+
+      setImportMessage(
+        inserted != null
+          ? `Import completato (${inserted} righe inserite).`
+          : "Import completato."
+      );
+
+      // ✅ torna su members e ricarica lista
+      setTab("members");
+      setMembersReloadToken((n) => n + 1);
+
+      trackUiEvent("admin_import_members_xlsx", "Import soci XLSX riuscito", {
+        status: "ok",
+        inserted,
+      });
+
+      return data;
+    } catch (err) {
+      console.error(err);
+      setImportMessage(err?.message || "Errore imprevisto import");
+      trackUiEvent("admin_import_members_xlsx", "Errore import soci XLSX", {
+        status: "error",
+        errorMessage: err?.message || String(err),
+      });
+      return { ok: false, message: err?.message || "Errore import" };
+    } finally {
+      setImporting(false);
+    }
   };
 
   // -------- XML EXPORT (completo) --------
@@ -111,9 +167,7 @@ export default function AdminDashboard() {
         credentials: "include",
       });
 
-      if (!res.ok) {
-        throw new Error("Errore download file ACSI");
-      }
+      if (!res.ok) throw new Error("Errore download file ACSI");
 
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
@@ -127,7 +181,6 @@ export default function AdminDashboard() {
       a.remove();
       URL.revokeObjectURL(url);
 
-      // 🔹 salva orario ultimo export
       const nowIso = new Date().toISOString();
       setLastXlsxExportAt(nowIso);
       if (typeof window !== "undefined") {
@@ -143,7 +196,7 @@ export default function AdminDashboard() {
       );
     } catch (err) {
       console.error(err);
-      setXlsxError(err.message || "Errore imprevisto");
+      setXlsxError(err?.message || "Errore imprevisto");
 
       trackUiEvent(
         "admin_export_members_xlsx",
@@ -176,19 +229,23 @@ export default function AdminDashboard() {
         <AdminSidebar
           tab={tab}
           onTabChange={handleTabChange}
-          // XML export
           xmlError={xmlError}
           xmlLoading={xmlLoading}
           onExportXml={handleExportXml}
-          // XLSX ACSI export
           xlsxError={xlsxError}
           xlsxLoading={xlsxLoading}
           onExportXlsx={handleExportXlsx}
           lastXlsxExportAt={lastXlsxExportAt}
+          // ✅ import
+          onImportMembers={handleImportMembers}
+          importing={importing}
+          importMessage={importMessage}
+          setImportMessage={setImportMessage}
           // logout
           onLogout={handleLogout}
         />
-        <AdminMain tab={tab} />
+
+        <AdminMain tab={tab} membersReloadToken={membersReloadToken} />
       </div>
     </div>
   );

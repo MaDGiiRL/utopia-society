@@ -10,7 +10,40 @@ import MemberModal from "../../components/admin/registry/MemberModal";
 const API_BASE = import.meta.env.VITE_ADMIN_API_URL || "";
 const PAGE_SIZE = 50;
 
-export default function MembersPanel() {
+// ✅ helper: Date -> "YYYY-MM-DD" in locale (no UTC edge-cases)
+function toLocalISODate(d) {
+  if (!d) return null;
+  const dateObj = d instanceof Date ? d : new Date(d);
+  if (Number.isNaN(dateObj.getTime())) return null;
+  return dateObj.toLocaleDateString("sv-SE"); // YYYY-MM-DD
+}
+
+// ✅ helper: parse "YYYY-MM-DDTHH:mm" from <input datetime-local>
+function parseLocalDateTimeInput(value) {
+  if (!value) return null;
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return null;
+  return d;
+}
+
+// ✅ helper: build a local Date from date ("YYYY-MM-DD") and time ("HH:mm")
+function combineLocalDateAndTime(dateStr, timeStr) {
+  if (!dateStr && !timeStr) return null;
+
+  const now = new Date();
+
+  // Se manca la data, uso "oggi" (locale)
+  const baseDate = dateStr || toLocalISODate(now); // "YYYY-MM-DD"
+  // Se manca l'ora, uso 00:00
+  const baseTime = timeStr || "00:00";
+
+  // Costruisco una stringa ISO-like locale: "YYYY-MM-DDTHH:mm"
+  const d = new Date(`${baseDate}T${baseTime}`);
+  if (Number.isNaN(d.getTime())) return null;
+  return d;
+}
+
+export default function MembersPanel({ reloadToken = 0 }) {
   const { t } = useTranslation();
 
   // ---- SOCI (tabella members) ----
@@ -21,6 +54,10 @@ export default function MembersPanel() {
   // ---- FILTRI GLOBALI ----
   const [yearFilter, setYearFilter] = useState("ALL");
   const [statusFilter, setStatusFilter] = useState("ALL");
+  const [exactDateFilter, setExactDateFilter] = useState("");
+
+  const [createdAtFromDateFilter, setCreatedAtFromDateFilter] = useState(""); // "YYYY-MM-DD"
+  const [createdAtFromTimeFilter, setCreatedAtFromTimeFilter] = useState(""); // "HH:mm"
 
   // FILTRO EXPORT (non esportati / esportati / tutti)
   const [exportFilter, setExportFilter] = useState("non_exported");
@@ -34,21 +71,13 @@ export default function MembersPanel() {
   // ---- PAGINAZIONE ----
   const [page, setPage] = useState(1);
 
-  // ---- IMPORT SOCI (XLSX) ----
-  const [importOpen, setImportOpen] = useState(false); // ✅ COLLAPSE
-  const [importFile, setImportFile] = useState(null);
-  const [importing, setImporting] = useState(false);
-  const [importMessage, setImportMessage] = useState("");
-  const [importYear, setImportYear] = useState("");
-
   // ---- MODALE SOCIO ----
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState(null);
   const [loadingMember, setLoadingMember] = useState(false);
 
-  // -----------------------------------------------------
-  // FUNZIONE UNICA DI CARICAMENTO SOCI (dal backend)
-  // -----------------------------------------------------
+  const [uiMessage, setUiMessage] = useState(""); // per errori export selezionati ecc.
+
   const loadMembers = useCallback(
     async (filter) => {
       setLoading(true);
@@ -56,10 +85,8 @@ export default function MembersPanel() {
 
       try {
         const data = await fetchMembers(filter);
-
-        if (!data.ok) {
+        if (!data.ok)
           throw new Error(data.message || t("admin.membersPanel.error"));
-        }
 
         setMembers(data.members || []);
         setPage(1);
@@ -73,9 +100,7 @@ export default function MembersPanel() {
     [t]
   );
 
-  // -----------------------------------------------------
-  // CARICAMENTO SOCI
-  // -----------------------------------------------------
+  // ✅ carica anche quando cambia reloadToken
   useEffect(() => {
     let cancelled = false;
 
@@ -87,20 +112,15 @@ export default function MembersPanel() {
     return () => {
       cancelled = true;
     };
-  }, [loadMembers, exportFilter]);
+  }, [loadMembers, exportFilter, reloadToken]);
 
-  // quando cambi filtro export, svuota selezione + pagina
   useEffect(() => {
     setSelectedIds(new Set());
     setPage(1);
   }, [exportFilter]);
 
-  // -----------------------------------------------------
-  // ANNI DISPONIBILI (dinamici dal DB)
-  // -----------------------------------------------------
   const availableYears = useMemo(() => {
     const years = new Set();
-
     for (const m of members) {
       const y =
         m.year ??
@@ -112,15 +132,15 @@ export default function MembersPanel() {
 
       if (y) years.add(y);
     }
-
     return Array.from(years).sort((a, b) => b - a);
   }, [members]);
 
-  // -----------------------------------------------------
-  // FILTRI SU members (ANNO + STATO + SEARCH)
-  // -----------------------------------------------------
   const filteredMembers = useMemo(() => {
     const q = searchText.trim().toLowerCase();
+    const createdAtFromDate = combineLocalDateAndTime(
+      createdAtFromDateFilter,
+      createdAtFromTimeFilter
+    );
 
     return members
       .filter((m) => {
@@ -139,7 +159,6 @@ export default function MembersPanel() {
             .filter(Boolean)
             .join(" ")
             .toLowerCase();
-
           if (!hay.includes(q)) return false;
         }
 
@@ -152,61 +171,48 @@ export default function MembersPanel() {
               ? new Date(m.created_at).getFullYear()
               : null);
 
-          if (!fromYear || String(fromYear) !== String(yearFilter)) {
+          if (!fromYear || String(fromYear) !== String(yearFilter))
             return false;
-          }
         }
 
         const statusText = (m.status || "").toString().toLowerCase();
         const isActive = statusText.startsWith("attiv");
-
         if (statusFilter === "ACTIVE" && !isActive) return false;
         if (statusFilter === "TERMINATED" && isActive) return false;
+
+        if (exactDateFilter) {
+          const ref = m.valid_from || m.created_at || null;
+          const refDay = toLocalISODate(ref);
+          if (!refDay || refDay !== exactDateFilter) return false;
+        }
+
+        if (createdAtFromDate) {
+          const createdAt = m.created_at ? new Date(m.created_at) : null;
+          if (!createdAt || Number.isNaN(createdAt.getTime())) return false;
+          if (createdAt.getTime() < createdAtFromDate.getTime()) return false;
+        }
 
         return true;
       })
       .sort((a, b) => {
-        const ay =
-          a.year ??
-          (a.valid_from
-            ? new Date(a.valid_from).getFullYear()
-            : a.created_at
-            ? new Date(a.created_at).getFullYear()
-            : 0);
-        const by =
-          b.year ??
-          (b.valid_from
-            ? new Date(b.valid_from).getFullYear()
-            : b.created_at
-            ? new Date(b.created_at).getFullYear()
-            : 0);
-
-        if (by !== ay) return by - ay;
-
-        const aTime = a.valid_from
-          ? new Date(a.valid_from).getTime()
-          : a.created_at
-          ? new Date(a.created_at).getTime()
-          : 0;
-        const bTime = b.valid_from
-          ? new Date(b.valid_from).getTime()
-          : b.created_at
-          ? new Date(b.created_at).getTime()
-          : 0;
-
-        return bTime - aTime;
+        const at = a.created_at ? new Date(a.created_at).getTime() : 0;
+        const bt = b.created_at ? new Date(b.created_at).getTime() : 0;
+        return bt - at;
       });
-  }, [members, yearFilter, statusFilter, searchText]);
+  }, [
+    members,
+    yearFilter,
+    statusFilter,
+    searchText,
+    exactDateFilter,
+    createdAtFromDateFilter,
+    createdAtFromTimeFilter,
+  ]);
 
-  // -----------------------------------------------------
-  // PAGINAZIONE
-  // -----------------------------------------------------
   const totalPages = Math.max(1, Math.ceil(filteredMembers.length / PAGE_SIZE));
 
   useEffect(() => {
-    if (page > totalPages) {
-      setPage(totalPages);
-    }
+    if (page > totalPages) setPage(totalPages);
   }, [page, totalPages]);
 
   const paginatedMembers = useMemo(() => {
@@ -215,9 +221,6 @@ export default function MembersPanel() {
     return filteredMembers.slice(start, end);
   }, [filteredMembers, page]);
 
-  // -----------------------------------------------------
-  // MODALE SOCIO
-  // -----------------------------------------------------
   const handleOpenMember = async (id) => {
     setModalOpen(true);
     setSelectedMember(null);
@@ -234,74 +237,6 @@ export default function MembersPanel() {
     }
   };
 
-  // -----------------------------------------------------
-  // IMPORT SOCI DA XLSX
-  // -----------------------------------------------------
-  const handleImportMembers = async () => {
-    if (!importFile) {
-      setImportMessage("Seleziona prima un file .xlsx");
-      return;
-    }
-
-    const yearForImportRaw =
-      importYear && importYear.trim().length
-        ? importYear
-        : yearFilter !== "ALL"
-        ? yearFilter
-        : new Date().getFullYear().toString();
-
-    const yearForImport = parseInt(yearForImportRaw, 10);
-    if (Number.isNaN(yearForImport)) {
-      setImportMessage("Inserisci un anno valido per l'import.");
-      return;
-    }
-
-    setImporting(true);
-    setImportMessage("");
-
-    try {
-      const formData = new FormData();
-      formData.append("file", importFile);
-      formData.append("year", yearForImport.toString());
-
-      const res = await fetch(`${API_BASE}/api/admin/members/import-xlsx`, {
-        method: "POST",
-        credentials: "include",
-        body: formData,
-      });
-
-      const data = await res.json().catch(() => ({}));
-
-      if (!res.ok || !data.ok) {
-        throw new Error(
-          data.message || "Errore durante l'import del file soci"
-        );
-      }
-
-      const inserted = data.inserted ?? data.rows ?? null;
-      setImportMessage(
-        inserted != null
-          ? `Import completato (${inserted} righe inserite).`
-          : "Import completato."
-      );
-      setImportFile(null);
-
-      await loadMembers(exportFilter);
-    } catch (err) {
-      console.error(err);
-      setImportMessage(
-        err instanceof Error
-          ? err.message
-          : "Errore imprevisto durante l'import."
-      );
-    } finally {
-      setImporting(false);
-    }
-  };
-
-  // -----------------------------------------------------
-  // SELEZIONE SOCI (checkbox)
-  // -----------------------------------------------------
   const isSelectingEnabled = exportFilter === "non_exported";
 
   const toggleSelect = (id) => {
@@ -324,9 +259,6 @@ export default function MembersPanel() {
     });
   };
 
-  // -----------------------------------------------------
-  // EXPORT XLSX SELEZIONATI
-  // -----------------------------------------------------
   const handleExportSelectedXlsx = async () => {
     try {
       if (!selectedIds.size) return;
@@ -360,13 +292,10 @@ export default function MembersPanel() {
       await loadMembers(exportFilter);
     } catch (err) {
       console.error(err);
-      setImportMessage(err?.message || "Errore export selezionati");
+      setUiMessage(err?.message || "Errore export selezionati");
     }
   };
 
-  // -----------------------------------------------------
-  // PILL STATO EXPORT + micro-hints
-  // -----------------------------------------------------
   const exportMeta = useMemo(() => {
     if (exportFilter === "non_exported") {
       return {
@@ -395,8 +324,6 @@ export default function MembersPanel() {
     };
   }, [exportFilter]);
 
-  const canShowHints = true;
-
   return (
     <div className="flex flex-col gap-3">
       <MembersHeaderFilters
@@ -405,26 +332,23 @@ export default function MembersPanel() {
         totalCount={members.length}
       />
 
-      {/* FILTRI + IMPORT */}
+      {!!uiMessage && (
+        <div className="rounded-xl border border-rose-500/40 bg-rose-500/10 px-3 py-2 text-[11px] text-rose-200">
+          {uiMessage}
+        </div>
+      )}
+
+      {/* FILTRI */}
       <div className="mb-1 rounded-2xl border border-white/5 bg-slate-950/60 p-3 sm:p-4">
         <div className="flex flex-col gap-4">
-          {/* FILTRI ANAGRAFICA */}
           <div className="rounded-2xl border border-white/5 bg-slate-900/30 p-3 sm:p-4">
             <div className="mb-3">
               <h3 className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-300">
                 Filtri anagrafica
               </h3>
-              {canShowHints && (
-                <p className="mt-1 text-[11px] text-slate-500">
-                  Suggerimento: usa <span className="text-slate-300">Anno</span>{" "}
-                  per periodi specifici e{" "}
-                  <span className="text-slate-300">Stato</span> per separare
-                  attivi/non attivi.
-                </p>
-              )}
             </div>
 
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-4">
               <div>
                 <label className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">
                   Anno
@@ -444,11 +368,6 @@ export default function MembersPanel() {
                     </option>
                   ))}
                 </select>
-                {canShowHints && (
-                  <p className="mt-1 text-[11px] text-slate-500">
-                    Consiglio: lascia “Tutti” per non perdere risultati.
-                  </p>
-                )}
               </div>
 
               <div>
@@ -467,29 +386,63 @@ export default function MembersPanel() {
                   <option value="ACTIVE">Solo attivi</option>
                   <option value="TERMINATED">Terminati / non attivi</option>
                 </select>
-                {canShowHints && (
-                  <p className="mt-1 text-[11px] text-slate-500">
-                    “Solo attivi” è utile prima di invii/comunicazioni.
-                  </p>
-                )}
+              </div>
+
+              <div>
+                <label className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+                  Data esatta (giorno)
+                </label>
+                <input
+                  type="date"
+                  value={exactDateFilter}
+                  onChange={(e) => {
+                    setExactDateFilter(e.target.value);
+                    setPage(1);
+                  }}
+                  className="h-10 w-full rounded-lg border border-slate-700/70 bg-slate-900/70 px-3 text-xs text-slate-100 outline-none focus:border-cyan-400/60 focus:ring-2 focus:ring-cyan-400/20"
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+                  Creato da (data e/o ora)
+                </label>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <input
+                    type="date"
+                    value={createdAtFromDateFilter}
+                    onChange={(e) => {
+                      setCreatedAtFromDateFilter(e.target.value);
+                      setPage(1);
+                    }}
+                    className="h-10 w-full rounded-lg border border-slate-700/70 bg-slate-900/70 px-3 text-xs text-slate-100 outline-none focus:border-cyan-400/60 focus:ring-2 focus:ring-cyan-400/20"
+                  />
+
+                  <input
+                    type="time"
+                    value={createdAtFromTimeFilter}
+                    onChange={(e) => {
+                      setCreatedAtFromTimeFilter(e.target.value);
+                      setPage(1);
+                    }}
+                    className="h-10 w-full rounded-lg border border-slate-700/70 bg-slate-900/70 px-3 text-xs text-slate-100 outline-none focus:border-cyan-400/60 focus:ring-2 focus:ring-cyan-400/20"
+                  />
+                </div>
+
+                <p className="mt-2 text-[11px] text-slate-500">
+                  Tip: puoi usare solo la data (dalle 00:00) o solo l’ora (da
+                  oggi a quell’ora).
+                </p>
               </div>
             </div>
           </div>
 
-          {/* FILTRI REGISTRO */}
           <div className="rounded-2xl border border-cyan-400/10 bg-slate-900/20 p-3 sm:p-4">
             <div className="mb-3">
               <h3 className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-300">
                 Filtri registro
               </h3>
-              {canShowHints && (
-                <p className="mt-1 text-[11px] text-slate-500">
-                  Suggerimento: <span className="text-slate-200">Export</span>{" "}
-                  controlla lo stato di esportazione,{" "}
-                  <span className="text-slate-200">Cerca</span> filtra per
-                  testo.
-                </p>
-              )}
             </div>
 
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -523,12 +476,6 @@ export default function MembersPanel() {
                   <option value="all">Tutti</option>
                 </select>
 
-                {canShowHints && (
-                  <p className="mt-1 text-[11px] text-slate-500">
-                    {exportMeta.micro}
-                  </p>
-                )}
-
                 <p className="mt-2 text-[11px] text-slate-500">
                   Nota: i soci esportati finiranno sotto{" "}
                   <span className="font-semibold text-slate-300">
@@ -559,16 +506,17 @@ export default function MembersPanel() {
                 />
 
                 <div className="mt-2 flex items-center justify-between gap-2">
-                  {canShowHints && (
-                    <p className="text-[11px] text-slate-500">
-                      Tip: puoi combinare ricerca + filtri sopra.
-                    </p>
-                  )}
+                  <p className="text-[11px] text-slate-500">
+                    Tip: puoi combinare ricerca + filtri.
+                  </p>
 
                   <button
                     type="button"
                     onClick={() => {
                       setSearchText("");
+                      setExactDateFilter("");
+                      setCreatedAtFromDateFilter("");
+                      setCreatedAtFromTimeFilter("");
                       setPage(1);
                     }}
                     className="h-8 shrink-0 rounded-full border border-slate-700 bg-slate-900/70 px-3 text-[10px] uppercase tracking-[0.16em] text-slate-200 transition hover:border-slate-500 hover:bg-slate-900"
@@ -579,7 +527,6 @@ export default function MembersPanel() {
               </div>
             </div>
 
-            {/* AZIONI EXPORT SELEZIONATI */}
             <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div className="text-[11px] text-slate-400">
                 {exportFilter === "non_exported" ? (
@@ -609,157 +556,6 @@ export default function MembersPanel() {
                 </button>
               )}
             </div>
-          </div>
-
-          {/* DIVIDER */}
-          <div>
-            <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-          </div>
-
-          {/* ✅ IMPORT: toggle + box rifatto */}
-          <div className="rounded-2xl border border-white/5 bg-slate-900/20 p-3 sm:p-4">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-              <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-300">
-                    Import
-                  </h3>
-                  <span className="inline-flex items-center rounded-full border border-white/10 bg-slate-950/40 px-2 py-0.5 text-[10px] uppercase tracking-[0.14em] text-slate-400">
-                    Avanzato
-                  </span>
-                </div>
-                <p className="mt-1 text-[11px] text-slate-500">
-                  Carica un file XLSX solo quando devi aggiungere/aggiornare
-                  soci dal gestionale.
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setImportOpen((v) => {
-                    const next = !v;
-                    if (!next) {
-                      setImportFile(null);
-                      setImportYear("");
-                      setImportMessage("");
-                      setImporting(false);
-                    } else {
-                      setImportMessage("");
-                    }
-                    return next;
-                  });
-                }}
-                className={`h-9 rounded-full border px-3 text-[10px] uppercase tracking-[0.16em] transition ${
-                  importOpen
-                    ? "border-slate-600 bg-slate-900/70 text-slate-200 hover:border-slate-500"
-                    : "border-emerald-400/40 bg-emerald-500/10 text-emerald-100 hover:bg-emerald-500/20"
-                }`}
-              >
-                {importOpen ? "Nascondi import" : "Apri import"}
-              </button>
-            </div>
-
-            {importOpen && (
-              <div className="mt-4 rounded-2xl border border-white/5 bg-slate-950/40 p-3 sm:p-4">
-                {/* micro hint non invasivo */}
-                {canShowHints && (
-                  <div className="mb-3 rounded-xl border border-white/5 bg-slate-900/40 px-3 py-2 text-[11px] text-slate-400">
-                    <span className="font-medium text-slate-200">Nota:</span> il
-                    campo <span className="text-slate-200">Anno import</span> è{" "}
-                    <span className="text-slate-200">obbligatorio</span>. Se
-                    lasciato vuoto, l’import non assegnerà alcun anno e la
-                    procedura risulterà{" "}
-                    <span className="text-slate-200">non valida</span>. In caso
-                    di dubbi, contatta la developer prima di procedere.
-                  </div>
-                )}
-
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-12 lg:items-end">
-                  {/* FILE */}
-                  <div className="lg:col-span-5">
-                    <label className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">
-                      File XLSX
-                    </label>
-
-                    <input
-                      type="file"
-                      accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                      onChange={(e) =>
-                        setImportFile(e.target.files?.[0] || null)
-                      }
-                      className="block w-full cursor-pointer rounded-xl border border-slate-700/70 bg-slate-900/70 p-2 text-[11px] text-slate-200 file:mr-3 file:rounded-md file:border-0 file:bg-slate-700 file:px-3 file:py-2 file:text-[10px] file:uppercase file:tracking-[0.14em] file:text-slate-100 hover:file:bg-slate-600"
-                    />
-
-                    {/* nome file selezionato */}
-                    <div className="mt-2 flex items-center justify-between gap-2 text-[11px]">
-                      <span className="text-slate-500">File selezionato:</span>
-                      <span className="truncate text-slate-300">
-                        {importFile?.name ? importFile.name : "Nessuno"}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* ANNO */}
-                  <div className="lg:col-span-3">
-                    <label className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">
-                      Anno import
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Es. 2025"
-                      value={importYear}
-                      onChange={(e) => setImportYear(e.target.value)}
-                      className="h-10 w-full rounded-xl border border-slate-700/70 bg-slate-900/70 px-3 text-xs text-slate-100 outline-none placeholder:text-slate-500 focus:border-emerald-400/60 focus:ring-2 focus:ring-emerald-400/20"
-                    />
-                    <p className="mt-1 text-[11px] text-slate-500">
-                      L'anno corrispondente ai soci importati.
-                    </p>
-                  </div>
-
-                  {/* AZIONI */}
-                  <div className="lg:col-span-4">
-                    <div className="flex flex-col gap-2">
-                      <button
-                        type="button"
-                        onClick={handleImportMembers}
-                        disabled={importing}
-                        className={`h-10 w-full rounded-xl border px-4 text-[10px] uppercase tracking-[0.16em] transition ${
-                          importing
-                            ? "cursor-not-allowed border-slate-700 bg-slate-900/50 text-slate-500"
-                            : "border-emerald-400/70 bg-emerald-500/10 text-emerald-100 hover:bg-emerald-500/20"
-                        }`}
-                      >
-                        {importing ? "Import in corso…" : "Importa soci"}
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setImportOpen(false);
-                          setImportFile(null);
-                          setImportYear("");
-                          setImportMessage("");
-                          setImporting(false);
-                        }}
-                        className="h-9 w-full rounded-xl border border-slate-700 bg-slate-900/60 px-4 text-[10px] uppercase tracking-[0.16em] text-slate-200 transition hover:border-slate-500 hover:bg-slate-900"
-                      >
-                        Chiudi
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* MESSAGGIO */}
-                  {importMessage && (
-                    <div className="sm:col-span-2 lg:col-span-12">
-                      <div className="rounded-xl border border-white/5 bg-slate-900/40 p-3 text-[11px] text-slate-300">
-                        {importMessage}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </div>
@@ -813,7 +609,6 @@ export default function MembersPanel() {
         )}
       </div>
 
-      {/* MODALE SOCIO */}
       <MemberModal
         open={modalOpen}
         onClose={() => {
