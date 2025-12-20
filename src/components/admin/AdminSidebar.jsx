@@ -99,7 +99,7 @@ export default function AdminSidebar({
             </button>
 
             {/* Campagne */}
-            <button
+            {/* <button
               type="button"
               onClick={() => onTabChange("campaign")}
               className={`flex w-full min-w-40 items-center gap-2 rounded-xl px-3 py-2 text-left transition md:min-w-0 ${
@@ -119,7 +119,7 @@ export default function AdminSidebar({
                   {t("admin.dashboard.campaignTabSubtitle")}
                 </span>
               </div>
-            </button>
+            </button> */}
 
             {/* Nuovo evento */}
             <button
