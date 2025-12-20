@@ -45,11 +45,11 @@ const generateSignatureBlackPng = (canvasOriginal) => {
     const a = pixels[i + 3];
 
     if (a > 0) {
-      // pixel "di firma" -> nero
-      pixels[i] = 0; // R
-      pixels[i + 1] = 0; // G
-      pixels[i + 2] = 0; // B
-      pixels[i + 3] = 255; // alpha pieno
+      // firma -> nero
+      pixels[i] = 0;
+      pixels[i + 1] = 0;
+      pixels[i + 2] = 0;
+      pixels[i + 3] = 255;
     } else {
       // sfondo -> bianco
       pixels[i] = 255;
@@ -132,7 +132,6 @@ function MembershipForm() {
     };
 
     const handleEnd = () => {
-      // niente preventDefault qui, importante per non rompere i tap sugli input
       drawing.current = false;
     };
 
@@ -199,11 +198,16 @@ function MembershipForm() {
     const random =
       window.crypto?.randomUUID?.() ||
       `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-    const path = `${todayFolder}/${random}_${tipo}_${file.name}`;
+
+    const safeFilename = String(file.name || "document")
+      .replace(/[^\w.\-]+/g, "_")
+      .slice(0, 120);
+
+    const storagePath = `${todayFolder}/${random}_${tipo}_${safeFilename}`;
 
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("path", path);
+    formData.append("path", storagePath);
 
     const res = await fetch(`${API_BASE}/api/admin/upload-document`, {
       method: "POST",
@@ -231,9 +235,12 @@ function MembershipForm() {
       );
     }
 
+    // ✅ IMPORTANTISSIMO:
+    // - salviamo il PATH (non signedUrl) nel DB, così non scade.
+    // - la signedUrl può servire per preview immediata, ma NON per persistenza.
     return {
-      path: data.path,
-      url: data.signedUrl,
+      path: data.path || storagePath,
+      signedUrl: data.signedUrl || null,
     };
   };
 
@@ -290,6 +297,7 @@ function MembershipForm() {
       const backResult = await uploadDocumento(fileBack, "back");
 
       // 2) payload per /api/admin/members
+      // ✅ FIX: salviamo nel DB i PATH (non signedUrl)
       const payload = {
         full_name: fullName,
         email: formData.get("emailType"),
@@ -298,20 +306,18 @@ function MembershipForm() {
         date_of_birth: formData.get("birthDate") || null,
         birth_place: formData.get("birthPlace") || null,
         fiscal_code: formData.get("fiscalCode") || null,
-        note: formData.get("note") || null, // viene da MembershipNotesSection
+        note: formData.get("note") || null,
         accept_privacy: formData.get("accept_privacy") === "on",
         accept_marketing: formData.get("accept_marketing") === "on",
         source: "membership_form",
-        document_front_url: frontResult.url,
-        document_back_url: backResult.url,
+        document_front_url: frontResult.path,
+        document_back_url: backResult.path,
         signature_data_url: signatureDataUrlLocal || null,
       };
 
       const res = await fetch(`${API_BASE}/api/admin/members`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
@@ -527,7 +533,7 @@ function MembershipForm() {
                 )}
                 <span className="ml-1 text-rose-400">*</span>
               </p>
-              <div className="mb-2 overflow-hidden rounded-xl border border-white/15 bg-slate-900/80">
+              <div className="mb-2 overflow-hidden rounded-xl border border-white/15 bg-AC-900/80">
                 <canvas
                   ref={canvasRef}
                   width={500}
