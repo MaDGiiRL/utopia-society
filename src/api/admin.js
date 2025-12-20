@@ -76,3 +76,11 @@ export async function fetchHomeEvents() {
   const res = await api.get("/api/admin/events/home");
   return res.data;
 }
+
+export async function deleteMembers(ids = []) {
+  const idsParam = Array.isArray(ids) ? ids.join(",") : String(ids || "");
+  const res = await api.delete("/api/admin/members", {
+    params: { ids: idsParam },
+  });
+  return res.data;
+}

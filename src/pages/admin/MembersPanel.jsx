@@ -1,7 +1,7 @@
 // src/pages/admin/MembersPanel.jsx
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { fetchMembers, fetchMemberById } from "../../api/admin";
+import { fetchMembers, fetchMemberById, deleteMembers } from "../../api/admin";
 import Swal from "sweetalert2";
 
 import MembersHeaderFilters from "../../components/admin/registry/MembersHeaderFilters";
@@ -292,26 +292,25 @@ export default function MembersPanel({ reloadToken = 0 }) {
     }
   };
 
-  // ✅ DELETE selezionati (funziona in QUALUNQUE tab)
   const handleDeleteSelected = async () => {
     try {
       if (!selectedIds.size) return;
 
       const count = selectedIds.size;
 
-      const { isConfirmed, value } = await Swal.fire({
+      const { isConfirmed } = await Swal.fire({
         title: "Eliminare i soci selezionati?",
         html: `
-          <div style="text-align:left">
-            <p>Stai per eliminare <b>${count}</b> record.</p>
-            <p style="margin-top:8px;opacity:.85">
-              Questa operazione cancella anche i <b>log</b> collegati.
-            </p>
-            <p style="margin-top:12px">
-              Per confermare digita <b>ELIMINA</b>:
-            </p>
-          </div>
-        `,
+        <div style="text-align:left">
+          <p>Stai per eliminare <b>${count}</b> record.</p>
+          <p style="margin-top:8px;opacity:.85">
+            Questa operazione cancella anche i <b>log</b> collegati.
+          </p>
+          <p style="margin-top:12px">
+            Per confermare digita <b>ELIMINA</b>:
+          </p>
+        </div>
+      `,
         input: "text",
         inputPlaceholder: "ELIMINA",
         inputAttributes: { autocapitalize: "characters" },
@@ -327,7 +326,7 @@ export default function MembersPanel({ reloadToken = 0 }) {
             Swal.showValidationMessage("Devi digitare ELIMINA per continuare.");
             return false;
           }
-          return v;
+          return true;
         },
       });
 
@@ -342,20 +341,11 @@ export default function MembersPanel({ reloadToken = 0 }) {
       });
 
       const ids = Array.from(selectedIds);
-      const qs = new URLSearchParams({ ids: ids.join(",") });
 
-      const res = await fetch(
-        `${API_BASE}/api/admin/members?${qs.toString()}`,
-        {
-          method: "DELETE",
-          credentials: "include",
-        }
-      );
+      const data = await deleteMembers(ids);
 
-      const data = await res.json().catch(() => ({}));
-
-      if (!res.ok || data?.ok === false) {
-        throw new Error(data.message || "Errore eliminazione soci");
+      if (!data?.ok) {
+        throw new Error(data?.message || "Errore eliminazione soci");
       }
 
       // refresh e reset
